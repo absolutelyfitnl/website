@@ -16,6 +16,7 @@ concurrency:
 jobs:
   deploy:
     name: Deploy Absolutely Fit
+    if: github.ref == 'refs/heads/production'
 
     runs-on:
       - self-hosted
@@ -39,11 +40,12 @@ jobs:
 
     steps:
       - name: Checkout exact revision
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
           persist-credentials: false
           clean: true
+          ref: ${{ github.sha }}
 
       - name: Verify production runner
         shell: bash
@@ -65,6 +67,96 @@ jobs:
           test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
 
           echo "Runner boundary OK"
+
+      - name: Use Node.js 24
+        uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Quality gate exact revision
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+
+          npm ci
+          npm run lint
+          npm run typecheck
+          npm test
+          npm run build
+          npm audit --omit=dev --audit-level=high
+
+      - name: Smoke-test standalone artifact
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+
+          smoke_port="$(node -e '
+            const net = require("node:net");
+            const server = net.createServer();
+            server.listen(0, "127.0.0.1", () => {
+              console.log(server.address().port);
+              server.close();
+            });
+          ')"
+          smoke_log="${RUNNER_TEMP}/absolutely-fit-standalone.log"
+
+          (
+            cd .next/standalone
+            export HOSTNAME=127.0.0.1
+            export PORT="${smoke_port}"
+            npm start
+          ) >"${smoke_log}" 2>&1 &
+          smoke_pid=$!
+
+          cleanup() {
+            kill "${smoke_pid}" 2>/dev/null || true
+            wait "${smoke_pid}" 2>/dev/null || true
+          }
+          trap cleanup EXIT
+
+          ready=false
+          for _ in {1..30}; do
+            if curl -fsS "http://127.0.0.1:${smoke_port}/api/health" >/dev/null; then
+              ready=true
+              break
+            fi
+            if ! kill -0 "${smoke_pid}" 2>/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+
+          if [[ "${ready}" != "true" ]]; then
+            sed -n '1,160p' "${smoke_log}"
+            exit 1
+          fi
+
+          for route in \
+            / \
+            /sporten/krachttraining \
+            /blog/sterker-worden-begint-met-techniek \
+            /ledenapp \
+            /ledenportaal \
+            /backoffice \
+            /rooster
+          do
+            curl -fsS "http://127.0.0.1:${smoke_port}${route}" >/dev/null
+          done
+
+          health="$(curl -fsS "http://127.0.0.1:${smoke_port}/api/health")"
+          node -e '
+            const health = JSON.parse(process.argv[1]);
+            const expectedRevision = process.argv[2];
+            if (
+              health.status !== "ok" ||
+              health.service !== "absolutely-fit" ||
+              health.revision !== expectedRevision ||
+              health.environment !== "production"
+            ) {
+              throw new Error("Standalone health payload does not match the release");
+            }
+          ' "${health}" "${GITHUB_SHA}"
 
       - name: Deploy production
         shell: bash
@@ -90,4 +182,27 @@ jobs:
             https://abso.dgwebservices.nl/ \
             >/dev/null
 
-          echo "Absolutely Fit production OK"
+          health="$(curl \
+            -fsSL \
+            --retry 10 \
+            --retry-all-errors \
+            --retry-delay 2 \
+            https://abso.dgwebservices.nl/api/health)"
+
+          node -e '
+            const health = JSON.parse(process.argv[1]);
+            const expectedRevision = process.argv[2];
+            const expected = {
+              status: "ok",
+              service: "absolutely-fit",
+              revision: expectedRevision,
+              environment: "production",
+            };
+            for (const [key, value] of Object.entries(expected)) {
+              if (health[key] !== value) {
+                throw new Error(`Invalid health field ${key}`);
+              }
+            }
+          ' "${health}" "${GITHUB_SHA}"
+
+          echo "Absolutely Fit production OK at ${GITHUB_SHA}"

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 1600" fill="none">
+  <defs>
+    <linearGradient id="ribbon-main" x1="70" y1="30" x2="350" y2="1570" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#9EC2FF" stop-opacity=".18"/>
+      <stop offset=".28" stop-color="#1A63F5" stop-opacity=".86"/>
+      <stop offset=".7" stop-color="#0A58F5" stop-opacity=".96"/>
+      <stop offset="1" stop-color="#6037C8" stop-opacity=".76"/>
+    </linearGradient>
+    <linearGradient id="ribbon-soft" x1="360" y1="20" x2="90" y2="1570" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#EAF2FF" stop-opacity=".1"/>
+      <stop offset=".35" stop-color="#BBD3FF" stop-opacity=".72"/>
+      <stop offset=".72" stop-color="#6D9DFF" stop-opacity=".46"/>
+      <stop offset="1" stop-color="#9A78E9" stop-opacity=".3"/>
+    </linearGradient>
+    <filter id="soft-shadow" x="-80" y="-80" width="580" height="1760" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#0A58F5" flood-opacity=".12"/>
+    </filter>
+  </defs>
+  <path d="M328 -120C520 167-83 289 111 579c187 280 405 194 200 518-136 215-176 348-39 623" stroke="url(#ribbon-soft)" stroke-width="72" stroke-linecap="round" filter="url(#soft-shadow)"/>
+  <path d="M347 -129C506 172-48 316 137 586c171 249 362 183 176 497-126 213-149 366-8 628" stroke="url(#ribbon-main)" stroke-width="26" stroke-linecap="round"/>
+  <path d="M365 -128C492 188-15 330 158 590c153 229 322 176 157 480-117 217-124 380 22 632" stroke="#FFFFFF" stroke-opacity=".62" stroke-width="5" stroke-linecap="round"/>
+</svg>

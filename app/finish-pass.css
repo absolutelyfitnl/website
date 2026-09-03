@@ -1,0 +1,1192 @@
+/* Production finish pass
+   A deliberately small last layer for geometry, interaction and route consistency. */
+
+:root {
+  --finish-blue: #0a5cf5;
+  --finish-blue-deep: #0748c7;
+  --finish-violet: #6540d5;
+  --finish-navy: #071a36;
+  --finish-body: #506078;
+  --finish-line: rgba(19, 55, 103, .13);
+  --finish-soft: linear-gradient(145deg, #fff 0%, #f8fbff 58%, #edf4ff 100%);
+  --finish-depth: linear-gradient(145deg, #071a36 0%, #0a2a61 68%, #173477 100%);
+  --finish-brand-line: linear-gradient(90deg, var(--finish-blue), #73a8ff 70%, var(--finish-violet));
+  --finish-pass: linear-gradient(145deg, #1261f5 0%, #1756df 54%, #5036c7 100%);
+  --finish-radius: 14px;
+  --finish-shadow: 0 24px 60px -48px rgba(7, 26, 54, .42), 0 7px 22px -19px rgba(18, 97, 245, .13);
+  --finish-shadow-raised: 0 30px 68px -46px rgba(7, 26, 54, .52), 0 14px 32px -24px rgba(18, 97, 245, .22);
+  --finish-ease: cubic-bezier(.16, 1, .3, 1);
+}
+
+/* Typography, focus and progressive motion. */
+#main-content > main :is(h1, h2, h3, h4) {
+  min-width: 0;
+  word-break: normal;
+  overflow-wrap: normal;
+  hyphens: none;
+  text-wrap: balance;
+}
+
+#main-content > main :is(p, li, address, figcaption) {
+  text-wrap: pretty;
+}
+
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 3px solid var(--finish-blue) !important;
+  outline-offset: 3px !important;
+}
+
+:where(.ao-community, .utility-band, .club-route, .history-band, .c90-footer__headline, .portal-pass-card)
+  :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline-color: #fff !important;
+  box-shadow: 0 0 0 5px var(--finish-blue) !important;
+}
+
+.reveal {
+  transition-delay: var(--reveal-delay, 0ms) !important;
+}
+
+/* Exact screenshot fixes. */
+.ao-heritage > figure {
+  isolation: isolate;
+  background: transparent;
+}
+
+.ao-heritage > figure > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.ao-heritage > figure::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: 54% 0 0;
+  background: linear-gradient(180deg, transparent, rgba(7, 26, 54, .18));
+  pointer-events: none;
+}
+
+.ao-heritage > figure figcaption {
+  z-index: 2;
+  border-radius: 0 8px 0 0;
+  box-shadow: 0 18px 34px -26px rgba(7, 26, 54, .46);
+}
+
+/* Public route finish: retain editorial whitespace, align only existing panels. */
+#main-content > main:not(.portal-app):not(.admin-app) {
+  --route-gap: clamp(18px, 2.2vw, 30px);
+}
+
+#main-content > main:not(.portal-app):not(.admin-app) > * {
+  min-width: 0;
+}
+
+:is(.page-hero, .page-hero--full, .sports-mosaic, .coach-profile, .history-band,
+  .mission-split, .learning-company, .membership-routes, .ooievaar-band,
+  .blog-hero, .club-route, .app-page-hero, .interactive-app, .portal-preview,
+  .app-security, .utility-band, .public-schedule__panel, .public-hours,
+  .demo-login) {
+  border-color: var(--finish-line);
+  border-radius: var(--finish-radius);
+  box-shadow: var(--finish-shadow);
+}
+
+:is(.page-hero, .page-hero--full, .sports-mosaic, .coach-profile, .history-band,
+  .mission-split, .blog-hero, .club-route, .app-page-hero, .interactive-app,
+  .portal-preview, .demo-login) {
+  overflow: hidden;
+  isolation: isolate;
+}
+
+:is(.page-hero__copy, .blog-hero__copy, .app-page-hero__copy, .mission-split > div:last-child,
+  .learning-company__copy) {
+  background-image: linear-gradient(145deg, rgba(255,255,255,.98), rgba(248,251,255,.96));
+}
+
+:is(.page-hero__copy, .blog-hero__copy, .app-page-hero__copy) > p {
+  color: var(--finish-body);
+  line-height: 1.68;
+}
+
+:is(.sports-index, .guidance-method, .complete-picture, .membership-intro,
+  .comparison-section, .membership-faq, .contact-workspace, .ecosystem-intro,
+  .app-features, .app-security, .article-layout, .related-articles) {
+  min-width: 0;
+}
+
+:is(.membership-route, .numbered-list > *, .values-lines > *, .article-lines > *,
+  .topic-rail > *, .faq-accordion [data-slot="accordion-item"], .contact-form) {
+  transition: border-color .24s ease, background-color .24s ease,
+    box-shadow .32s var(--finish-ease), transform .32s var(--finish-ease);
+}
+
+.membership-route {
+  border-color: var(--finish-line);
+  border-radius: 12px;
+  box-shadow: var(--finish-shadow);
+}
+
+.membership-route.is-featured {
+  border-color: rgba(10, 92, 245, .6);
+  background: var(--finish-soft);
+  box-shadow: var(--finish-shadow-raised);
+}
+
+.comparison-table,
+.faq-accordion,
+.contact-form,
+.article-body blockquote {
+  border-color: var(--finish-line);
+  border-radius: 12px;
+  box-shadow: 0 18px 50px -44px rgba(7, 26, 54, .38);
+}
+
+.contact-form :is(input, textarea, [data-slot="select-trigger"]),
+.admin-app :is(input, select, textarea),
+.portal-app :is(input, select, textarea) {
+  border-radius: 8px;
+  transition: border-color .2s ease, background-color .2s ease, box-shadow .2s ease;
+}
+
+.contact-form :is(input, textarea, [data-slot="select-trigger"]):focus,
+.admin-app :is(input, select, textarea):focus,
+.portal-app :is(input, select, textarea):focus {
+  border-color: var(--finish-blue);
+  box-shadow: 0 0 0 4px rgba(10, 92, 245, .1);
+}
+
+.article-cover,
+.program-photo,
+.blog-feature,
+.related-articles img {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.article-cover img,
+.program-photo img,
+.blog-feature img,
+.related-articles img,
+.page-hero__media img,
+.sports-mosaic__image img,
+.coach-profile__image img,
+.club-route__image img {
+  transition: transform .8s var(--finish-ease), filter .5s ease;
+}
+
+/* Public schedule is a clean editorial agenda on narrow screens. */
+.public-schedule__panel > header button,
+.public-schedule__filters button,
+.public-schedule__list a,
+.public-hours .ao-button {
+  transition: color .2s ease, border-color .2s ease, background-color .2s ease,
+    box-shadow .25s var(--finish-ease), transform .25s var(--finish-ease);
+}
+
+.public-schedule__panel > header button {
+  border-radius: 8px;
+}
+
+.public-schedule__filters {
+  scrollbar-color: #7aa5ef #edf3fb;
+  scroll-snap-type: x proximity;
+}
+
+.public-schedule__filters button {
+  scroll-snap-align: start;
+}
+
+.public-schedule__list > article > div {
+  background: linear-gradient(160deg, #fbfdff, #edf4ff);
+}
+
+.public-hours {
+  overflow: hidden;
+  background: var(--finish-soft);
+}
+
+/* Product UI: one system for member and club surfaces. */
+.admin-app {
+  --product-ink: #071a36;
+  --product-body: #4d5f78;
+  --product-muted: #75839a;
+  --product-blue: #1261f5;
+  --product-violet: #6540d5;
+  --product-ice: #edf4ff;
+  --product-line: rgba(23, 60, 110, .14);
+  --product-shadow: 0 22px 56px -44px rgba(7, 26, 54, .4), 0 6px 18px -16px rgba(18, 97, 245, .15);
+  background: #f3f6fb;
+  color: var(--product-body);
+}
+
+.admin-surface {
+  min-width: 0;
+  background: linear-gradient(180deg, #eef4ff 0, #f7f9fc 240px, #f4f7fb 100%);
+}
+
+.admin-sidebar {
+  border-color: var(--product-line);
+  box-shadow: 18px 0 48px -44px rgba(7, 26, 54, .5);
+}
+
+.admin-brand {
+  position: relative;
+  border-color: var(--product-line);
+}
+
+.admin-brand::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 2px;
+  background: var(--finish-brand-line);
+  opacity: .78;
+}
+
+.admin-sidebar nav a,
+.admin-sidebar > div a {
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: #66758c;
+  transition: color .2s ease, background-color .2s ease, border-color .2s ease,
+    transform .25s var(--finish-ease);
+}
+
+.admin-sidebar nav a.is-active {
+  border-color: rgba(18, 97, 245, .12);
+  background: linear-gradient(100deg, #e7f0ff, #f7f9ff 74%);
+  color: var(--product-blue);
+  box-shadow: inset 3px 0 var(--product-blue), 0 10px 24px -22px rgba(18, 97, 245, .46);
+}
+
+.admin-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  min-height: 68px;
+  border-color: var(--product-line);
+  background: rgba(255, 255, 255, .92);
+  backdrop-filter: blur(16px) saturate(130%);
+  box-shadow: 0 14px 34px -34px rgba(7, 26, 54, .7);
+}
+
+.admin-demo-banner {
+  min-height: 36px;
+  border-color: rgba(18, 97, 245, .14);
+  background: linear-gradient(90deg, #eaf2ff, #f8faff 50%, #eaf2ff);
+}
+
+.admin-content {
+  position: relative;
+  isolation: isolate;
+  width: min(1420px, calc(100% - 56px));
+  padding-block: clamp(32px, 3vw, 48px) clamp(84px, 7vw, 116px);
+}
+
+.admin-content::before {
+  right: -7%;
+  top: -130px;
+  width: 360px;
+  height: 1080px;
+  opacity: .055;
+  pointer-events: none;
+}
+
+.admin-content > * {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+
+.admin-heading {
+  margin-bottom: clamp(24px, 2.4vw, 34px);
+}
+
+.admin-heading > div:first-child {
+  position: relative;
+  padding-bottom: 16px;
+}
+
+.admin-heading > div:first-child::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: clamp(78px, 7vw, 116px);
+  height: 3px;
+  border-radius: 999px;
+  background: var(--finish-brand-line);
+}
+
+.admin-app .admin-heading h1 {
+  margin: 10px 0 6px;
+  color: var(--product-ink);
+  font-family: "AF Sans", "Helvetica Neue", Arial, sans-serif !important;
+  font-size: clamp(2.65rem, 3.4vw, 4.05rem);
+  font-weight: 850;
+  line-height: .93;
+  letter-spacing: -.052em;
+  text-transform: none;
+}
+
+.admin-heading p {
+  max-width: 720px;
+  color: #5e7089;
+  line-height: 1.55;
+}
+
+:is(.admin-action-grid > a, .admin-today, .admin-inbox, .admin-data-table,
+  .admin-trainer-grid > article, .admin-kanban > section, .admin-communication > section,
+  .admin-communication > aside, .admin-content-grid article, .admin-settings > section,
+  .schedule-toolbar, .schedule-layout, .schedule-mobile-agenda > section) {
+  border-color: var(--product-line);
+  border-radius: 14px;
+  box-shadow: var(--product-shadow);
+}
+
+.admin-action-grid {
+  gap: 20px;
+}
+
+.admin-action-grid > a {
+  min-height: 220px;
+  overflow: hidden;
+  background: linear-gradient(145deg, #fff, #fbfdff);
+}
+
+.admin-action-grid > a::after {
+  content: "";
+  position: absolute;
+  right: -26px;
+  bottom: -46px;
+  width: 130px;
+  height: 130px;
+  border: 22px solid rgba(18, 97, 245, .055);
+  border-radius: 50%;
+}
+
+.admin-action-grid a > strong {
+  color: var(--product-blue);
+}
+
+.admin-today article,
+.admin-inbox > button:not([class]),
+.admin-data-table > article,
+.admin-communication > section article,
+.admin-settings article {
+  transition: background-color .18s ease, box-shadow .18s ease;
+}
+
+.admin-trainer-grid > article,
+.admin-content-grid article,
+.admin-kanban article {
+  border-color: var(--product-line);
+  border-radius: 12px;
+  box-shadow: 0 16px 36px -34px rgba(7, 26, 54, .4);
+  transition: border-color .2s ease, box-shadow .3s var(--finish-ease), transform .3s var(--finish-ease);
+}
+
+.admin-communication > aside {
+  background: var(--finish-soft);
+}
+
+.admin-communication aside button,
+.admin-app .ao-button--blue {
+  border-radius: 9px;
+  background: linear-gradient(135deg, var(--product-blue), #0a55e2);
+  box-shadow: 0 16px 30px -20px rgba(18, 97, 245, .64);
+}
+
+.admin-topbar button,
+.admin-today article > button,
+.admin-inbox header button,
+.admin-data-table article > button,
+.admin-kanban article button,
+.admin-communication article button,
+.admin-content-grid button,
+.admin-settings article button,
+.schedule-status button,
+.schedule-toolbar__actions > button:not([data-slot]) {
+  border-radius: 8px;
+  transition: color .18s ease, background-color .18s ease, transform .22s var(--finish-ease);
+}
+
+.schedule-heading dl,
+.schedule-toolbar,
+.schedule-layout {
+  border-color: var(--product-line);
+}
+
+.schedule-toolbar {
+  min-height: 76px;
+  padding: 12px 16px;
+  border-radius: 14px 14px 0 0;
+}
+
+.schedule-toolbar__actions label,
+.schedule-week-controls > button:not([data-slot]),
+.schedule-mobile-agenda article > button {
+  min-height: 44px;
+  border-color: var(--product-line);
+  border-radius: 8px;
+}
+
+.schedule-event {
+  border-radius: 7px;
+  box-shadow: 0 9px 24px -20px rgba(7, 26, 54, .5);
+}
+
+.schedule-event > span,
+.schedule-event > small {
+  font-size: .6rem;
+}
+
+.schedule-event > strong {
+  font-size: .68rem;
+}
+
+.schedule-event > :is(em, i) {
+  font-size: .54rem;
+}
+
+.schedule-mobile-days {
+  scrollbar-width: thin;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: 2px;
+}
+
+.schedule-mobile-days button {
+  scroll-snap-align: start;
+}
+
+/* Member portal state details and the 1100px transition. */
+.portal-exercises label,
+.member-schedule-filters button,
+.portal-table button,
+.portal-messages > aside button,
+.portal-mobile-nav a {
+  transition: color .18s ease, border-color .18s ease, background-color .18s ease,
+    box-shadow .22s ease, transform .24s var(--finish-ease);
+}
+
+.portal-overview-grid > :is(.portal-progress-card, .portal-week-card) {
+  transform: none !important;
+}
+
+.portal-mobile-nav a {
+  min-height: 54px;
+  white-space: nowrap;
+}
+
+@media (max-width: 1240px) {
+  .portal-sidebar nav a i {
+    position: absolute;
+    right: 6px;
+    top: 5px;
+  }
+
+  .portal-training-layout .portal-coach-note {
+    order: initial;
+  }
+}
+
+@media (max-width: 820px) {
+  .portal-table > header {
+    display: none;
+  }
+
+  .portal-table > div {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    padding: 18px 20px;
+  }
+
+  .portal-table > div > [data-label]::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 4px;
+    color: #718096;
+    font-size: .58rem;
+    font-style: normal;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+}
+
+/* Footer breathing room requested by the user. */
+.site-footer {
+  padding-bottom: calc(46px + env(safe-area-inset-bottom));
+  background: #fff;
+}
+
+.c90-footer__base {
+  padding-bottom: 28px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  :is(.page-hero, .sports-mosaic, .coach-profile, .club-route):hover img,
+  :is(.blog-feature, .article-cover, .related-articles a):hover img {
+    transform: scale(1.025);
+  }
+
+  :is(.membership-route, .article-lines > *, .topic-rail > *):hover {
+    border-color: rgba(10, 92, 245, .3);
+    box-shadow: var(--finish-shadow-raised);
+    transform: translateY(-3px);
+  }
+
+  :is(.public-schedule__panel > header button, .public-schedule__list a,
+    .admin-topbar button, .admin-today article > button, .admin-inbox header button,
+    .admin-data-table article > button, .admin-kanban article button,
+    .admin-communication article button, .admin-content-grid button,
+    .admin-settings article button, .schedule-status button,
+    .schedule-toolbar__actions > button:not([data-slot])):hover {
+    background: #edf4ff;
+    color: var(--finish-blue);
+  }
+
+  :is(.admin-today article, .admin-inbox > button:not([class]),
+    .admin-data-table > article, .admin-communication > section article,
+    .admin-settings article):hover {
+    background: #f8fbff;
+  }
+
+  :is(.admin-action-grid > a, .admin-trainer-grid > article,
+    .admin-content-grid article, .admin-kanban article):hover {
+    border-color: rgba(18, 97, 245, .28);
+    box-shadow: var(--finish-shadow-raised);
+    transform: translateY(-3px);
+  }
+
+  .portal-exercises label:hover,
+  .portal-messages > aside button:hover {
+    background: #f7faff;
+  }
+
+  .member-schedule-filters button:hover,
+  .portal-table button:hover,
+  .portal-mobile-nav a:hover {
+    color: var(--finish-blue);
+    background: #edf4ff;
+  }
+}
+
+:where(.ao-button, [data-slot="button"], .public-schedule__panel button,
+  .public-schedule__list a, .portal-mobile-nav a, .admin-app button):active {
+  transform: translateY(0) scale(.985);
+}
+
+@media (min-width: 1101px) and (max-width: 1240px) {
+  .portal-app {
+    grid-template-columns: 86px minmax(0, 1fr);
+  }
+
+  .portal-sidebar {
+    width: 86px;
+  }
+
+  .portal-brand {
+    justify-items: center;
+    padding-inline: 10px;
+  }
+
+  .portal-brand__lockup,
+  .portal-brand > span,
+  .portal-sidebar nav a span,
+  .portal-sidebar > div a span {
+    display: none;
+  }
+
+  .portal-brand__symbol {
+    display: block;
+    width: 52px;
+    height: 52px;
+  }
+
+  .portal-sidebar nav a,
+  .portal-sidebar > div a {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    padding-inline: 10px;
+  }
+
+  .portal-sidebar nav a i {
+    position: absolute;
+    right: 6px;
+    top: 5px;
+  }
+
+  .portal-overview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .portal-overview-grid > :is(.portal-next, .portal-week-card) {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 901px) and (max-width: 1240px) {
+  .schedule-toolbar__actions {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) auto auto auto;
+    width: 100%;
+  }
+
+  .schedule-toolbar__actions label {
+    min-width: 0;
+  }
+
+  .schedule-toolbar__actions select {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 900px) {
+  :is(.page-hero__copy, .page-hero--full .page-hero__copy) {
+    min-height: 360px;
+    padding: 48px 40px;
+  }
+
+  :is(.page-hero__media, .page-hero--full .page-hero__media) {
+    min-height: 350px;
+  }
+
+  .page-hero__copy .display {
+    font-size: clamp(3rem, 7.2vw, 4.1rem) !important;
+  }
+
+  .contact-hero,
+  .app-page-hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .contact-hero__copy,
+  .app-page-hero__copy {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .schedule-layout {
+    display: none !important;
+  }
+
+  .schedule-mobile-days {
+    display: flex !important;
+  }
+
+  .schedule-mobile-agenda {
+    display: grid !important;
+  }
+}
+
+@media (max-width: 760px) {
+  :root {
+    --finish-radius: 12px;
+  }
+
+  #main-content > main:not(.portal-app):not(.admin-app) {
+    --route-gap: 14px;
+  }
+
+  .site-header.ao-header,
+  .portal-topbar,
+  .portal-mobile-nav,
+  .admin-topbar {
+    backdrop-filter: blur(10px) saturate(120%);
+  }
+
+  /* Requested card inset. */
+  .ao-principle,
+  .ao-principle + .ao-principle {
+    min-height: 0;
+    padding: 24px clamp(20px, 5.4vw, 24px) 26px;
+  }
+
+  .ao-principle h3 {
+    margin-top: 22px;
+    font-size: clamp(1.46rem, 6.8vw, 1.74rem);
+    line-height: .98;
+  }
+
+  .ao-principle p {
+    margin-top: 12px;
+    font-size: .76rem;
+    line-height: 1.55;
+  }
+
+  .ao-heritage > figure {
+    min-height: 330px;
+  }
+
+  .ao-heritage > figure figcaption {
+    right: auto;
+    left: 16px;
+    bottom: 16px;
+    max-width: calc(100% - 32px);
+    padding: 12px 16px;
+    border-radius: 7px;
+    font-size: .61rem;
+  }
+
+  :is(.page-hero, .page-hero--full, .sports-mosaic, .coach-profile, .history-band,
+    .mission-split, .learning-company, .membership-routes, .ooievaar-band,
+    .blog-hero, .club-route, .app-page-hero, .interactive-app, .portal-preview,
+    .app-security, .utility-band, .public-schedule__panel, .public-hours,
+    .demo-login) {
+    border-radius: 12px;
+  }
+
+  :is(.page-hero__copy, .page-hero--full .page-hero__copy,
+    .blog-hero__copy, .app-page-hero__copy, .contact-hero__copy) {
+    min-height: 0 !important;
+    padding: 42px 20px;
+  }
+
+  :is(.page-hero__media, .page-hero--full .page-hero__media) {
+    min-height: 330px;
+  }
+
+  .page-hero__copy .display {
+    font-size: clamp(2.3rem, 10.4vw, 3rem) !important;
+    line-height: .92;
+  }
+
+  .contact-hero,
+  .app-page-hero {
+    min-height: 0;
+  }
+
+  .contact-hero__details {
+    padding: 28px 20px;
+  }
+
+  .app-page-hero__visual {
+    min-height: 570px;
+    padding: 42px 16px;
+  }
+
+  .app-page-hero__visual .member-demo {
+    width: min(100%, 286px);
+    transform: none;
+  }
+
+  .public-schedule {
+    padding-bottom: 78px;
+  }
+
+  .public-schedule__hero {
+    gap: 22px;
+    padding: 42px 20px 30px;
+  }
+
+  .public-schedule__panel > header {
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
+    min-height: 76px;
+    padding-inline: 12px;
+  }
+
+  .public-schedule__panel > header strong {
+    font-size: .75rem;
+  }
+
+  .public-schedule__filters {
+    padding-inline: 12px;
+  }
+
+  .public-schedule__list > article {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .public-schedule__list > article > div {
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 14px 18px;
+    border-right: 0;
+    border-bottom: 1px solid var(--finish-line);
+  }
+
+  .public-schedule__list article section > div {
+    grid-template-columns: 58px minmax(0, 1fr);
+    gap: 8px 12px;
+    min-height: 0;
+    padding: 16px 18px;
+  }
+
+  .public-schedule__list em {
+    grid-column: 2;
+  }
+
+  .public-schedule__list a {
+    grid-column: 2;
+    justify-self: start;
+    min-height: 38px;
+  }
+
+  .public-hours {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+    padding: 24px 20px;
+  }
+
+  .public-hours .ao-button {
+    width: 100%;
+  }
+
+  .article-layout,
+  .related-articles > div {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .article-layout {
+    padding: 40px 20px;
+  }
+
+  .article-layout > aside {
+    position: static;
+  }
+
+  .article-body h2 {
+    font-size: clamp(2rem, 9.5vw, 2.75rem);
+  }
+
+  .article-body p {
+    font-size: .96rem;
+    line-height: 1.7;
+  }
+
+  .contact-workspace,
+  .ecosystem-intro,
+  .app-features,
+  .app-security,
+  .comparison-section,
+  .membership-faq {
+    padding-inline: 20px;
+  }
+
+  .field-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .contact-form {
+    gap: 20px;
+    padding: 24px 20px;
+  }
+
+  .demo-banner {
+    display: grid;
+    justify-items: start;
+    gap: 3px;
+    padding: 8px 16px;
+  }
+
+  .demo-banner p {
+    line-height: 1.35;
+  }
+
+  .portal-mobile-nav a {
+    min-height: 58px;
+    padding-inline: 4px;
+  }
+
+  .admin-sidebar {
+    position: sticky;
+    top: 0;
+    z-index: 42;
+  }
+
+  .admin-sidebar nav {
+    position: relative;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: 12px;
+    scrollbar-width: thin;
+    background: linear-gradient(90deg, #fff 0 96%, rgba(237,244,255,.9));
+  }
+
+  .admin-sidebar nav a {
+    scroll-snap-align: start;
+    scroll-margin-inline: 12px;
+  }
+
+  .admin-content,
+  .admin-content--schedule {
+    width: calc(100% - 20px);
+    padding-block: 26px calc(76px + env(safe-area-inset-bottom));
+  }
+
+  .admin-heading {
+    gap: 20px;
+  }
+
+  .admin-app .admin-heading h1 {
+    font-size: clamp(2.15rem, 10vw, 2.85rem);
+  }
+
+  :is(.admin-action-grid > a, .admin-today, .admin-inbox, .admin-data-table,
+    .admin-trainer-grid > article, .admin-kanban > section, .admin-communication > section,
+    .admin-communication > aside, .admin-content-grid article, .admin-settings > section,
+    .schedule-toolbar, .schedule-mobile-agenda > section) {
+    border-radius: 12px;
+  }
+
+  .schedule-toolbar__actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    width: 100%;
+  }
+
+  .schedule-toolbar__actions label,
+  .schedule-toolbar__actions .ao-button--blue {
+    grid-column: 1 / -1;
+  }
+
+  .schedule-toolbar__actions > * {
+    min-width: 0;
+  }
+
+  .schedule-mobile-days {
+    gap: 7px;
+    overflow-x: auto;
+    padding: 4px 1px 10px;
+  }
+
+  .schedule-mobile-days button {
+    flex: 0 0 62px;
+    min-height: 52px;
+    border-radius: 8px;
+  }
+
+  .schedule-mobile-agenda article {
+    min-width: 0;
+  }
+
+  .site-footer {
+    padding-bottom: calc(38px + env(safe-area-inset-bottom));
+  }
+
+  .c90-footer__base {
+    padding-bottom: 24px;
+  }
+}
+
+@media (max-width: 430px) {
+  .public-schedule__panel > header strong {
+    font-size: .68rem;
+  }
+
+  .public-schedule__list article section > div {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .public-schedule__list :is(em, a) {
+    grid-column: 1;
+  }
+
+  .public-schedule__list a {
+    min-height: 44px;
+  }
+
+  .portal-mobile-nav a {
+    font-size: .49rem;
+  }
+
+  .portal-mobile-nav a span {
+    overflow: hidden;
+    max-width: 100%;
+    text-overflow: ellipsis;
+  }
+
+  .schedule-toolbar__actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .schedule-toolbar__actions > * {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .schedule-mobile-agenda article {
+    grid-template-columns: 46px minmax(0, 1fr);
+  }
+
+  .schedule-mobile-agenda article > button {
+    grid-column: 2;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes finish-page-in {
+    from { opacity: 0; transform: translate3d(0, 8px, 0); }
+    to { opacity: 1; transform: translate3d(0, 0, 0); }
+  }
+
+  #main-content > main:not(.ao-home):not(.portal-app):not(.admin-app) > :first-child,
+  .portal-content > :first-child,
+  .admin-content > :first-child {
+    animation: finish-page-in .55s var(--finish-ease) both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    transition-delay: 0ms !important;
+  }
+
+  .reveal,
+  .reveal.is-ready,
+  .reveal.is-visible {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* Canonical public geometry ------------------------------------------------
+   One outer frame, one section rhythm and one footer canvas. This closes the
+   small width differences left by the earlier design explorations. */
+:root {
+  --finish-frame-gutter: 32px;
+  --finish-section-gap: var(--fp-section-gap, clamp(18px, 2vw, 28px));
+  --finish-page-canvas: var(--r1-canvas, #f3f6fb);
+}
+
+#main-content > main:not(.portal-app):not(.admin-app) {
+  padding-bottom: 0;
+}
+
+#main-content > main:not(.ao-home):not(.portal-app):not(.admin-app):not(.demo-login) > * {
+  width: min(var(--af-max), calc(100% - var(--finish-frame-gutter)));
+  margin-block: 0;
+  margin-inline: auto;
+}
+
+#main-content > main:not(.ao-home):not(.portal-app):not(.admin-app):not(.demo-login) > * + * {
+  margin-top: var(--finish-section-gap);
+}
+
+#main-content > .demo-login,
+.ao-home > section,
+.c90-footer__headline,
+.c90-footer__body,
+.c90-footer__base {
+  width: min(var(--af-max), calc(100% - var(--finish-frame-gutter)));
+  margin-inline: auto;
+}
+
+#main-content > .demo-login {
+  margin-block: 0;
+}
+
+.ao-home > .ao-hero,
+.ao-home > .ao-benefit-bar {
+  margin-block: 0;
+}
+
+.ao-home > section:not(.ao-hero):not(.ao-benefit-bar) {
+  margin-block: 0;
+  margin-top: var(--finish-section-gap);
+}
+
+.ao-benefit-bar {
+  margin-bottom: 0;
+}
+
+/* The wizard now follows the same inner content edges as the surrounding
+   homepage boards instead of stopping at a historical 1120/1220px cap. */
+.ao-visit-section {
+  padding: clamp(44px, 4vw, 62px);
+}
+
+.ao-visit-section > .ao-shell,
+.ao-visit-section .visit-wizard--compact {
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
+}
+
+/* Keep the compact phone and its tab bar inside one continuous device frame. */
+.ao-phone-stage .member-demo {
+  overflow: hidden;
+  border: 5px solid var(--portal-ink, #071a36);
+  border-radius: 30px;
+  background: #fff;
+}
+
+.ao-phone-stage .member-demo__screen {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.ao-phone-stage .member-demo__tabs {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  flex: 0 0 72px;
+  width: 100% !important;
+  min-height: 72px;
+  padding: 4px 4px 10px !important;
+  overflow: hidden;
+  align-items: stretch;
+  border: 0;
+  border-top: 1px solid #d9e3f1;
+  border-radius: 0 !important;
+  box-sizing: border-box;
+}
+
+.ao-phone-stage .member-demo__tabs [data-slot="tabs-trigger"] {
+  width: 100%;
+  height: auto;
+  min-width: 0;
+  min-height: 0;
+  align-self: stretch;
+  padding: 3px 2px;
+  overflow: hidden;
+  border-radius: 7px;
+}
+
+.ao-phone-stage .member-demo__tabs [data-slot="tabs-trigger"]:focus-visible {
+  outline-offset: -2px !important;
+}
+
+/* The footer participates in the same spacing and canvas as every panel.
+   Its own padding creates exactly one gap after the final page section. */
+.site-footer {
+  margin-top: 0;
+  padding-top: var(--finish-section-gap);
+  background: var(--finish-page-canvas);
+}
+
+.c90-footer__headline {
+  margin-top: 0;
+}
+
+@media (max-width: 760px) {
+  :root {
+    --finish-frame-gutter: 20px;
+  }
+
+  .ao-visit-section {
+    padding: 18px;
+  }
+
+  .ao-phone-stage .member-demo__tabs {
+    flex-basis: 70px;
+    min-height: 70px;
+    padding: 4px 4px 9px !important;
+  }
+}

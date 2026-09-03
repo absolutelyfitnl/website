@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" fill="none">
+  <defs>
+    <linearGradient id="wide-soft" x1="1110" y1="-40" x2="1120" y2="940" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#EAF2FF" stop-opacity=".18"/>
+      <stop offset=".28" stop-color="#BDD5FF" stop-opacity=".78"/>
+      <stop offset=".64" stop-color="#6F9FFF" stop-opacity=".64"/>
+      <stop offset="1" stop-color="#916BDE" stop-opacity=".34"/>
+    </linearGradient>
+    <linearGradient id="wide-main" x1="900" y1="-20" x2="1230" y2="930" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#B9D2FF" stop-opacity=".22"/>
+      <stop offset=".26" stop-color="#4C8BFA" stop-opacity=".72"/>
+      <stop offset=".58" stop-color="#0A58F5" stop-opacity=".98"/>
+      <stop offset="1" stop-color="#5A32C8" stop-opacity=".78"/>
+    </linearGradient>
+    <filter id="wide-shadow" x="300" y="-180" width="1500" height="1270" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#0A58F5" flood-opacity=".12"/>
+    </filter>
+  </defs>
+  <path d="M1206 -90C945 -4 558 80 503 263c-58 193 304 258 706 311 299 40 342 137 181 319-103 116-171 192-190 267" stroke="url(#wide-soft)" stroke-width="92" stroke-linecap="round" filter="url(#wide-shadow)"/>
+  <path d="M1225 -94C956 8 591 93 539 270c-51 174 296 232 680 281 272 35 313 130 164 299-99 112-160 190-175 276" stroke="url(#wide-main)" stroke-width="29" stroke-linecap="round"/>
+  <path d="M1242 -97C973 18 623 108 572 279c-46 154 283 207 659 252 245 30 283 119 145 276-92 104-147 185-156 275" stroke="#FFFFFF" stroke-opacity=".7" stroke-width="5" stroke-linecap="round"/>
+</svg>

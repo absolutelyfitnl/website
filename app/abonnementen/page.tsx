@@ -86,7 +86,8 @@ export default function AbonnementenPage() {
           <span className="eyebrow">In één oogopslag</span>
           <h2 className="display">Wat past bij jouw manier van trainen?</h2>
         </div>
-        <div className="comparison-table" role="table" aria-label="Vergelijking van manieren om te trainen">
+        <p className="comparison-scroll-hint" id="comparison-scroll-hint">Veeg om alle opties te vergelijken <ArrowRight aria-hidden="true" /></p>
+        <div className="comparison-table" role="table" aria-label="Vergelijking van manieren om te trainen" aria-describedby="comparison-scroll-hint" tabIndex={0}>
           <div className="comparison-table__row comparison-table__head" role="row"><span role="columnheader">Onderdeel</span><span role="columnheader">Vrij</span><span role="columnheader">Begeleid</span><span role="columnheader">Personal</span></div>
           {[
             ["Zelfstandig trainen", true, true, true],

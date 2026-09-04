@@ -390,6 +390,82 @@ async function main() {
       assert(await menuTrigger.evaluate((element) => element === document.activeElement), "Focus keerde na het mobiele menu niet terug naar de trigger");
     });
 
+    await check("Publieke uitlijning, contrast en mobiele vergelijkbaarheid", async () => {
+      currentActivity = "publieke detailaudit";
+      await page.setViewportSize({ width: 1440, height: 1000 });
+      await goto(page, "/");
+      await activateScrollReveals(page);
+      const desktopDetails = await page.evaluate(() => {
+        const rect = (selector) => {
+          const element = document.querySelector(selector);
+          if (!(element instanceof HTMLElement)) return null;
+          const bounds = element.getBoundingClientRect();
+          return { top: bounds.top, bottom: bounds.bottom, width: bounds.width, height: bounds.height };
+        };
+        const clubHead = document.querySelector(".ao-club-story__head");
+        const clubPrinciples = document.querySelector(".ao-club-story__principles");
+        const navLink = document.querySelector(".ao-header .desktop-nav a");
+        return {
+          wizardActions: rect(".visit-wizard--compact .visit-wizard__actions"),
+          wizardPreview: rect(".visit-wizard--compact .visit-wizard__preview"),
+          wizardQuestion: rect(".visit-wizard--compact .visit-wizard__question"),
+          wizardChoices: rect(".visit-wizard--compact .visit-wizard__choices"),
+          clubHeadHeight: clubHead instanceof HTMLElement ? clubHead.offsetHeight : null,
+          clubPrinciplesHeight: clubPrinciples instanceof HTMLElement ? clubPrinciples.offsetHeight : null,
+          navFontSize: navLink instanceof HTMLElement ? Number.parseFloat(getComputedStyle(navLink).fontSize) : null,
+        };
+      });
+      assert(desktopDetails.wizardActions && desktopDetails.wizardPreview && desktopDetails.wizardQuestion && desktopDetails.wizardChoices, `Wizardgeometrie ontbreekt: ${JSON.stringify(desktopDetails)}`);
+      assert(Math.abs(desktopDetails.wizardActions.bottom - desktopDetails.wizardPreview.bottom) <= 1, `Wizardacties en startplan eindigen niet gelijk: ${JSON.stringify(desktopDetails)}`);
+      assert(Math.abs(desktopDetails.wizardQuestion.top - desktopDetails.wizardChoices.top) <= 1, `Wizardkolommen beginnen niet gelijk: ${JSON.stringify(desktopDetails)}`);
+      assert(Math.abs(desktopDetails.clubHeadHeight - desktopDetails.clubPrinciplesHeight) <= 1, `Clubverhaal heeft ongelijke kolomhoogtes: ${JSON.stringify(desktopDetails)}`);
+      assert(desktopDetails.navFontSize >= 11, `Desktopmenu blijft te klein: ${desktopDetails.navFontSize}px`);
+
+      await page.setViewportSize({ width: 768, height: 1024 });
+      await goto(page, "/");
+      await activateScrollReveals(page);
+      const tabletClub = await page.evaluate(() => {
+        const head = document.querySelector(".ao-club-story__head");
+        const principles = document.querySelector(".ao-club-story__principles");
+        const cards = [...document.querySelectorAll(".ao-club-story__principle")];
+        if (!(head instanceof HTMLElement) || !(principles instanceof HTMLElement)) return null;
+        const headBounds = head.getBoundingClientRect();
+        const principleBounds = principles.getBoundingClientRect();
+        return {
+          stacked: principleBounds.top > headBounds.bottom,
+          cardWidths: cards.map((card) => card.getBoundingClientRect().width),
+        };
+      });
+      assert(tabletClub?.stacked, `Clubverhaal blijft op tablet in te smalle hoofdkolommen staan: ${JSON.stringify(tabletClub)}`);
+      assert(tabletClub.cardWidths.every((width) => width >= 220), `Clubprincipes zijn op tablet te smal: ${JSON.stringify(tabletClub.cardWidths)}`);
+
+      for (const [route, selector] of [["/blog", ".knowledge-principle .display--light"], ["/sporten/krachttraining", ".program-photo .display--light"]]) {
+        await goto(page, route);
+        const titleColor = await page.locator(selector).evaluate((element) => getComputedStyle(element).color);
+        assert(titleColor === "rgb(255, 255, 255)", `${route} toont de lichte fotokop niet wit: ${titleColor}`);
+      }
+
+      await page.setViewportSize({ width: 430, height: 932 });
+      await goto(page, "/abonnementen");
+      const comparisonDetails = await page.evaluate(() => {
+        const hint = document.querySelector(".comparison-scroll-hint");
+        const table = document.querySelector(".comparison-table");
+        const firstCell = document.querySelector(".comparison-table__row > :first-child");
+        const footerContact = document.querySelector(".c90-footer__contact a");
+        if (!(hint instanceof HTMLElement) || !(table instanceof HTMLElement) || !(firstCell instanceof HTMLElement) || !(footerContact instanceof HTMLElement)) return null;
+        return {
+          hintVisible: hint.getBoundingClientRect().height > 0,
+          horizontallyScrollable: table.scrollWidth > table.clientWidth,
+          tableFocusable: table.tabIndex === 0,
+          firstColumnPosition: getComputedStyle(firstCell).position,
+          footerContactHeight: footerContact.getBoundingClientRect().height,
+        };
+      });
+      assert(comparisonDetails?.hintVisible && comparisonDetails.horizontallyScrollable && comparisonDetails.tableFocusable, `Mobiele vergelijking mist scrolluitleg of bediening: ${JSON.stringify(comparisonDetails)}`);
+      assert(comparisonDetails.firstColumnPosition === "sticky", `Mobiele vergelijkingslabels blijven niet in beeld: ${JSON.stringify(comparisonDetails)}`);
+      assert(comparisonDetails.footerContactHeight >= 44, `Mobiele footerlink heeft een te klein raakvlak: ${JSON.stringify(comparisonDetails)}`);
+    });
+
     await page.setViewportSize({ width: 1280, height: 900 });
 
     await check("Ledenapp: alle vier app-tabs", async () => {

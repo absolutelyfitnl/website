@@ -73,7 +73,7 @@ section[id] { scroll-margin-top: 96px; }
 
 .ao-header .desktop-nav a {
   padding-block: 23px 20px;
-  font-size: .65rem;
+  font-size: .7rem;
   transition: color .2s ease, transform .25s var(--af-polish-ease);
 }
 
@@ -87,7 +87,7 @@ section[id] { scroll-margin-top: 96px; }
 
 .ao-header .header-login {
   border-radius: 8px !important;
-  font-size: .65rem !important;
+  font-size: .7rem !important;
 }
 
 .ao-header .header-join {
@@ -463,5 +463,129 @@ section[id] { scroll-margin-top: 96px; }
     opacity: 1 !important;
     transform: none !important;
     animation: none !important;
+  }
+}
+
+/* Alignment and rhythm pass -------------------------------------------- */
+.display.display--light { color: #fff; }
+
+.comparison-scroll-hint { display: none; }
+
+@media (min-width: 1024px) {
+  .visit-wizard--compact .visit-wizard__actions { align-self: end; }
+}
+
+@media (min-width: 1181px) {
+  .ao-club-story {
+    grid-template-columns: minmax(0, .82fr) minmax(0, 1.58fr);
+    gap: clamp(40px, 4vw, 64px);
+    align-items: stretch;
+    padding-block: clamp(64px, 5.8vw, 88px);
+  }
+
+  .ao-club-story__head {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+  }
+
+  .ao-club-story__head h2 {
+    max-width: none;
+    font-size: clamp(2.8rem, 3.55vw, 4rem);
+    line-height: .94;
+  }
+
+  .ao-club-story__principles { align-self: stretch; }
+
+  .ao-club-story__principle {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    min-height: 100%;
+  }
+
+  .ao-club-story__principle h3 {
+    align-self: end;
+    min-height: 2em;
+    margin: 0 0 12px;
+  }
+
+  .ao-club-story__principle p { min-height: 4.5em; }
+}
+
+@media (min-width: 761px) and (max-width: 1180px) {
+  .ao-club-story {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 36px;
+    align-items: start;
+    padding-block: 64px;
+  }
+
+  .ao-club-story__head { max-width: 720px; }
+
+  .ao-club-story__head h2 {
+    max-width: 720px;
+    font-size: clamp(2.8rem, 6vw, 4rem);
+    line-height: .94;
+  }
+
+  .ao-club-story__principle h3 { margin-top: 48px; }
+}
+
+@media (max-width: 760px) {
+  .ao-club-story {
+    gap: 24px;
+    padding-block: 56px;
+  }
+
+  .ao-club-story__head h2 {
+    font-size: clamp(2.25rem, 9vw, 2.65rem);
+    line-height: .94;
+  }
+
+  .ao-club-story__principle { padding: 22px; }
+  .ao-club-story__principle h3 { margin-top: 20px; }
+
+  .comparison-scroll-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    width: fit-content;
+    margin: -10px 0 0;
+    color: #0a5cf5;
+    font-size: .7rem;
+    font-weight: 800;
+    letter-spacing: .055em;
+    text-transform: uppercase;
+  }
+
+  .comparison-scroll-hint svg { width: 16px; }
+
+  .comparison-table {
+    max-width: calc(100vw - 40px);
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+  }
+
+  .comparison-table__row > :first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: #fff;
+    box-shadow: 10px 0 18px -18px rgba(7, 24, 56, .65);
+  }
+
+  .comparison-table__head > :first-child {
+    z-index: 2;
+    background: var(--off);
+  }
+
+  :is(.text-link, .back-link, .c90-footer__contact a, .c90-footer__base a) {
+    min-height: 44px;
+  }
+
+  .c90-footer__base a {
+    display: inline-flex;
+    align-items: center;
   }
 }

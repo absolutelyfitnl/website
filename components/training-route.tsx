@@ -34,6 +34,7 @@ const recommendations: Record<string, { title: string; mix: string[]; text: stri
 
 export function TrainingRoute() {
   const [step, setStep] = useState(0);
+  const [direction, setDirection] = useState<"forward" | "back">("forward");
   const [goal, setGoal] = useState<string | null>(null);
   const [level, setLevel] = useState<string | null>(null);
   const [support, setSupport] = useState<string | null>(null);
@@ -49,8 +50,8 @@ export function TrainingRoute() {
     const supportPlan = support === "zelf" ? "Een zelfstandig plan met een helder evaluatiemoment" : support === "start" ? "Een begeleide start met techniekfeedback en evaluatie" : "Regelmatige coachmomenten en intensief bijsturen";
     return { ...base, levelPlan, supportPlan };
   }, [goal, level, support]);
-  const reset = () => { hasNavigated.current = true; setGoal(null); setLevel(null); setSupport(null); setStep(0); };
-  const moveTo = (nextStep: number) => { hasNavigated.current = true; setStep(Math.max(0, Math.min(3, nextStep))); };
+  const reset = () => { hasNavigated.current = true; setDirection("back"); setGoal(null); setLevel(null); setSupport(null); setStep(0); };
+  const moveTo = (nextStep: number) => { hasNavigated.current = true; setDirection(nextStep < step ? "back" : "forward"); setStep(Math.max(0, Math.min(3, nextStep))); };
 
   useEffect(() => {
     if (!hasNavigated.current) return;
@@ -61,7 +62,7 @@ export function TrainingRoute() {
     <div className="route-widget" id="trainingsroute">
       <div className="route-widget__top"><div><span className="eyebrow">Interactieve trainingsroute</span><h2 className="display display--widget">Wat past bij jou?</h2></div><div className="route-progress" aria-label={step < 3 ? `Vraag ${step + 1} van 3` : "Persoonlijke richting voltooid"}><span>{step < 3 ? `Vraag 0${step + 1} / 03 · ${answeredCount}/3 gekozen` : "Jouw route"}</span><Progress value={(answeredCount / 3) * 100} aria-label={`${answeredCount} van 3 vragen beantwoord`} /></div></div>
       {step < 3 ? (
-        <div className="route-widget__body">
+        <div className="route-widget__body" data-direction={direction} key={`route-question-${step}`}>
           <div className="route-question"><span className="route-question__number">0{step + 1}</span><div><h3 id={`route-question-${step}`} ref={headingRef} tabIndex={-1}>{step === 0 ? "Wat wil je bereiken?" : step === 1 ? "Hoeveel ervaring heb je?" : "Hoe wil je begeleid worden?"}</h3><p>Kies wat nu het beste bij je past. Tijdens een kennismaking maken we het plan persoonlijk.</p></div></div>
           <RadioGroup value={currentValue ?? ""} aria-labelledby={`route-question-${step}`} onValueChange={setCurrentValue} className="route-options">
             {currentOptions.map((option) => <label className="route-option" key={option.value} data-selected={currentValue === option.value}><RadioGroupItem value={option.value} /><span><strong>{option.label}</strong><small>{option.note}</small></span><Check className="route-option__check" aria-hidden="true" /></label>)}
@@ -69,7 +70,7 @@ export function TrainingRoute() {
           <div className="route-actions"><Button type="button" variant="ghost" onClick={() => moveTo(step - 1)} disabled={step === 0}><ArrowLeft aria-hidden="true" /> Vorige</Button><Button type="button" className="button-primary button-large" onClick={() => currentValue && moveTo(step + 1)} disabled={!currentValue}>Volgende stap <ArrowRight aria-hidden="true" /></Button></div>
         </div>
       ) : (
-        <div className="route-result" aria-live="polite"><div className="route-result__copy"><span className="result-kicker"><Sparkles aria-hidden="true" /> Jouw startpunt</span><h3 ref={headingRef} tabIndex={-1}>{result.title}</h3><p>{result.text}</p><ul>{result.mix.map((item) => <li key={item}><Check aria-hidden="true" />{item}</li>)}</ul><div className="route-result__actions"><Button asChild className="button-primary button-large"><Link href={`/contact?doel=${encodeURIComponent(goal ?? "")}&begeleiding=${encodeURIComponent(support ?? "")}`}>Plan een kennismaking</Link></Button><Button type="button" variant="ghost" onClick={reset}><RotateCcw aria-hidden="true" />Opnieuw</Button></div></div><div className="route-result__plan"><span>Jouw antwoorden vertaald</span><div><strong>01</strong><p>Kennismaken en jouw doel concreet maken</p></div><div><strong>02</strong><p>{result.levelPlan}</p></div><div><strong>03</strong><p>{result.supportPlan}</p></div><small>Dit is een persoonlijke richting op basis van je drie keuzes, geen automatisch trainingsadvies. De coach maakt het definitieve plan samen met jou.</small></div></div>
+        <div className="route-result" data-direction={direction} key="route-result" aria-live="polite"><div className="route-result__copy"><span className="result-kicker"><Sparkles aria-hidden="true" /> Jouw startpunt</span><h3 ref={headingRef} tabIndex={-1}>{result.title}</h3><p>{result.text}</p><ul>{result.mix.map((item) => <li key={item}><Check aria-hidden="true" />{item}</li>)}</ul><div className="route-result__actions"><Button asChild className="button-primary button-large"><Link href={`/contact?doel=${encodeURIComponent(goal ?? "")}&begeleiding=${encodeURIComponent(support ?? "")}`}>Plan een kennismaking</Link></Button><Button type="button" variant="ghost" onClick={reset}><RotateCcw aria-hidden="true" />Opnieuw</Button></div></div><div className="route-result__plan"><span>Jouw antwoorden vertaald</span><div><strong>01</strong><p>Kennismaken en jouw doel concreet maken</p></div><div><strong>02</strong><p>{result.levelPlan}</p></div><div><strong>03</strong><p>{result.supportPlan}</p></div><small>Dit is een persoonlijke richting op basis van je drie keuzes, geen automatisch trainingsadvies. De coach maakt het definitieve plan samen met jou.</small></div></div>
       )}
     </div>
   );

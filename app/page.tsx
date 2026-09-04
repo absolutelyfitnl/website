@@ -58,7 +58,7 @@ export default function Home() {
       <section className="ao-intro ao-shell">
         <Reveal className="ao-intro__heading"><span className="ao-kicker">De club</span><h2>Een sportschool waar je geen nummer bent.</h2></Reveal>
         <Reveal className="ao-intro__copy"><p>Bij Absolutely Fit staat centraal dat iedereen zich welkom voelt, plezier heeft in sporten en zich op zijn of haar eigen niveau kan ontwikkelen.</p><Link href="/over-ons">Lees ons verhaal <ArrowUpRight aria-hidden="true" /></Link></Reveal>
-        <div className="ao-principles">{principles.map(([number,title,text]) => <Reveal key={number} className="ao-principle"><span>{number}</span><h3>{title}</h3><p>{text}</p></Reveal>)}</div>
+        <div className="ao-principles">{principles.map(([number,title,text], index) => <Reveal key={number} className="ao-principle" delay={index * 65}><span>{number}</span><h3>{title}</h3><p>{text}</p></Reveal>)}</div>
       </section>
 
       <section className="ao-training ao-shell">
@@ -92,7 +92,7 @@ export default function Home() {
 
       <section className="ao-club-story ao-shell">
         <Reveal className="ao-club-story__head"><span className="ao-kicker">Zo willen we club zijn</span><h2>Een plek om binnen te komen én verder te bouwen.</h2><p>Goede training begint voor ons met aandacht, duidelijke uitleg en een omgeving waarin je op je eigen niveau kunt werken.</p><Link href="/mijn-eerste-bezoek">Bereid je eerste bezoek voor <ArrowUpRight aria-hidden="true" /></Link></Reveal>
-        <div className="ao-club-story__principles">{clubPromises.map(([number, title, text]) => <Reveal className="ao-club-story__principle" key={number}><span>{number}</span><h3>{title}</h3><p>{text}</p></Reveal>)}</div>
+        <div className="ao-club-story__principles">{clubPromises.map(([number, title, text], index) => <Reveal className="ao-club-story__principle" delay={index * 65} key={number}><span>{number}</span><h3>{title}</h3><p>{text}</p></Reveal>)}</div>
       </section>
 
       <section className="ao-heritage ao-shell">

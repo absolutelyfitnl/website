@@ -309,6 +309,60 @@ async function main() {
         currentActivity = `home-regios ${viewport.name}`;
         await page.setViewportSize({ width: viewport.width, height: viewport.height });
         await goto(page, "/");
+        const headerGeometry = await page.evaluate(() => {
+          const header = document.querySelector(".site-header");
+          const hero = document.querySelector(".ao-hero");
+          const inner = document.querySelector(".site-header__inner");
+          if (!(header instanceof HTMLElement) || !(hero instanceof HTMLElement) || !(inner instanceof HTMLElement)) return null;
+          const headerRect = header.getBoundingClientRect();
+          const heroRect = hero.getBoundingClientRect();
+          const innerRect = inner.getBoundingClientRect();
+          const styles = getComputedStyle(header);
+          return {
+            header: { x: headerRect.x, width: headerRect.width },
+            hero: { x: heroRect.x, width: heroRect.width },
+            innerWidth: innerRect.width,
+            background: styles.backgroundColor,
+            radius: Number.parseFloat(styles.borderTopLeftRadius),
+            shadow: styles.boxShadow,
+            position: styles.position,
+            top: Number.parseFloat(styles.top),
+          };
+        });
+        assert(headerGeometry, `Headergeometrie ontbreekt op ${viewport.name}`);
+        assert(Math.abs(headerGeometry.header.width - headerGeometry.hero.width) <= 2, `Header en hero verschillen in breedte op ${viewport.name}: ${JSON.stringify(headerGeometry)}`);
+        assert(Math.abs(headerGeometry.header.x - headerGeometry.hero.x) <= 2, `Header en hero lijnen niet uit op ${viewport.name}: ${JSON.stringify(headerGeometry)}`);
+        assert(headerGeometry.innerWidth <= headerGeometry.header.width, `Header-inner overschrijdt buitenframe op ${viewport.name}`);
+        assert(/rgba\([^)]*,\s*0?\.8\)/.test(headerGeometry.background), `Header gebruikt niet exact 80% witte achtergrondalpha op ${viewport.name}: ${headerGeometry.background}`);
+        assert(headerGeometry.radius >= 12, `Headerradius is te klein op ${viewport.name}: ${headerGeometry.radius}`);
+        assert(headerGeometry.shadow !== "none", `Header mist schaduw op ${viewport.name}`);
+        assert(headerGeometry.position === "sticky", `Header is niet sticky op ${viewport.name}`);
+        assert(Math.abs(headerGeometry.top - (viewport.width <= 760 ? 10 : 12)) <= 1, `Header-top klopt niet op ${viewport.name}: ${headerGeometry.top}`);
+
+        if (viewport.width <= 760) {
+          const mobileComposition = await page.evaluate(() => {
+            const logo = document.querySelector(".site-header .brand-link");
+            const trigger = document.querySelector(".site-header .mobile-menu-trigger");
+            const desktopNav = document.querySelector(".site-header .desktop-nav");
+            const programGrid = document.querySelector(".ao-program-grid");
+            const cards = [...document.querySelectorAll(".ao-program")];
+            const promo = document.querySelector(".ao-program-photo");
+            const play = document.querySelector(".ao-community > figure > a");
+            return {
+              logoVisible: logo instanceof HTMLElement && logo.getBoundingClientRect().width > 0,
+              triggerVisible: trigger instanceof HTMLElement && trigger.getBoundingClientRect().width >= 44 && trigger.getBoundingClientRect().height >= 44,
+              desktopNavHidden: desktopNav instanceof HTMLElement && getComputedStyle(desktopNav).display === "none",
+              programGridHeight: programGrid instanceof HTMLElement ? programGrid.getBoundingClientRect().height : null,
+              tallestProgram: Math.max(0, ...cards.map((card) => card.getBoundingClientRect().height)),
+              promoHeight: promo instanceof HTMLElement ? promo.getBoundingClientRect().height : null,
+              playSize: play instanceof HTMLElement ? play.getBoundingClientRect().toJSON() : null,
+            };
+          });
+          assert(mobileComposition.logoVisible && mobileComposition.triggerVisible && mobileComposition.desktopNavHidden, `Mobiele headercompositie klopt niet: ${JSON.stringify(mobileComposition)}`);
+          assert(mobileComposition.tallestProgram < 320, `Mobiele programmakaarten rekken nog uit: ${mobileComposition.tallestProgram}px`);
+          assert(mobileComposition.programGridHeight < 320 && mobileComposition.promoHeight < 320, `Mobiele programmacarrousel houdt lege hoogte over: ${JSON.stringify(mobileComposition)}`);
+          assert(mobileComposition.playSize?.width >= 44 && mobileComposition.playSize?.height >= 44, `Community-CTA is niet zichtbaar of te klein: ${JSON.stringify(mobileComposition.playSize)}`);
+        }
         await activateScrollReveals(page);
         for (const [name, selectors] of regions) {
           await screenshotVisibleState(page, selectors, path.join(ARTIFACTS_DIR, `${viewport.name}--home--region-${name}.png`));
@@ -321,6 +375,11 @@ async function main() {
       await menuTrigger.click();
       const menu = page.locator('[role="dialog"].mobile-menu');
       await menu.waitFor({ state: "visible" });
+      for (const label of ["Sporten", "Begeleiding", "Abonnementen", "Rooster", "Over ons", "Blog", "Contact"]) {
+        await menu.getByRole("link", { name: label, exact: true }).waitFor({ state: "visible" });
+      }
+      await menu.getByRole("link", { name: "Mijn eerste bezoek", exact: true }).waitFor({ state: "visible" });
+      await menu.getByRole("link", { name: "Inloggen in demo", exact: true }).waitFor({ state: "visible" });
       const focusInside = await menu.evaluate((element) => element.contains(document.activeElement));
       assert(focusInside, "Focus staat niet in het geopende mobiele menu");
       const scrollLocked = await page.evaluate(() => document.body.hasAttribute("data-scroll-locked") || getComputedStyle(document.body).overflow === "hidden");
@@ -606,6 +665,25 @@ async function main() {
         }));
         assert(media.coarse, "De touchcontext activeerde pointer: coarse niet");
         assert(media.reduced, "De touchcontext activeerde reduced motion niet");
+        await goto(touchPage, "/");
+        const reducedStyles = await touchPage.evaluate(() => {
+          const marquee = document.querySelector(".ao-marquee__track");
+          const ribbon = document.querySelector(".ao-hero__ribbon");
+          const reveal = document.querySelector(".reveal");
+          const programCard = document.querySelector(".ao-program-grid > .ao-program");
+          return {
+            marqueeAnimation: marquee ? getComputedStyle(marquee).animationName : null,
+            ribbonAnimation: ribbon ? getComputedStyle(ribbon).animationName : null,
+            revealOpacity: reveal ? getComputedStyle(reveal).opacity : null,
+            revealTransform: reveal ? getComputedStyle(reveal).transform : null,
+            programCardOpacity: programCard ? getComputedStyle(programCard).opacity : null,
+            programCardTransform: programCard ? getComputedStyle(programCard).transform : null,
+          };
+        });
+        assert(reducedStyles.marqueeAnimation === "none", `Marquee beweegt met reduced motion: ${JSON.stringify(reducedStyles)}`);
+        assert(reducedStyles.ribbonAnimation === "none", `Ribbon beweegt met reduced motion: ${JSON.stringify(reducedStyles)}`);
+        assert(reducedStyles.revealOpacity === "1" && reducedStyles.revealTransform === "none", `Reveal blijft verborgen of verschoven met reduced motion: ${JSON.stringify(reducedStyles)}`);
+        assert(reducedStyles.programCardOpacity === "1" && reducedStyles.programCardTransform === "none", `Programmacard blijft verborgen of verschoven met reduced motion: ${JSON.stringify(reducedStyles)}`);
         assert(!touchIssues.length, touchIssues.join("; "));
       } finally {
         await touchContext.close();

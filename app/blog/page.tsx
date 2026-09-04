@@ -3,6 +3,7 @@ import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { posts } from "@/lib/site-data";
 import { pageMetadata } from "@/lib/metadata";
+import { Reveal } from "@/components/reveal";
 
 export const metadata = pageMetadata("Kennisbank", "Praktische artikelen over krachttraining, herstel en trainingsopbouw van Absolutely Fit.", "/blog");
 
@@ -24,7 +25,7 @@ export default function BlogPage() {
 
       <nav className="topic-rail" aria-label="Onderwerpen in de kennisbank"><div className="shell">{posts.map((post, index) => <Link href={`#artikel-${post.slug}`} key={post.slug}><span><i>0{index + 1}</i>{post.category}</span></Link>)}</div></nav>
 
-      <section className="section shell article-index">
+      <Reveal as="section" className="section shell article-index">
         <div className="article-index__heading"><span className="eyebrow">Nieuw uit de club</span><h2 className="display">Lees. Leer. Train verder.</h2></div>
         <div className="article-lines">
           {posts.map((post, index) => { const [width, height] = postImageSize(post.image); return <article id={`artikel-${post.slug}`} key={post.slug}>
@@ -36,12 +37,12 @@ export default function BlogPage() {
             </Link>
           </article>; })}
         </div>
-      </section>
+      </Reveal>
 
-      <section className="knowledge-principle shell-wide">
+      <Reveal as="section" className="knowledge-principle shell-wide">
         <Image src="/images/community-training.webp" alt="Leden trainen samen op de fitnessvloer" width={1919} height={820} sizes="(max-width: 760px) 100vw, 52vw" />
         <div><span className="eyebrow eyebrow--light">Onze visie op kennis</span><h2 className="display display--light">Begrijpen wat je doet maakt trainen beter.</h2><p>Goede informatie geeft je geen snelle oplossing, maar helpt je betere keuzes maken. In de club vertalen we theorie altijd naar wat jij vandaag kunt doen.</p><Link href="/begeleiding" className="text-link text-link--light">Ontdek onze begeleiding <ArrowRight aria-hidden="true" /></Link></div>
-      </section>
+      </Reveal>
     </main>
   );
 }

@@ -3,6 +3,7 @@ import { ArrowRight, BadgeCheck, Check, HandHeart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { PageHero } from "@/components/page-hero";
+import { Reveal } from "@/components/reveal";
 import { pageMetadata } from "@/lib/metadata";
 
 export const metadata = pageMetadata("Abonnementen", "Bekijk welke manier van trainen bij je past en vraag de actuele tarieven en voorwaarden aan bij Absolutely Fit.", "/abonnementen");
@@ -51,7 +52,7 @@ export default function AbonnementenPage() {
         imageAlt="Cardioapparatuur in het zachte ochtendlicht"
       />
 
-      <section className="section shell membership-intro">
+      <Reveal as="section" className="section shell membership-intro">
         <div>
           <span className="eyebrow">Kies je route</span>
           <h2 className="display">Drie manieren om te beginnen.</h2>
@@ -60,9 +61,9 @@ export default function AbonnementenPage() {
           <p>Onderstaande routes geven richting. Het team vertelt je graag welke actuele abonnementsvorm, prijs en voorwaarden daarbij horen.</p>
           <a href="tel:+31612595112" className="text-link">Bel voor actuele tarieven <ArrowRight aria-hidden="true" /></a>
         </div>
-      </section>
+      </Reveal>
 
-      <section className="membership-routes shell">
+      <Reveal as="section" className="membership-routes shell">
         {routes.map((route) => (
           <article className={route.featured ? "membership-route is-featured" : "membership-route"} key={route.label}>
             <div className="membership-route__top">
@@ -78,9 +79,9 @@ export default function AbonnementenPage() {
             </Button>
           </article>
         ))}
-      </section>
+      </Reveal>
 
-      <section className="section shell comparison-section">
+      <Reveal as="section" className="section shell comparison-section">
         <div className="comparison-section__heading">
           <span className="eyebrow">In één oogopslag</span>
           <h2 className="display">Wat past bij jouw manier van trainen?</h2>
@@ -95,13 +96,13 @@ export default function AbonnementenPage() {
           ].map(([label, ...values]) => <div className="comparison-table__row" role="row" key={String(label)}><strong role="rowheader">{label}</strong>{values.map((value, index) => <span role="cell" key={index}>{value ? <Check aria-label="Inbegrepen" /> : <i aria-label="Niet standaard inbegrepen">—</i>}</span>)}</div>)}
         </div>
         <p className="comparison-note">De exacte inhoud hangt af van de actuele abonnementsvorm en gemaakte afspraken. Vraag het team om de volledige voorwaarden.</p>
-      </section>
+      </Reveal>
 
-      <section className="ooievaar-band shell-wide">
+      <Reveal as="section" className="ooievaar-band shell-wide">
         <div className="ooievaar-band__mark"><HandHeart aria-hidden="true" /><span>Ooievaarspas</span></div>
         <div><span className="eyebrow eyebrow--light">Sporten moet bereikbaar zijn</span><h2 className="display display--light">Ook welkom met de Ooievaarspas.</h2><p>Absolutely Fit werkt met de Ooievaarspas. Neem even contact op voor de actuele mogelijkheden en voorwaarden; dan helpen we je persoonlijk verder.</p></div>
         <Button asChild className="button-light button-large"><Link href="/contact">Vraag naar de mogelijkheden</Link></Button>
-      </section>
+      </Reveal>
 
       <section className="section shell membership-faq">
         <div><BadgeCheck aria-hidden="true" /><span className="eyebrow">Goed om te weten</span><h2 className="display">Vragen voor je begint.</h2></div>
@@ -110,7 +111,7 @@ export default function AbonnementenPage() {
         </Accordion>
       </section>
 
-      <section className="utility-band"><div className="shell two-column"><h2 className="display">Eerst de club voelen. Dan pas kiezen.</h2><div><p>Kom langs, vertel wat je wilt bereiken en ontdek welke route prettig voelt. Zonder ingewikkeld verkooppraatje.</p><Button asChild className="button-light button-large"><Link href="/contact">Plan een kennismaking <ArrowRight aria-hidden="true" /></Link></Button></div></div></section>
+      <Reveal as="section" className="utility-band"><div className="shell two-column"><h2 className="display">Eerst de club voelen. Dan pas kiezen.</h2><div><p>Kom langs, vertel wat je wilt bereiken en ontdek welke route prettig voelt. Zonder ingewikkeld verkooppraatje.</p><Button asChild className="button-light button-large"><Link href="/contact">Plan een kennismaking <ArrowRight aria-hidden="true" /></Link></Button></div></div></Reveal>
     </main>
   );
 }

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, ArrowUpRight, Clock3, MapPin, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -17,30 +17,47 @@ export function BrandLogo({ priority = false, variant = "lockup" }: { priority?:
 export function SiteHeader() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    let frame = 0;
+    const update = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => setIsScrolled(window.scrollY > 12));
+    };
+
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", update);
+    };
+  }, []);
+
   if (pathname.startsWith("/ledenportaal") || pathname.startsWith("/backoffice")) return null;
   const isActive = (href: string) => pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
   return (
-    <header className="site-header ao-header">
+    <header className={`site-header ao-header${isScrolled ? " is-scrolled" : ""}${menuOpen ? " is-menu-open" : ""}`}>
       <div className="ao-utility"><div><span>Fitnessclub in Scheveningen</span><span>Persoonlijke begeleiding</span><span>Voor ieder niveau</span><Link href="/contact"><Clock3 aria-hidden="true" /> Actuele clubinformatie opvragen <ArrowRight aria-hidden="true" /></Link></div></div>
       <div className="site-header__inner">
         <Link href="/" className="brand-link" aria-label="Absolutely Fit homepage"><BrandLogo priority /></Link>
         <nav className="desktop-nav" aria-label="Hoofdnavigatie">
-          {navItems.map((item) => <Link key={item.href} href={item.href} className={isActive(item.href) ? "is-active" : undefined}>{item.label}</Link>)}
+          {navItems.map((item) => <Link key={item.href} href={item.href} className={isActive(item.href) ? "is-active" : undefined} aria-current={isActive(item.href) ? "page" : undefined}>{item.label}</Link>)}
         </nav>
         <div className="header-actions">
           <Button asChild variant="ghost" className="header-login"><Link href="/inloggen">Inloggen</Link></Button>
           <Button asChild className="button-primary header-join"><Link href="/#eerste-bezoek">Mijn eerste bezoek</Link></Button>
           <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
-            <SheetTrigger asChild><Button variant="ghost" className="mobile-menu-trigger" aria-label={menuOpen ? "Menu sluiten" : "Menu openen"} aria-expanded={menuOpen}><span>Menu</span><i className="mobile-menu-trigger__glyph" aria-hidden="true"><b /><b /></i></Button></SheetTrigger>
+            <SheetTrigger asChild><Button variant="ghost" className="mobile-menu-trigger" aria-label={menuOpen ? "Menu sluiten" : "Menu openen"} aria-expanded={menuOpen}><span>Menu</span><i className="mobile-menu-trigger__glyph" aria-hidden="true"><b /><b /><b /></i></Button></SheetTrigger>
             <SheetContent className="mobile-menu" side="right" showCloseButton={false}>
               <SheetHeader className="mobile-menu__header">
-                <SheetTitle><BrandLogo /></SheetTitle>
+                <SheetTitle><span className="mobile-menu__title-label">Navigatiemenu</span><BrandLogo /></SheetTitle>
                 <SheetDescription>Fitness, begeleiding en clubinformatie.</SheetDescription>
                 <SheetClose className="mobile-menu__close" aria-label="Menu sluiten"><span>Sluiten</span><X aria-hidden="true" /></SheetClose>
               </SheetHeader>
               <div className="mobile-menu__intro"><span><i /> Clubinformatie</span><p><MapPin aria-hidden="true" /> Scheveningen · controleer gegevens voor je bezoek</p></div>
               <nav className="mobile-nav" aria-label="Mobiele navigatie">
-                {navItems.map((item, index) => <SheetClose asChild key={item.href}><Link href={item.href} className={isActive(item.href) ? "is-active" : undefined} aria-current={isActive(item.href) ? "page" : undefined}><span>{String(index + 1).padStart(2, "0")}</span><strong>{item.label}</strong><ArrowUpRight aria-hidden="true" /></Link></SheetClose>)}
+                {navItems.map((item, index) => <SheetClose asChild key={item.href}><Link href={item.href} className={isActive(item.href) ? "is-active" : undefined} aria-current={isActive(item.href) ? "page" : undefined}><span aria-hidden="true">{String(index + 1).padStart(2, "0")}</span><strong>{item.label}</strong><ArrowUpRight aria-hidden="true" /></Link></SheetClose>)}
               </nav>
               <div className="mobile-menu__actions">
                 <SheetClose asChild><Button asChild className="button-primary button-large"><Link href="/#eerste-bezoek">Mijn eerste bezoek</Link></Button></SheetClose>

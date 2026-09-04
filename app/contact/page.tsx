@@ -3,6 +3,7 @@ import { Clock3, Mail, MapPin, Phone } from "lucide-react";
 import { ContactForm } from "@/components/contact-form";
 import { contact } from "@/lib/site-data";
 import { pageMetadata } from "@/lib/metadata";
+import { Reveal } from "@/components/reveal";
 
 export const metadata = pageMetadata("Contact", "Neem contact op met Absolutely Fit in Scheveningen voor een kennismaking, abonnement of vraag over begeleiding.", "/contact");
 
@@ -38,10 +39,10 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
         <ContactForm prefill={prefill} />
       </section>
 
-      <section className="club-route shell-wide">
+      <Reveal as="section" className="club-route shell-wide">
         <div className="club-route__image"><Image src="/images/club-exterior.webp" alt="Historisch gevelbeeld uit het archief van Absolutely Fit" width={1536} height={1152} sizes="(max-width: 760px) 100vw, 50vw" /><span>Beeld uit het clubarchief</span></div>
         <div className="club-route__copy"><span className="eyebrow eyebrow--light">Absolutely Fit · Scheveningen</span><h2 className="display display--light">Tot snel in de club.</h2><address>Doctor Lelykade 240<br />2583 CP Den Haag</address><p>Neem voor je eerste bezoek even contact op. Dan weet je wanneer iemand tijd heeft om je rustig te ontvangen en rond te leiden.</p><a className="button-light button-large route-button" href="https://www.google.com/maps/search/?api=1&query=Doctor+Lelykade+240+Den+Haag" target="_blank" rel="noreferrer">Open routebeschrijving</a></div>
-      </section>
+      </Reveal>
     </main>
   );
 }

@@ -8,6 +8,7 @@ import "./portal-premium.css";
 import "./finish-pass.css";
 import "./release-hardening.css";
 import "./experience-polish.css";
+import "./backoffice-polish.css";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { siteUrl } from "@/lib/metadata";

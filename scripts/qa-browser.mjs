@@ -7,6 +7,7 @@ import { chromium } from "playwright";
 const BASE_URL = (process.env.BASE_URL ?? process.argv[2] ?? "http://127.0.0.1:3000").replace(/\/$/, "");
 const ARTIFACTS_DIR = path.resolve(process.env.QA_ARTIFACTS_DIR ?? ".artifacts/qa");
 const NAVIGATION_TIMEOUT = Number(process.env.QA_TIMEOUT_MS ?? 45_000);
+const SKIP_BULK_CAPTURE = process.env.QA_SKIP_BULK_CAPTURE === "1";
 
 const publicRoutes = [
   "/",
@@ -239,60 +240,73 @@ async function main() {
       assert(!routeFailures.length, routeFailures.join("; "));
     });
 
-    const page = await context.newPage();
     let currentActivity = "browserstart";
-    page.on("console", (message) => {
-      if (message.type() !== "error") return;
-      const location = message.location();
-      browserIssues.push({
-        type: "console",
-        activity: currentActivity,
-        message: message.text(),
-        source: location.url ? `${location.url}:${location.lineNumber ?? 0}` : "onbekend",
+    const trackPage = (trackedPage) => {
+      trackedPage.on("console", (message) => {
+        if (message.type() !== "error") return;
+        const location = message.location();
+        browserIssues.push({
+          type: "console",
+          activity: currentActivity,
+          message: message.text(),
+          source: location.url ? `${location.url}:${location.lineNumber ?? 0}` : "onbekend",
+        });
       });
-    });
-    page.on("pageerror", (error) => {
-      browserIssues.push({ type: "pageerror", activity: currentActivity, message: error.message });
-    });
-    page.on("requestfailed", (request) => {
-      const reason = request.failure()?.errorText ?? "onbekende netwerkfout";
-      if (/ERR_ABORTED|NS_BINDING_ABORTED/i.test(reason)) return;
-      browserIssues.push({ type: "requestfailed", activity: currentActivity, message: `${request.method()} ${request.url()} — ${reason}` });
-    });
+      trackedPage.on("pageerror", (error) => {
+        browserIssues.push({ type: "pageerror", activity: currentActivity, message: error.message });
+      });
+      trackedPage.on("requestfailed", (request) => {
+        const reason = request.failure()?.errorText ?? "onbekende netwerkfout";
+        if (/ERR_ABORTED|NS_BINDING_ABORTED/i.test(reason)) return;
+        browserIssues.push({ type: "requestfailed", activity: currentActivity, message: `${request.method()} ${request.url()} — ${reason}` });
+      });
+    };
+    let page = await context.newPage();
+    trackPage(page);
+    const resetPage = async () => {
+      await page.close().catch(() => {});
+      page = await context.newPage();
+      trackPage(page);
+    };
 
-    for (const viewport of viewportMatrix) {
-      await page.setViewportSize({ width: viewport.width, height: viewport.height });
-      for (const route of visualRoutes) {
-        await check(`Responsief ${viewport.name} ${route}`, async () => {
-          currentActivity = `responsief ${viewport.name} ${route}`;
-          await goto(page, route);
-          await checkOverflow(page, route, viewport.name);
-          await activateScrollReveals(page);
-          await page.screenshot({ path: artifactName(route, viewport.name), fullPage: true, animations: "disabled" });
-        });
+    if (!SKIP_BULK_CAPTURE) {
+      for (const viewport of viewportMatrix) {
+        await resetPage();
+        await page.setViewportSize({ width: viewport.width, height: viewport.height });
+        for (const route of visualRoutes) {
+          await check(`Responsief ${viewport.name} ${route}`, async () => {
+            currentActivity = `responsief ${viewport.name} ${route}`;
+            await goto(page, route);
+            await checkOverflow(page, route, viewport.name);
+            await activateScrollReveals(page);
+            await page.screenshot({ path: artifactName(route, viewport.name), fullPage: true, animations: "disabled" });
+          });
+        }
       }
-    }
 
-    const extendedCaptureMatrix = [
-      { name: "desktop-1440", width: 1440, height: 1000, routes: requiredRoutes },
-      { name: "phone-430", width: 430, height: 932, routes: publicRoutes },
-      { name: "phone-390", width: 390, height: 844, routes: [...memberRoutes, ...backofficeRoutes] },
-    ];
-    for (const capture of extendedCaptureMatrix) {
-      await page.setViewportSize({ width: capture.width, height: capture.height });
-      for (const route of capture.routes) {
-        if (visualRoutes.includes(route) && viewportMatrix.some((viewport) => viewport.name === capture.name)) continue;
-        await check(`Routecapture ${capture.name} ${route}`, async () => {
-          currentActivity = `routecapture ${capture.name} ${route}`;
-          await goto(page, route);
-          await checkOverflow(page, route, capture.name);
-          await activateScrollReveals(page);
-          await page.screenshot({ path: artifactName(route, capture.name), fullPage: true, animations: "disabled" });
-        });
+      const extendedCaptureMatrix = [
+        { name: "desktop-1440", width: 1440, height: 1000, routes: requiredRoutes },
+        { name: "phone-430", width: 430, height: 932, routes: publicRoutes },
+        { name: "phone-390", width: 390, height: 844, routes: [...memberRoutes, ...backofficeRoutes] },
+      ];
+      for (const capture of extendedCaptureMatrix) {
+        await resetPage();
+        await page.setViewportSize({ width: capture.width, height: capture.height });
+        for (const route of capture.routes) {
+          if (visualRoutes.includes(route) && viewportMatrix.some((viewport) => viewport.name === capture.name)) continue;
+          await check(`Routecapture ${capture.name} ${route}`, async () => {
+            currentActivity = `routecapture ${capture.name} ${route}`;
+            await goto(page, route);
+            await checkOverflow(page, route, capture.name);
+            await activateScrollReveals(page);
+            await page.screenshot({ path: artifactName(route, capture.name), fullPage: true, animations: "disabled" });
+          });
+        }
       }
     }
 
     await check("Homepage-regiocaptures en mobiel menugedrag", async () => {
+      await resetPage();
       const regions = [
         ["header", [".site-header"]],
         ["hero", [".ao-hero"]],
@@ -628,6 +642,205 @@ async function main() {
       await page.getByRole("button", { name: /Download demo-tekst/i }).first().click();
       const download = await downloadPromise;
       assert(download.suggestedFilename() === "af-demo-0084.txt", `Onverwachte demofactuurnaam: ${download.suggestedFilename()}`);
+    });
+
+    await check("Backoffice-polish: acht schermen, states en responsieve details", async () => {
+      currentActivity = "backoffice polish";
+      await resetPage();
+
+      await page.setViewportSize({ width: 1440, height: 1000 });
+      for (const route of backofficeRoutes) {
+        await resetPage();
+        await page.setViewportSize({ width: 1440, height: 1000 });
+        await goto(page, route);
+        await checkOverflow(page, route, "backoffice-desktop");
+        const shared = await page.evaluate(() => {
+          const sidebar = document.querySelector(".admin-sidebar");
+          const brandCopy = document.querySelector(".admin-brand span");
+          const navLink = document.querySelector(".admin-sidebar nav a");
+          const heading = document.querySelector(".admin-heading, .schedule-heading");
+          const bodyText = document.querySelector(".admin-heading p, .schedule-heading p");
+          return {
+            sidebarWidth: sidebar instanceof HTMLElement ? sidebar.getBoundingClientRect().width : null,
+            brandFits: brandCopy instanceof HTMLElement ? brandCopy.scrollWidth <= brandCopy.clientWidth + 1 : null,
+            navFontSize: navLink instanceof HTMLElement ? Number.parseFloat(getComputedStyle(navLink).fontSize) : null,
+            headingWidth: heading instanceof HTMLElement ? heading.getBoundingClientRect().width : null,
+            bodyFontSize: bodyText instanceof HTMLElement ? Number.parseFloat(getComputedStyle(bodyText).fontSize) : null,
+          };
+        });
+        assert(shared.sidebarWidth >= 240 && shared.brandFits, `${route} heeft een geklemde desktoprail: ${JSON.stringify(shared)}`);
+        assert(shared.navFontSize >= 13 && shared.bodyFontSize >= 14, `${route} houdt te kleine kerntekst: ${JSON.stringify(shared)}`);
+        assert(shared.headingWidth > 700, `${route} gebruikt de desktopwerkruimte niet: ${JSON.stringify(shared)}`);
+      }
+
+      await resetPage();
+      await page.setViewportSize({ width: 1440, height: 1000 });
+      await goto(page, "/backoffice");
+      const dashboardAlignment = await page.evaluate(() => {
+        const today = document.querySelector(".admin-today");
+        const inbox = document.querySelector(".admin-inbox");
+        if (!(today instanceof HTMLElement) || !(inbox instanceof HTMLElement)) return null;
+        return { today: today.getBoundingClientRect().bottom, inbox: inbox.getBoundingClientRect().bottom };
+      });
+      assert(dashboardAlignment && Math.abs(dashboardAlignment.today - dashboardAlignment.inbox) <= 1, `Dashboardkaarten eindigen ongelijk: ${JSON.stringify(dashboardAlignment)}`);
+
+      await resetPage();
+      await page.setViewportSize({ width: 1440, height: 1000 });
+      await goto(page, "/backoffice/trainers");
+      assert(await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight + 4), "Korte backofficepagina heeft nog decoratieve lege scrollruimte");
+      await page.getByRole("button", { name: "Alleen democoaches", exact: true }).click();
+      const filteredTrainerWidths = await page.locator(".admin-trainer-grid > article").evaluateAll((cards) => cards.map((card) => card.getBoundingClientRect().width));
+      assert(filteredTrainerWidths.length === 2 && Math.abs(filteredTrainerWidths[0] - filteredTrainerWidths[1]) <= 1, `Gefilterde trainerkaarten verdelen de ruimte niet: ${JSON.stringify(filteredTrainerWidths)}`);
+
+      await resetPage();
+      await page.setViewportSize({ width: 1440, height: 1000 });
+      await goto(page, "/backoffice/communicatie");
+      const communicationGeometry = await page.evaluate(() => {
+        const input = document.querySelector(".admin-communication__composer input");
+        const button = document.querySelector(".admin-communication__composer button");
+        const composer = document.querySelector(".admin-communication__composer");
+        if (!(input instanceof HTMLElement) || !(button instanceof HTMLElement) || !(composer instanceof HTMLElement)) return null;
+        const inputRect = input.getBoundingClientRect();
+        const buttonRect = button.getBoundingClientRect();
+        const composerRect = composer.getBoundingClientRect();
+        return {
+          separated: inputRect.right + 8 <= buttonRect.left,
+          inside: inputRect.left >= composerRect.left && buttonRect.right <= composerRect.right,
+          inputHeight: inputRect.height,
+          buttonHeight: buttonRect.height,
+        };
+      });
+      assert(communicationGeometry?.separated && communicationGeometry.inside, `Communicatiecomposer overlapt of loopt uit: ${JSON.stringify(communicationGeometry)}`);
+      assert(communicationGeometry.inputHeight >= 44 && communicationGeometry.buttonHeight >= 44, `Communicatiecomposer heeft te kleine controls: ${JSON.stringify(communicationGeometry)}`);
+
+      await resetPage();
+      await page.setViewportSize({ width: 1440, height: 1000 });
+      await goto(page, "/backoffice/content");
+      const contentCards = await page.locator(".admin-content-grid article").evaluateAll((cards) => cards.map((card) => {
+        const status = card.querySelector("small");
+        const button = card.querySelector("button");
+        if (!(status instanceof HTMLElement) || !(button instanceof HTMLElement)) return null;
+        const a = status.getBoundingClientRect();
+        const b = button.getBoundingClientRect();
+        return { statusBottom: a.bottom, actionTop: b.top, actionHeight: b.height };
+      }));
+      assert(contentCards.every((card) => card && card.statusBottom <= card.actionTop + 1 && card.actionHeight >= 44), `Contentkaartstatus en actie overlappen: ${JSON.stringify(contentCards)}`);
+
+      await page.setViewportSize({ width: 390, height: 844 });
+      for (const route of backofficeRoutes) {
+        await resetPage();
+        await page.setViewportSize({ width: 390, height: 844 });
+        await goto(page, route);
+        await checkOverflow(page, route, "backoffice-phone");
+        const mobileShell = await page.evaluate(() => {
+          const sidebar = document.querySelector(".admin-sidebar");
+          const nav = document.querySelector(".admin-sidebar nav");
+          const active = nav?.querySelector("[aria-current='page']");
+          const content = document.querySelector(".admin-content");
+          const headingControls = [...document.querySelectorAll(".admin-heading :is(button,a)")]
+            .filter((element) => element instanceof HTMLElement && element.getBoundingClientRect().width > 0)
+            .map((element) => element.getBoundingClientRect().toJSON());
+          const undersized = [...document.querySelectorAll(
+            ".admin-heading :is(button,a), .admin-list-toolbar button, .admin-data-table article > button, .admin-trainer-grid footer :is(button,a), .admin-kanban article button, .admin-communication button, .admin-content-grid button, .admin-local-editor button, .schedule-toolbar button, .schedule-status button, .schedule-mobile-agenda__actions button",
+          )].filter((element) => {
+            const rect = element.getBoundingClientRect();
+            return rect.width > 0 && rect.height > 0 && (rect.width < 44 || rect.height < 44);
+          }).map((element) => ({ text: element.getAttribute("aria-label") || element.textContent?.trim(), rect: element.getBoundingClientRect().toJSON() }));
+          if (!(sidebar instanceof HTMLElement) || !(nav instanceof HTMLElement) || !(active instanceof HTMLElement) || !(content instanceof HTMLElement)) return null;
+          const navRect = nav.getBoundingClientRect();
+          const activeRect = active.getBoundingClientRect();
+          const contentRect = content.getBoundingClientRect();
+          return {
+            sidebarPosition: getComputedStyle(sidebar).position,
+            sidebarHeight: sidebar.getBoundingClientRect().height,
+            activeVisible: activeRect.left >= navRect.left + 4 && activeRect.right <= navRect.right - 4,
+            navNames: [...nav.querySelectorAll("a")].map((link) => link.getAttribute("aria-label")),
+            controlsInside: headingControls.every((rect) => rect.left >= contentRect.left - 1 && rect.right <= contentRect.right + 1),
+            undersized,
+          };
+        });
+        assert(mobileShell?.sidebarPosition === "relative" && mobileShell.sidebarHeight <= 140, `${route} houdt een te hoge of bedekkende mobiele shell: ${JSON.stringify(mobileShell)}`);
+        assert(mobileShell.activeVisible, `${route} toont de actieve mobiele bestemming niet: ${JSON.stringify(mobileShell)}`);
+        assert(mobileShell.navNames.every(Boolean), `${route} bevat naamloze compacte navigatielinks: ${JSON.stringify(mobileShell)}`);
+        assert(mobileShell.controlsInside, `${route} laat een headingactie buiten de content lopen: ${JSON.stringify(mobileShell)}`);
+        assert(!mobileShell.undersized.length, `${route} heeft raakvlakken kleiner dan 44px: ${JSON.stringify(mobileShell.undersized)}`);
+      }
+
+      await resetPage();
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await goto(page, "/backoffice/instellingen");
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.waitForFunction(() => {
+        const nav = document.querySelector(".admin-sidebar nav");
+        const active = nav?.querySelector("[aria-current='page']");
+        if (!(nav instanceof HTMLElement) || !(active instanceof HTMLElement)) return false;
+        const navRect = nav.getBoundingClientRect();
+        const activeRect = active.getBoundingClientRect();
+        return activeRect.left >= navRect.left + 4 && activeRect.right <= navRect.right - 4;
+      });
+
+      await resetPage();
+      await page.setViewportSize({ width: 390, height: 844 });
+      await goto(page, "/backoffice/leden");
+      const memberControls = await page.locator(".admin-list-toolbar :is(input,button)").evaluateAll((controls) => controls.map((control) => control.getBoundingClientRect().height));
+      assert(memberControls.every((height) => height >= 44), `Ledenfilters hebben te kleine raakvlakken: ${JSON.stringify(memberControls)}`);
+      await page.getByLabel("Zoek demoleden").fill("bestaat niet");
+      await page.getByText("Geen demoleden gevonden", { exact: true }).waitFor({ state: "visible" });
+      await page.getByRole("button", { name: "Wis zoeken en filters", exact: true }).click();
+      await page.getByText("Sam de Vries", { exact: true }).waitFor({ state: "visible" });
+
+      await resetPage();
+      await page.setViewportSize({ width: 390, height: 844 });
+      await goto(page, "/backoffice/communicatie");
+      const mobileCommunication = await page.evaluate(() => {
+        const section = document.querySelector(".admin-communication > section");
+        const input = document.querySelector(".admin-communication__composer input");
+        const button = document.querySelector(".admin-communication__composer button");
+        if (!(section instanceof HTMLElement) || !(input instanceof HTMLElement) || !(button instanceof HTMLElement)) return null;
+        return {
+          contained: section.scrollWidth <= section.clientWidth,
+          inputHeight: input.getBoundingClientRect().height,
+          buttonHeight: button.getBoundingClientRect().height,
+          separated: input.getBoundingClientRect().bottom <= button.getBoundingClientRect().top,
+        };
+      });
+      assert(mobileCommunication?.contained && mobileCommunication.separated, `Mobiele communicatie is geclipt of overlapt: ${JSON.stringify(mobileCommunication)}`);
+      assert(mobileCommunication.inputHeight >= 44 && mobileCommunication.buttonHeight >= 44, `Mobiele communicatiecontrols zijn te klein: ${JSON.stringify(mobileCommunication)}`);
+
+      await resetPage();
+      await page.setViewportSize({ width: 390, height: 844 });
+      await goto(page, "/backoffice/content");
+      const mobileContentCards = await page.locator(".admin-content-grid article").evaluateAll((cards) => cards.map((card) => {
+        const status = card.querySelector("small");
+        const button = card.querySelector("button");
+        if (!(status instanceof HTMLElement) || !(button instanceof HTMLElement)) return false;
+        return status.getBoundingClientRect().bottom <= button.getBoundingClientRect().top + 1 && button.getBoundingClientRect().height >= 44;
+      }));
+      assert(mobileContentCards.every(Boolean), `Mobiele contentkaarten overlappen nog: ${JSON.stringify(mobileContentCards)}`);
+
+      await resetPage();
+      await page.setViewportSize({ width: 390, height: 844 });
+      await goto(page, "/backoffice/instellingen");
+      const settingsDetails = await page.evaluate(() => ({
+        inputHeights: [...document.querySelectorAll(".admin-settings input")].map((input) => input.getBoundingClientRect().height),
+        statuses: [...document.querySelectorAll(".admin-settings__status")].map((status) => status.textContent?.trim()),
+      }));
+      assert(settingsDetails.inputHeights.every((height) => height >= 48), `Mobiele instellingenvelden zijn te klein: ${JSON.stringify(settingsDetails)}`);
+      assert(settingsDetails.statuses.length === 4 && settingsDetails.statuses.every((status) => status === "Niet actief"), `Instellingsstatussen zijn geen rustige badges: ${JSON.stringify(settingsDetails)}`);
+      await page.getByRole("button", { name: "Lokaal opslaan", exact: true }).click();
+      const toast = page.locator(".admin-global-notice");
+      await toast.waitFor({ state: "visible" });
+      assert((await toast.evaluate((element) => getComputedStyle(element).position)) === "fixed", "Backofficestatus verschijnt niet als zichtbare toast");
+
+      await resetPage();
+      await page.setViewportSize({ width: 390, height: 844 });
+      await goto(page, "/backoffice/rooster");
+      const livePosition = await page.locator(".schedule-live").evaluate((element) => getComputedStyle(element).position);
+      assert(livePosition === "relative", `Roosterstatus blijft over het werkvlak zweven: ${livePosition}`);
+      await page.locator(".schedule-mobile-days button").last().click();
+      await page.getByText("Nog niets ingepland", { exact: true }).waitFor({ state: "visible" });
+
+      await page.setViewportSize({ width: 1280, height: 900 });
     });
 
     await check("Backoffice-rooster: template bewerken en lokaal publiceren", async () => {

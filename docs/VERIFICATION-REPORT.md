@@ -13,13 +13,15 @@ Release candidate: content and SEO expansion, 7 September 2026.
 | Dependency audit | `npm audit --omit=dev --audit-level=high` | Passed: 0 vulnerabilities |
 | Full browser, links, keyboard and responsive run | `BASE_URL=http://127.0.0.1:3000 QA_ARTIFACTS_DIR=.artifacts/qa-final npm run qa:browser` | Passed: 215/215, including 46 HTTP routes, 12 redirects and 240 screenshots |
 | Final targeted regression run | `QA_SKIP_BULK_CAPTURE=1 ... npm run qa:browser` | Passed: 19/19 after visual review fix; zero console, page or network errors |
-| Production health and exact SHA | `/api/health` after deployment | Pending deployment |
+| Production workflow | GitHub Actions run `34169656846` | Passed: quality gate, artifact smoke, deploy and public verification |
+| Production health and exact release SHA | `https://abso.dgwebservices.nl/api/health` | Passed for `654ba85f94d0dc6ef23ddf978bf6801166f305a0` |
+| Production browser regression | `BASE_URL=https://abso.dgwebservices.nl QA_SKIP_BULK_CAPTURE=1 ... npm run qa:browser` | Passed: 19/19; zero console, page or network errors |
 
 ## Responsive matrix
 
 The browser suite inspected 320, 375, 390, 430, 768, 1024, 1280, 1440 and 1920 pixel widths and failed on document-wide horizontal overflow. It also tested 200% reflow equivalents, a low landscape viewport, coarse pointers and reduced motion. No overflow failure was found.
 
-Screenshots are generated under `.artifacts/qa-final` (full matrix) and `.artifacts/qa-final-targeted` (final interaction/region recaptures). These local QA artifacts are intentionally gitignored. Representative handoff files include:
+Screenshots are generated under `.artifacts/qa-final` (full matrix) and `.artifacts/qa-production` (final live interaction/region recaptures). These local QA artifacts are intentionally gitignored. Representative handoff files include:
 
 - `phone-320--home.png`
 - `phone-430--gratis-persoonlijke-intake.png`
@@ -29,6 +31,15 @@ Screenshots are generated under `.artifacts/qa-final` (full matrix) and `.artifa
 - `desktop-1440--backoffice--instellingen.png`
 
 The final visual review found one dark-on-dark heading in the homepage trust card. It was changed to white, protected by a browser contrast assertion and recaptured before release.
+
+## Production release evidence
+
+- Application release: `654ba85f94d0dc6ef23ddf978bf6801166f305a0`.
+- GitHub Actions: `https://github.com/absolutelyfitnl/website/actions/runs/34169656846` completed successfully in 1 minute 12 seconds.
+- Production health returned `status: ok`, `service: absolutely-fit`, `environment: production` and the exact application release SHA.
+- Independent live smoke checks returned HTTP 200 for the homepage, all primary new pages, the knowledge hub/article, member portal and backoffice.
+- The four representative legacy paths returned HTTP 308 with their exact canonical `Location`; the automated suite covered all twelve legacy routes.
+- Final production interaction screenshots are stored locally under `.artifacts/qa-production` and intentionally remain outside Git.
 
 ## Browser and SEO coverage
 

@@ -5,9 +5,11 @@ import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MemberAppDemo } from "@/components/member-app-demo";
 import { Reveal } from "@/components/reveal";
-import { pageMetadata } from "@/lib/metadata";
+import { pageMetadata, privateRobots } from "@/lib/metadata";
+import { memberships } from "@/lib/content/memberships";
+import { openingHourGroups } from "@/lib/content/opening-hours";
 
-export const metadata = pageMetadata("Ledenapp — concept in ontwikkeling", "Bekijk het concept voor de toekomstige Absolutely Fit ledenapp en ledenomgeving.", "/ledenapp");
+export const metadata = pageMetadata("Ledenapp — concept in ontwikkeling", "Bekijk het concept voor de toekomstige Absolutely Fit ledenapp en ledenomgeving.", "/ledenapp", { robots: privateRobots });
 
 const features: Array<[LucideIcon, string, string]> = [
   [QrCode, "Digitale ledenpas", "Je lidmaatschap en toekomstige QR-toegang overzichtelijk bij elkaar."],
@@ -45,7 +47,7 @@ export default function LedenappPage() {
         <div className="portal-preview__heading"><span className="eyebrow">Ook op desktop</span><h2 className="display">Jouw ledenportaal.</h2><p>Dezelfde informatie, ruimer uitgewerkt voor administratie, planning en voortgang.</p></div>
         <div className="portal-window">
           <aside><Image src="/brand/absolutely-fit-lockup.svg" alt="Absolutely Fit" width={590} height={142} sizes="150px" /><nav><span className="is-active"><Smartphone />Overzicht</span><span><Dumbbell />Training</span><span><CalendarDays />Planning</span><span><CreditCard />Lidmaatschap</span><span><UserRound />Profiel</span></nav><div><LockKeyhole />Veilige ledenomgeving</div></aside>
-          <div className="portal-main"><header><div><small>Goedemorgen</small><h3>Jouw overzicht</h3></div><span><Bell /><i /></span></header><div className="portal-grid"><section className="portal-today"><span>Vandaag</span><h4>Upper body strength</h4><p>6 oefeningen · ongeveer 60 minuten</p><div><strong>18:00</strong><span>Volgende training</span></div></section><section className="portal-pass"><QrCode /><strong>Lidmaatschap actief</strong><span>Digitale ledenpas</span></section><section className="portal-progress"><span>Trainingen deze maand</span><strong>08</strong><div><i style={{width:"68%"}} /></div><small>Persoonlijke voortgang</small></section><section className="portal-news"><span>Uit de club</span><h4>Bekijk actuele openingstijden voor je bezoek</h4><small>Praktische informatie</small></section></div></div>
+          <div className="portal-main"><header><div><small>Goedemorgen</small><h3>Jouw overzicht</h3></div><span><Bell /><i /></span></header><div className="portal-grid"><section className="portal-today"><span>Vandaag</span><h4>Upper body strength</h4><p>6 oefeningen · ongeveer 60 minuten</p><div><strong>18:00</strong><span>Volgende training</span></div></section><section className="portal-pass"><QrCode /><strong>{memberships[1].name} · demo</strong><span>Digitale ledenpas</span></section><section className="portal-progress"><span>Trainingen deze maand</span><strong>08</strong><div><i style={{width:"68%"}} /></div><small>Persoonlijke voortgang</small></section><section className="portal-news"><span>Openingstijden</span><h4>{openingHourGroups[0].label} {openingHourGroups[0].opens}–{openingHourGroups[0].closes}</h4><small>{openingHourGroups.slice(1).map((group) => `${group.label} ${group.opens}–${group.closes}`).join(" · ")}</small></section></div></div>
         </div>
         <p className="portal-caption">Conceptweergave — functionaliteiten, beschikbaarheid en koppelingen worden in een latere productiefase bepaald.</p>
       </Reveal>

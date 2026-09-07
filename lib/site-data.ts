@@ -4,9 +4,24 @@ export const navItems = [
   { href: "/abonnementen", label: "Abonnementen" },
   { href: "/rooster", label: "Rooster" },
   { href: "/over-ons", label: "Over ons" },
-  { href: "/blog", label: "Blog" },
+  { href: "/kennisbank", label: "Kennisbank" },
   { href: "/contact", label: "Contact" },
 ];
+
+export const footerItems = [
+  { href: "/gratis-persoonlijke-intake", label: "Gratis persoonlijke intake", group: "Starten" },
+  { href: "/abonnementen", label: "Abonnementen", group: "Starten" },
+  { href: "/ooievaarspas", label: "Ooievaarspas", group: "Starten" },
+  { href: "/personal-training", label: "Personal training", group: "Trainen" },
+  { href: "/sporten", label: "Trainingsaanbod", group: "Trainen" },
+  { href: "/topsport-en-ntc", label: "Topsport & NTC-status", group: "Trainen" },
+  { href: "/over-ons", label: "Ons verhaal", group: "De club" },
+  { href: "/team", label: "Team", group: "De club" },
+  { href: "/in-de-media/rond-de-haven-2026", label: "In de media", group: "De club" },
+  { href: "/openingstijden", label: "Openingstijden", group: "Praktisch" },
+  { href: "/veelgestelde-vragen", label: "Veelgestelde vragen", group: "Praktisch" },
+  { href: "/contact", label: "Contact & route", group: "Praktisch" },
+] as const;
 
 export const disciplines = [
   "Cardio- en conditietraining",
@@ -30,17 +45,5 @@ export const programs = [
   { slug: "strength-conditioning", label: "Strength & Conditioning", number: "05", intro: "Verbind kracht, conditie, snelheid en belastbaarheid aan de eisen van jouw sport.", forWhom: "Voor ambitieuze sporters die hun fysieke prestaties sportspecifiek willen ontwikkelen.", approach: ["Sportanalyse", "Periodisering", "Kracht en conditie combineren"] },
 ];
 
-export const posts = [
-  { slug: "sterker-worden-begint-met-techniek", category: "Training", title: "Sterker worden begint met techniek", intro: "Waarom een goede uitvoering niet alleen veiliger is, maar je ook sneller en duurzamer laat groeien.", image: "/images/strength-detail.webp", readTime: "6 min" },
-  { slug: "waarom-herstel-bij-training-hoort", category: "Herstel", title: "Waarom herstel bij training hoort", intro: "Vooruitgang ontstaat niet alleen tijdens de training. Zo geef je je lichaam ruimte om sterker te worden.", image: "/images/cardio-sunrise.jpg", readTime: "5 min" },
-  { slug: "zo-bouw-je-een-trainingsschema-op", category: "Kennis", title: "Zo bouw je een trainingsschema op", intro: "Een praktisch plan verbindt je doel, niveau en beschikbare tijd zonder onnodige ingewikkeldheid.", image: "/images/community-training.webp", readTime: "8 min" },
-];
-
-export const contact = {
-  phoneDisplay: "06 12 59 51 12",
-  phoneHref: "+31612595112",
-  landlineDisplay: "070 358 77 81",
-  landlineHref: "+31703587781",
-  email: "info@absolutely-fit.nl",
-  location: "Doctor Lelykade 240, 2583 CP Den Haag",
-};
+export { posts } from "@/lib/content/articles";
+export { contact } from "@/lib/content/site";

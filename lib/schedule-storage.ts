@@ -1,4 +1,5 @@
 import { DemoScheduleEvent, demoSchedule } from "@/lib/demo-data";
+import { openingDays, openingHours } from "@/lib/content/opening-hours";
 
 export const SCHEDULE_SCHEMA_VERSION = 2 as const;
 export const DRAFT_STORAGE_KEY = "af-schedule-draft-v2";
@@ -14,16 +15,28 @@ const statuses = new Set<DemoScheduleEvent["status"]>(["published", "draft"]);
 const types = new Set<DemoScheduleEvent["type"]>(["first-visit", "personal", "strength", "powerlifting", "weightlifting", "guided", "cardio"]);
 const visibilities = new Set<DemoScheduleEvent["visibility"]>(["members", "public", "private"]);
 
+function decimalTime(value: string) {
+  const [hours, minutes] = value.split(":").map(Number);
+  return hours + minutes / 60;
+}
+
+function clubBounds(dayIndex: number) {
+  const day = openingDays[dayIndex];
+  const range = day ? openingHours[day.key][0] : undefined;
+  return range ? { opens: decimalTime(range.opens), closes: decimalTime(range.closes), label: day.label } : null;
+}
+
 export function isScheduleEvent(value: unknown): value is DemoScheduleEvent {
   if (!value || typeof value !== "object") return false;
   const event = value as Record<string, unknown>;
+  const bounds = typeof event.day === "number" ? clubBounds(event.day) : null;
   return typeof event.id === "string" && event.id.length > 0
     && typeof event.title === "string" && event.title.trim().length > 0
     && typeof event.trainer === "string" && event.trainer.trim().length > 0
     && Number.isInteger(event.day) && Number(event.day) >= 0 && Number(event.day) <= 6
-    && typeof event.start === "number" && Number.isFinite(event.start) && event.start >= 8
+    && typeof event.start === "number" && Number.isFinite(event.start) && Boolean(bounds) && event.start >= (bounds?.opens ?? 0)
     && typeof event.duration === "number" && Number.isFinite(event.duration) && event.duration > 0
-    && event.start + event.duration <= 22
+    && event.start + event.duration <= (bounds?.closes ?? 0)
     && Number.isInteger(event.capacity) && Number(event.capacity) >= 1
     && Number.isInteger(event.booked) && Number(event.booked) >= 0 && Number(event.booked) <= Number(event.capacity)
     && statuses.has(event.status as DemoScheduleEvent["status"])
@@ -62,9 +75,12 @@ export function scheduleChanges(baseline: DemoScheduleEvent[], current: DemoSche
 }
 
 export function validateScheduleMutation(candidate: DemoScheduleEvent, events: DemoScheduleEvent[]) {
+  const bounds = clubBounds(candidate.day);
   if (!Number.isFinite(candidate.start) || !Number.isFinite(candidate.duration)
-    || candidate.start < 8 || candidate.start + candidate.duration > 22) {
-    return "Een roosterregel moet volledig tussen 08:00 en 22:00 vallen.";
+    || !bounds || candidate.start < bounds.opens || candidate.start + candidate.duration > bounds.closes) {
+    return bounds
+      ? `Een roosterregel op ${bounds.label.toLowerCase()} moet volledig binnen de reguliere cluburen vallen.`
+      : "Kies een geldige dag en tijd binnen de reguliere cluburen.";
   }
   if (!Number.isInteger(candidate.capacity) || candidate.capacity < 1) return "Capaciteit moet minimaal één zijn.";
   if (!Number.isInteger(candidate.booked) || candidate.booked < 0 || candidate.booked > candidate.capacity) {

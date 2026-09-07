@@ -1,20 +1,37 @@
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, GraduationCap, Heart, Target, Users } from "lucide-react";
+import { ArrowRight, Heart, Target, Users, Waypoints } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { MediaMentionCard, StoryTimeline, TrustCredentialCard } from "@/components/content-sections";
 import { PageHero } from "@/components/page-hero";
 import { Reveal } from "@/components/reveal";
+import { clubStory } from "@/lib/content/claims";
 import { pageMetadata } from "@/lib/metadata";
 
-export const metadata = pageMetadata("Over ons", "Lees over de visie, clubcultuur en persoonlijke manier van begeleiden bij Absolutely Fit.", "/over-ons");
+export const metadata = pageMetadata("Over Absolutely Fit — sinds 1998", "Ontdek het verhaal van familieclub Absolutely Fit, sinds 1998 een persoonlijke trainingsplek in het Scheveningse Havenkwartier.", "/over-ons");
 
 export default function OverOnsPage() {
-  return <main>
-    <PageHero eyebrow="Dit is Absolutely Fit" title={<>Gebouwd op kracht. Gedreven door mensen.</>} intro="Een gezellige, professionele sportschool en een echt familiebedrijf. We geloven dat sporten pas duurzaam wordt wanneer je je welkom voelt, plezier hebt en kunt trainen op een manier die bij je past." image="/images/lotus-window.jpg" imageAlt="De herkenbare lotusbloem van Absolutely Fit" variant="reverse" />
-    <Reveal as="section" className="section shell page-intro"><h2 className="display">Een club met een sterk fundament.</h2><div className="page-intro__copy"><p>De krachtsport zit diep in het DNA van Absolutely Fit.</p><p>Rik Priester senior werd meervoudig Nederlands kampioen en in 1990 wereldkampioen powerliften. Zijn ervaring vormt een belangrijke basis voor onze visie op techniek, trainingsopbouw en begeleiding.</p><p>Die kennis is niet alleen voor topsporters. We maken dezelfde principes begrijpelijk en toepasbaar voor iedereen die sterker, fitter of zekerder wil worden.</p></div></Reveal>
-    <Reveal as="section" className="history-band shell-wide"><div className="history-band__year">1990</div><div className="history-band__copy"><span className="eyebrow eyebrow--light">Wereldkampioen powerliften</span><h2 className="display display--light">Ervaring die verder gaat dan fitness.</h2><p>Praktijkkennis uit de krachtsport, vertaald naar een aanpak waarin techniek, geduld en consistentie centraal staan.</p></div><Image src="/images/strength-detail.webp" alt="Stalen halterschijven en een halterstang" width={1536} height={1024} sizes="(max-width: 760px) 100vw, 40vw" /></Reveal>
-    <Reveal as="section" className="section shell values-section"><div className="section-heading section-heading--row"><div><span className="eyebrow">Waar we voor staan</span><h2 className="display">Onze manier van werken.</h2></div></div><div className="values-lines"><article><Users /><span>01</span><h3>Welkom</h3><p>Iedereen moet zich op zijn gemak kunnen voelen in onze club.</p></article><article><Target /><span>02</span><h3>Kennis</h3><p>We maken trainingsprincipes begrijpelijk en praktisch toepasbaar.</p></article><article><Heart /><span>03</span><h3>Plezier</h3><p>Een goed plan werkt beter wanneer je met plezier blijft trainen.</p></article><article><ArrowRight /><span>04</span><h3>Ontwikkeling</h3><p>Jouw startpunt bepaalt de route; vooruitgang ziet er voor iedereen anders uit.</p></article></div></Reveal>
-    <Reveal as="section" className="mission-split shell-wide"><div><Image src="/images/community-training.webp" alt="Verschillende leden trainen samen" width={1919} height={820} sizes="(max-width: 760px) 100vw, 50vw" /></div><div><span className="eyebrow">Onze missie</span><h2 className="display">Van recreatieve sporter tot topsporter.</h2><p>We willen iedereen begeleiding geven die past bij zijn of haar niveau en ambities — van iemand die beter in zijn vel wil zitten tot een sporter die het maximale uit een prestatie wil halen.</p><Button asChild className="button-primary button-large"><Link href="/begeleiding">Bekijk onze begeleiding</Link></Button></div></Reveal>
-    <Reveal as="section" className="section shell learning-company" id="leerbedrijf"><div className="learning-company__icon"><GraduationCap aria-hidden="true" /></div><div><span className="eyebrow">Erkend leerbedrijf</span><h2 className="display">Kennis doorgeven hoort bij onze club.</h2><p>Absolutely Fit draagt als erkend leerbedrijf bij aan de ontwikkeling van toekomstig sport- en fitnesstalent.</p></div><Link className="round-link round-link--ink" href="/contact" aria-label="Neem contact op"><ArrowRight /></Link></Reveal>
+  return <main className="story-page">
+    <PageHero eyebrow="Familieclub in Scheveningen · sinds 1998" title={<>Serieus trainen. Prettig binnenkomen.</>} intro="Absolutely Fit is een familiegedreven club in het Havenkwartier. Persoonlijke aandacht, nuchtere trainingskennis en ruimte voor ieder startpunt vormen hier de basis." image="/images/lotus-window.jpg" imageAlt="De herkenbare lotusbloem van Absolutely Fit" variant="reverse" />
+
+    <Reveal as="section" className="section shell page-intro">
+      <h2 className="display">Een vaste plek aan de haven.</h2>
+      <div className="page-intro__copy"><p>{clubStory.publicSummary}</p><p>Wat begon vanuit liefde voor krachttraining, groeide uit tot een ontmoetingsplek waar buurtgenoten, nieuwkomers en ervaren sporters naast elkaar trainen.</p><p>De trainingsvloer is professioneel ingericht. De omgang blijft persoonlijk: vragen mogen gesteld worden en ontwikkeling krijgt de tijd.</p></div>
+    </Reveal>
+
+    <Reveal as="section" className="section shell story-timeline-section">
+      <div><span className="eyebrow">Ons verhaal</span><h2 className="display">Sinds 1998, stap voor stap opgebouwd.</h2></div>
+      <StoryTimeline />
+    </Reveal>
+
+    <Reveal as="section" className="section shell values-section">
+      <div className="section-heading section-heading--row"><div><span className="eyebrow">Waar we voor staan</span><h2 className="display">Onze manier van club zijn.</h2></div></div>
+      <div className="values-lines"><article><Users aria-hidden="true" /><span>01</span><h3>Welkom</h3><p>Iedereen moet zich op zijn gemak kunnen voelen om te beginnen.</p></article><article><Target aria-hidden="true" /><span>02</span><h3>Helder</h3><p>We maken trainingsprincipes begrijpelijk en praktisch toepasbaar.</p></article><article><Heart aria-hidden="true" /><span>03</span><h3>Betrokken</h3><p>Aandacht voor mensen hoort net zo bij de club als goed materiaal.</p></article><article><Waypoints aria-hidden="true" /><span>04</span><h3>Ontwikkeling</h3><p>Jouw startpunt bepaalt de route; vooruitgang ziet er voor iedereen anders uit.</p></article></div>
+    </Reveal>
+
+    <Reveal as="section" className="mission-split shell-wide"><div><Image src="/images/community-training.webp" alt="Verschillende leden trainen samen" width={1919} height={820} sizes="(max-width: 760px) 100vw, 50vw" /></div><div><span className="eyebrow">Familieclub als dagelijkse praktijk</span><h2 className="display">Verschillende doelen. Dezelfde aandacht.</h2><p>De één zoekt een haalbaar weekritme, de ander werkt doelgericht aan kracht of sportprestaties. Goede begeleiding sluit aan op die verschillen, zonder iemand tot een nummer te maken.</p><Button asChild className="button-primary button-large"><Link href="/team">Maak kennis met het team <ArrowRight aria-hidden="true" /></Link></Button></div></Reveal>
+
+    <section className="section shell"><TrustCredentialCard /></section>
+    <section className="section shell"><MediaMentionCard /></section>
   </main>;
 }

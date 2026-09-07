@@ -38,7 +38,7 @@ const stepMeta = [
 ];
 
 const resultCopy: Record<string, { title: string; intro: string; route: string[] }> = {
-  sterker: { title: "Sterk beginnen, slim opbouwen.", intro: "We starten bij je huidige niveau en bouwen techniek, kracht en belastbaarheid stap voor stap op.", route: ["Kennismaking en doelbespreking", "Startniveau en techniek bekijken", "Een trainingsritme dat bij je week past"] },
+  sterker: { title: "Sterk beginnen, slim opbouwen.", intro: "We starten bij je huidige niveau en bouwen techniek, kracht en belastbaarheid stap voor stap op.", route: ["Gratis intake en doelbespreking", "Startniveau en techniek bekijken", "Een trainingsritme dat bij je week past"] },
   fitter: { title: "Meer energie in een haalbaar ritme.", intro: "Kracht en conditie komen samen in een aanpak die realistisch blijft naast werk, gezin of studie.", route: ["Jouw startpunt bespreken", "Kracht en conditie slim combineren", "Na de start samen evalueren"] },
   afvallen: { title: "Een aanpak die je kunt volhouden.", intro: "Geen snelle beloftes, wel een duidelijk trainingsritme en begeleiding die aansluit bij je dagelijks leven.", route: ["Doel en dagelijkse routine bespreken", "Een haalbare trainingsweek kiezen", "Consistentie en ontwikkeling volgen"] },
   spiermassa: { title: "Gericht bouwen aan progressie.", intro: "We brengen structuur in oefenkeuze, techniek en trainingsbelasting, passend bij jouw ervaring.", route: ["Ervaring en doel concreet maken", "Techniek en trainingsopbouw bepalen", "Voortgang op vaste momenten bespreken"] },
@@ -56,14 +56,14 @@ const guidanceRoute: Record<string, string> = {
   wegwijs: "Samen de club, apparatuur en eerste oefeningen doorlopen",
   startplan: "Een persoonlijk startplan en trainingsweek uitwerken",
   coaching: "Vaste coachmomenten voor techniek en evaluatie afspreken",
-  "weet-nog-niet": "Tijdens de kennismaking rustig de opties vergelijken",
+  "weet-nog-niet": "Tijdens de gratis intake rustig de opties vergelijken",
 };
 
 type AnswerKey = "goal" | "moment" | "guidance";
 type Answers = Record<AnswerKey, string | null>;
 const emptyAnswers: Answers = { goal: null, moment: null, guidance: null };
 
-export function FirstVisitWizard({ compact = false }: { compact?: boolean }) {
+export function FirstVisitWizard({ compact = false, product }: { compact?: boolean; product?: string }) {
   const wizardId = useId();
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Answers>(emptyAnswers);
@@ -85,7 +85,7 @@ export function FirstVisitWizard({ compact = false }: { compact?: boolean }) {
   ];
   const answeredCount = Object.values(answers).filter(Boolean).length;
   const progressValue = step >= 3 ? 100 : (answeredCount / keys.length) * 100;
-  const contactHref = `/contact?doel=${encodeURIComponent(answers.goal ?? "")}&moment=${encodeURIComponent(answers.moment ?? "")}&begeleiding=${encodeURIComponent(answers.guidance ?? "")}`;
+  const contactHref = `/contact?onderwerp=intake${product ? `&abonnement=${encodeURIComponent(product)}` : ""}&doel=${encodeURIComponent(answers.goal ?? "")}&moment=${encodeURIComponent(answers.moment ?? "")}&begeleiding=${encodeURIComponent(answers.guidance ?? "")}`;
   const reset = () => { hasNavigated.current = true; setDirection("back"); setAnswers(emptyAnswers); setStep(0); };
   const next = () => { if (!answers[currentKey]) return; hasNavigated.current = true; setDirection("forward"); setStep((value) => Math.min(3, value + 1)); };
   const previous = () => { hasNavigated.current = true; setDirection("back"); setStep((value) => Math.max(0, value - 1)); };
@@ -99,7 +99,7 @@ export function FirstVisitWizard({ compact = false }: { compact?: boolean }) {
   return (
     <section className={`visit-wizard ${compact ? "visit-wizard--compact" : ""}`} aria-labelledby={`${wizardId}-title`}>
       <div className="visit-wizard__header">
-        <div><span className="ao-kicker"><Sparkles aria-hidden="true" /> Mijn eerste bezoek</span><h2 id={`${wizardId}-title`}>Begin met een plan dat bij jou past.</h2></div>
+        <div><span className="ao-kicker"><Sparkles aria-hidden="true" /> Gratis persoonlijke intake</span><h2 id={`${wizardId}-title`}>Begin met een plan dat bij jou past.</h2></div>
         <div className="visit-wizard__progress">
           <span>{step < 3 ? `Stap ${step + 1} van 3` : "Jouw startvoorstel"}<strong>{answeredCount}/3 gekozen</strong></span>
           <Progress value={progressValue} aria-label={`${Math.round(progressValue)} procent voltooid`} />
@@ -110,7 +110,7 @@ export function FirstVisitWizard({ compact = false }: { compact?: boolean }) {
       {step < 3 ? (
         <div key={step} className={`visit-wizard__body visit-wizard__body--${direction}`}>
           <div className="visit-wizard__form">
-            <div className="visit-wizard__question"><CurrentIcon aria-hidden="true" /><span>0{step + 1}</span><h3 id={`${wizardId}-question-${step}`} ref={questionRef} tabIndex={-1}>{current.title}</h3><p>Kies wat nu het beste past. Je zit nergens aan vast; tijdens een kennismaking maken we het persoonlijk.</p>{selectedChoice && <div className="visit-wizard__current"><Check aria-hidden="true" /><span><small>Jouw keuze</small><strong>{selectedChoice.label}</strong></span></div>}</div>
+            <div className="visit-wizard__question"><CurrentIcon aria-hidden="true" /><span>0{step + 1}</span><h3 id={`${wizardId}-question-${step}`} ref={questionRef} tabIndex={-1}>{current.title}</h3><p>Kies wat nu het beste past. Tijdens de gratis persoonlijke intake bespreekt het team je antwoorden met je.</p>{selectedChoice && <div className="visit-wizard__current"><Check aria-hidden="true" /><span><small>Jouw keuze</small><strong>{selectedChoice.label}</strong></span></div>}</div>
             <RadioGroup value={answers[currentKey] ?? ""} aria-labelledby={`${wizardId}-question-${step}`} onValueChange={(value) => setAnswers((previous) => ({ ...previous, [currentKey]: value }))} className="visit-wizard__choices">
               {current.options.map((choice) => <label key={choice.value} className="visit-choice" data-selected={answers[currentKey] === choice.value}><RadioGroupItem value={choice.value} /><span><strong>{choice.label}</strong><small>{choice.note}</small></span><Check aria-hidden="true" /></label>)}
             </RadioGroup>
@@ -120,7 +120,7 @@ export function FirstVisitWizard({ compact = false }: { compact?: boolean }) {
         </div>
       ) : (
         <div key="result" className="visit-result visit-result--forward" aria-live="polite">
-          <div className="visit-result__copy"><span className="ao-kicker"><Check aria-hidden="true" /> Jouw startvoorstel</span><h3 ref={resultRef} tabIndex={-1}>{result.title}</h3><p>{result.intro}</p><dl><div><dt>Doel</dt><dd>{goals.find((item) => item.value === answers.goal)?.label}</dd></div><div><dt>Moment</dt><dd>{moments.find((item) => item.value === answers.moment)?.label}</dd></div><div><dt>Begeleiding</dt><dd>{guidance.find((item) => item.value === answers.guidance)?.label}</dd></div></dl><div className="visit-result__actions"><Button asChild className="ao-button ao-button--blue"><Link href={contactHref}>Plan een kennismaking <CalendarDays aria-hidden="true" /></Link></Button><Button type="button" variant="ghost" onClick={reset}><RotateCcw aria-hidden="true" /> Opnieuw</Button></div></div>
+          <div className="visit-result__copy"><span className="ao-kicker"><Check aria-hidden="true" /> Jouw startvoorstel</span><h3 ref={resultRef} tabIndex={-1}>{result.title}</h3><p>{result.intro}</p><dl><div><dt>Doel</dt><dd>{goals.find((item) => item.value === answers.goal)?.label}</dd></div><div><dt>Moment</dt><dd>{moments.find((item) => item.value === answers.moment)?.label}</dd></div><div><dt>Begeleiding</dt><dd>{guidance.find((item) => item.value === answers.guidance)?.label}</dd></div></dl><div className="visit-result__actions"><Button asChild className="ao-button ao-button--blue"><Link href={contactHref}>Vraag je gratis intake aan <CalendarDays aria-hidden="true" /></Link></Button><Button type="button" variant="ghost" onClick={reset}><RotateCcw aria-hidden="true" /> Opnieuw</Button></div></div>
           <div className="visit-result__route"><span>Dit kun je verwachten</span>{resultRoute.map((item, index) => <div key={item} style={{ "--route-delay": `${index * 70}ms` } as React.CSSProperties}><i>0{index + 1}</i><strong>{item}</strong></div>)}<p>Dit startvoorstel is demonstratief en geen automatisch trainingsadvies. De coach bepaalt de uiteindelijke aanpak samen met jou.</p></div>
         </div>
       )}

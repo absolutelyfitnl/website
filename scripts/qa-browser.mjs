@@ -9,26 +9,42 @@ const ARTIFACTS_DIR = path.resolve(process.env.QA_ARTIFACTS_DIR ?? ".artifacts/q
 const NAVIGATION_TIMEOUT = Number(process.env.QA_TIMEOUT_MS ?? 45_000);
 const SKIP_BULK_CAPTURE = process.env.QA_SKIP_BULK_CAPTURE === "1";
 
+const knowledgeArticleSlugs = [
+  "kleine-stappen-duurzaam-sterker",
+  "beginnen-met-krachttraining-scheveningen",
+  "topsportkennis-voor-ieder-niveau",
+  "wat-gebeurt-er-tijdens-een-gratis-persoonlijke-intake",
+  "sporten-met-de-ooievaarspas-bij-absolutely-fit",
+  "sportschool-als-ontmoetingsplek-havenkwartier",
+  "sterker-worden-begint-met-techniek",
+  "waarom-herstel-bij-training-hoort",
+  "zo-bouw-je-een-trainingsschema-op",
+];
+
+const knowledgeArticleRoutes = knowledgeArticleSlugs.map((slug) => `/kennisbank/${slug}`);
+
 const publicRoutes = [
   "/",
   "/sporten",
   "/sporten/krachttraining",
   "/sporten/cardio-conditie",
   "/sporten/powerlifting-gewichtheffen",
-  "/sporten/personal-training",
   "/sporten/strength-conditioning",
   "/begeleiding",
   "/abonnementen",
+  "/gratis-persoonlijke-intake",
+  "/personal-training",
+  "/ooievaarspas",
   "/rooster",
+  "/openingstijden",
   "/over-ons",
-  "/blog",
-  "/blog/sterker-worden-begint-met-techniek",
-  "/blog/waarom-herstel-bij-training-hoort",
-  "/blog/zo-bouw-je-een-trainingsschema-op",
+  "/team",
+  "/topsport-en-ntc",
+  "/veelgestelde-vragen",
+  "/in-de-media/rond-de-haven-2026",
+  "/kennisbank",
+  ...knowledgeArticleRoutes,
   "/contact",
-  "/ledenapp",
-  "/mijn-eerste-bezoek",
-  "/inloggen",
 ];
 
 const memberRoutes = [
@@ -52,17 +68,31 @@ const backofficeRoutes = [
   "/backoffice/instellingen",
 ];
 
-const requiredRoutes = [...publicRoutes, ...memberRoutes, ...backofficeRoutes];
+const privateDemoRoutes = ["/ledenapp", "/inloggen", ...memberRoutes, ...backofficeRoutes];
+const requiredRoutes = [...publicRoutes, ...privateDemoRoutes];
+const legacyRedirects = [
+  { source: "/mijn-eerste-bezoek", destination: "/gratis-persoonlijke-intake" },
+  { source: "/sporten/personal-training", destination: "/personal-training" },
+  { source: "/blog", destination: "/kennisbank" },
+  ...knowledgeArticleSlugs.map((slug) => ({ source: `/blog/${slug}`, destination: `/kennisbank/${slug}` })),
+];
 const platformRoutes = ["/api/health", "/robots.txt", "/sitemap.xml"];
-const notFoundRoutes = ["/sporten/niet-bestaand", "/blog/niet-bestaand", "/dit-bestaat-niet"];
+const notFoundRoutes = ["/sporten/niet-bestaand", "/kennisbank/niet-bestaand", "/dit-bestaat-niet"];
 
 const visualRoutes = [
   "/",
-  "/sporten/krachttraining",
+  "/abonnementen",
+  "/gratis-persoonlijke-intake",
+  "/personal-training",
+  "/ooievaarspas",
+  "/openingstijden",
+  "/team",
+  "/topsport-en-ntc",
+  "/veelgestelde-vragen",
+  "/kennisbank",
+  "/kennisbank/kleine-stappen-duurzaam-sterker",
   "/rooster",
-  "/contact",
   "/ledenportaal",
-  "/ledenportaal/rooster",
   "/backoffice",
   "/backoffice/rooster",
 ];
@@ -90,6 +120,31 @@ function routeUrl(route) {
 function artifactName(route, viewportName) {
   const routeName = route === "/" ? "home" : route.slice(1).replaceAll("/", "--");
   return path.join(ARTIFACTS_DIR, `${viewportName}--${routeName}.png`);
+}
+
+function normalizedPathname(value, base = `${BASE_URL}/`) {
+  const pathname = new URL(value, base).pathname;
+  return pathname.length > 1 ? pathname.replace(/\/$/, "") : pathname;
+}
+
+function canonicalPathname(html, route) {
+  const canonicalTag = (html.match(/<link\b[^>]*>/gi) ?? []).find((tag) => /\brel=["']canonical["']/i.test(tag));
+  const href = canonicalTag?.match(/\bhref=["']([^"']+)["']/i)?.[1];
+  return href ? normalizedPathname(href, routeUrl(route)) : null;
+}
+
+function hasNoIndexNoFollow(html) {
+  const robotsTag = (html.match(/<meta\b[^>]*>/gi) ?? []).find((tag) => /\bname=["']robots["']/i.test(tag));
+  const content = robotsTag?.match(/\bcontent=["']([^"']+)["']/i)?.[1] ?? "";
+  return /(?:^|[,\s])noindex(?:[,\s]|$)/i.test(content) && /(?:^|[,\s])nofollow(?:[,\s]|$)/i.test(content);
+}
+
+function structuredDataFromHtml(html) {
+  return [...html.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)]
+    .flatMap((match) => {
+      const value = JSON.parse(match[1]);
+      return Array.isArray(value) ? value : [value];
+    });
 }
 
 async function settle(page) {
@@ -204,9 +259,38 @@ async function main() {
       for (const route of requiredRoutes) {
         try {
           const response = await context.request.get(routeUrl(route), { maxRedirects: 0, timeout: NAVIGATION_TIMEOUT });
-          if (response.status() !== 200) routeFailures.push(`${route}: HTTP ${response.status()}`);
+          if (response.status() !== 200) {
+            routeFailures.push(`${route}: HTTP ${response.status()}`);
+            continue;
+          }
+          const html = await response.text();
+          if (publicRoutes.includes(route)) {
+            const canonical = canonicalPathname(html, route);
+            if (canonical !== normalizedPathname(route)) routeFailures.push(`${route}: canonical is ${canonical ?? "afwezig"}`);
+          }
+          if (privateDemoRoutes.includes(route) && !hasNoIndexNoFollow(html)) {
+            routeFailures.push(`${route}: noindex,nofollow ontbreekt`);
+          }
         } catch (error) {
           routeFailures.push(`${route}: ${error instanceof Error ? error.message : String(error)}`);
+        }
+      }
+      assert(!routeFailures.length, routeFailures.join("; "));
+    });
+
+    await check(`Legacy redirects (${legacyRedirects.length} routes)`, async () => {
+      const routeFailures = [];
+      for (const { source, destination } of legacyRedirects) {
+        try {
+          const response = await context.request.get(routeUrl(source), { maxRedirects: 0, timeout: NAVIGATION_TIMEOUT });
+          const location = response.headers().location;
+          const redirectUrl = location ? new URL(location, routeUrl(source)) : null;
+          if (![307, 308].includes(response.status())) routeFailures.push(`${source}: verwacht 307/308, kreeg ${response.status()}`);
+          if (!redirectUrl || normalizedPathname(redirectUrl.toString()) !== destination || redirectUrl.search || redirectUrl.hash) {
+            routeFailures.push(`${source}: Location ${location ?? "ontbreekt"}, verwacht ${destination}`);
+          }
+        } catch (error) {
+          routeFailures.push(`${source}: ${error instanceof Error ? error.message : String(error)}`);
         }
       }
       assert(!routeFailures.length, routeFailures.join("; "));
@@ -222,13 +306,40 @@ async function main() {
       const health = await (await context.request.get(routeUrl("/api/health"))).json();
       assert(health.status === "ok" && health.service === "absolutely-fit", `Ongeldige healthpayload: ${JSON.stringify(health)}`);
       const robots = await (await context.request.get(routeUrl("/robots.txt"))).text();
-      assert(robots.includes("Disallow: /ledenportaal") && robots.includes("Disallow: /backoffice"), "robots.txt schermt demo-omgevingen niet af voor indexering");
-      const sitemap = await (await context.request.get(routeUrl("/sitemap.xml"))).text();
-      assert(!/\/(?:ledenportaal|backoffice|inloggen)(?:<|\/)/.test(sitemap), "Private demoroutes staan in sitemap.xml");
-      for (const route of ["/inloggen", "/ledenportaal", "/backoffice"]) {
-        const html = await (await context.request.get(routeUrl(route))).text();
-        assert(/<meta[^>]+name="robots"[^>]+content="[^"]*noindex[^"]*nofollow/i.test(html), `${route} mist noindex,nofollow metadata`);
+      for (const route of ["/inloggen", "/ledenapp", "/ledenportaal", "/backoffice"]) {
+        assert(robots.includes(`Disallow: ${route}`), `robots.txt schermt ${route} niet af voor indexering`);
       }
+      const sitemap = await (await context.request.get(routeUrl("/sitemap.xml"))).text();
+      const sitemapPaths = new Set((sitemap.match(/<loc>[^<]+<\/loc>/g) ?? []).map((entry) => {
+        const location = entry.slice(5, -6);
+        return normalizedPathname(location);
+      }));
+      for (const route of publicRoutes) {
+        assert(sitemapPaths.has(route), `Canonieke route ${route} ontbreekt in sitemap.xml`);
+      }
+      for (const route of [...privateDemoRoutes, ...legacyRedirects.map(({ source }) => source)]) {
+        assert(!sitemapPaths.has(route), `Niet-indexeerbare route ${route} staat in sitemap.xml`);
+      }
+    });
+
+    await check("Gestructureerde data", async () => {
+      const pageData = async (route) => structuredDataFromHtml(await (await context.request.get(routeUrl(route))).text());
+      const homeData = await pageData("/");
+      const gym = homeData.find((item) => item["@type"] === "ExerciseGym");
+      assert(gym, "Homepage mist geldige ExerciseGym JSON-LD");
+      assert(gym.foundingDate === "1998", `ExerciseGym foundingDate klopt niet: ${gym.foundingDate}`);
+      assert(gym.openingHoursSpecification?.length === 7, "ExerciseGym bevat niet exact zeven openingsdagregels");
+      const offers = gym.hasOfferCatalog?.itemListElement ?? [];
+      assert(offers.length === 4, `ExerciseGym bevat ${offers.length} in plaats van vier producten`);
+      assert(JSON.stringify(gym).match(/NOC\*NSF|Olympisch|TeamNL|"price"|"award"|"rating"|"review"/i) === null, "ExerciseGym bevat een onbevestigde claim, prijs of waardering");
+
+      const faqData = await pageData("/veelgestelde-vragen");
+      const faq = faqData.find((item) => item["@type"] === "FAQPage");
+      assert(faq?.mainEntity?.length === 10, `FAQPage bevat niet de tien zichtbare vragen: ${faq?.mainEntity?.length ?? 0}`);
+
+      const articleData = await pageData("/kennisbank/kleine-stappen-duurzaam-sterker");
+      assert(articleData.some((item) => item["@type"] === "Article"), "Kennisbankartikel mist Article JSON-LD");
+      assert(articleData.some((item) => item["@type"] === "BreadcrumbList"), "Kennisbankartikel mist BreadcrumbList JSON-LD");
     });
 
     await check("404-routes", async () => {
@@ -287,7 +398,7 @@ async function main() {
       const extendedCaptureMatrix = [
         { name: "desktop-1440", width: 1440, height: 1000, routes: requiredRoutes },
         { name: "phone-430", width: 430, height: 932, routes: publicRoutes },
-        { name: "phone-390", width: 390, height: 844, routes: [...memberRoutes, ...backofficeRoutes] },
+        { name: "phone-390", width: 390, height: 844, routes: privateDemoRoutes },
       ];
       for (const capture of extendedCaptureMatrix) {
         await resetPage();
@@ -312,10 +423,14 @@ async function main() {
         ["hero", [".ao-hero"]],
         ["programmas", [".ao-training"]],
         ["begeleidingsbeeld", [".ao-program-photo", ".ao-training"]],
+        ["producten", [".home-products"]],
+        ["ooievaarspas", [".ooievaar-callout"]],
         ["wizard", [".ao-visit-section"]],
         ["ecosysteem", [".ao-ecosystem"]],
-        ["historie", [".ao-heritage"]],
+        ["clubverhaal", [".ao-club-story"]],
+        ["vertrouwen", [".home-trust-grid"]],
         ["kennisbank", [".ao-journal"]],
+        ["praktisch", [".home-practical"]],
         ["locatie", [".ao-location"]],
         ["footer", [".site-footer"]],
       ];
@@ -389,10 +504,10 @@ async function main() {
       await menuTrigger.click();
       const menu = page.locator('[role="dialog"].mobile-menu');
       await menu.waitFor({ state: "visible" });
-      for (const label of ["Sporten", "Begeleiding", "Abonnementen", "Rooster", "Over ons", "Blog", "Contact"]) {
+      for (const label of ["Sporten", "Begeleiding", "Abonnementen", "Rooster", "Over ons", "Kennisbank", "Contact"]) {
         await menu.getByRole("link", { name: label, exact: true }).waitFor({ state: "visible" });
       }
-      await menu.getByRole("link", { name: "Mijn eerste bezoek", exact: true }).waitFor({ state: "visible" });
+      await menu.getByRole("link", { name: "Plan je gratis persoonlijke intake", exact: true }).waitFor({ state: "visible" });
       await menu.getByRole("link", { name: "Inloggen in demo", exact: true }).waitFor({ state: "visible" });
       const focusInside = await menu.evaluate((element) => element.contains(document.activeElement));
       assert(focusInside, "Focus staat niet in het geopende mobiele menu");
@@ -453,30 +568,36 @@ async function main() {
       assert(tabletClub?.stacked, `Clubverhaal blijft op tablet in te smalle hoofdkolommen staan: ${JSON.stringify(tabletClub)}`);
       assert(tabletClub.cardWidths.every((width) => width >= 220), `Clubprincipes zijn op tablet te smal: ${JSON.stringify(tabletClub.cardWidths)}`);
 
-      for (const [route, selector] of [["/blog", ".knowledge-principle .display--light"], ["/sporten/krachttraining", ".program-photo .display--light"]]) {
+      for (const [route, selector] of [["/kennisbank", ".knowledge-principle .display--light"], ["/sporten/krachttraining", ".program-photo .display--light"]]) {
         await goto(page, route);
         const titleColor = await page.locator(selector).evaluate((element) => getComputedStyle(element).color);
         assert(titleColor === "rgb(255, 255, 255)", `${route} toont de lichte fotokop niet wit: ${titleColor}`);
       }
+      await goto(page, "/");
+      const trustTitleColor = await page.locator(".trust-credential h2").evaluate((element) => getComputedStyle(element).color);
+      assert(trustTitleColor === "rgb(255, 255, 255)", `De trusttitel heeft onvoldoende contrast op marine: ${trustTitleColor}`);
 
       await page.setViewportSize({ width: 430, height: 932 });
       await goto(page, "/abonnementen");
       const comparisonDetails = await page.evaluate(() => {
-        const hint = document.querySelector(".comparison-scroll-hint");
-        const table = document.querySelector(".comparison-table");
-        const firstCell = document.querySelector(".comparison-table__row > :first-child");
+        const comparison = document.querySelector(".membership-comparison");
+        const cards = [...document.querySelectorAll(".membership-comparison > article")];
         const footerContact = document.querySelector(".c90-footer__contact a");
-        if (!(hint instanceof HTMLElement) || !(table instanceof HTMLElement) || !(firstCell instanceof HTMLElement) || !(footerContact instanceof HTMLElement)) return null;
+        if (!(comparison instanceof HTMLElement) || !(footerContact instanceof HTMLElement) || cards.some((card) => !(card instanceof HTMLElement))) return null;
+        const comparisonRect = comparison.getBoundingClientRect();
+        const cardRects = cards.map((card) => card.getBoundingClientRect());
+        const actionHeights = cards.map((card) => card.querySelector("a")?.getBoundingClientRect().height ?? 0);
         return {
-          hintVisible: hint.getBoundingClientRect().height > 0,
-          horizontallyScrollable: table.scrollWidth > table.clientWidth,
-          tableFocusable: table.tabIndex === 0,
-          firstColumnPosition: getComputedStyle(firstCell).position,
+          cardCount: cards.length,
+          contained: comparison.scrollWidth <= comparison.clientWidth + 2 && cardRects.every((rect) => rect.left >= comparisonRect.left - 1 && rect.right <= comparisonRect.right + 1),
+          verticallyStacked: cardRects.every((rect, index) => index === 0 || rect.top >= cardRects[index - 1].bottom - 1),
+          minActionHeight: Math.min(...actionHeights),
           footerContactHeight: footerContact.getBoundingClientRect().height,
         };
       });
-      assert(comparisonDetails?.hintVisible && comparisonDetails.horizontallyScrollable && comparisonDetails.tableFocusable, `Mobiele vergelijking mist scrolluitleg of bediening: ${JSON.stringify(comparisonDetails)}`);
-      assert(comparisonDetails.firstColumnPosition === "sticky", `Mobiele vergelijkingslabels blijven niet in beeld: ${JSON.stringify(comparisonDetails)}`);
+      assert(comparisonDetails?.cardCount === 4, `Mobiele productvergelijking toont niet alle vier mogelijkheden: ${JSON.stringify(comparisonDetails)}`);
+      assert(comparisonDetails.contained && comparisonDetails.verticallyStacked, `Mobiele productkaarten lopen uit of overlappen: ${JSON.stringify(comparisonDetails)}`);
+      assert(comparisonDetails.minActionHeight >= 44, `Mobiele productacties hebben een te klein raakvlak: ${JSON.stringify(comparisonDetails)}`);
       assert(comparisonDetails.footerContactHeight >= 44, `Mobiele footerlink heeft een te klein raakvlak: ${JSON.stringify(comparisonDetails)}`);
     });
 
@@ -506,31 +627,46 @@ async function main() {
       assert(await trigger.evaluate((element) => element === document.activeElement), "Focus keerde na sluiten niet terug naar de ledenpasknop");
     });
 
-    await check("Eerste-bezoekwizard: desktop en mobiel, alle stappen en reset", async () => {
-      currentActivity = "eerste-bezoekwizard";
+    await check("Gratis-intakewizard: desktop, mobiel, productprefill en reset", async () => {
+      currentActivity = "gratis-intakewizard";
+      const intakeRoute = "/gratis-persoonlijke-intake?abonnement=weekly";
+      const expectedContactHref = "/contact?onderwerp=intake&abonnement=weekly&doel=sterker&moment=avond&begeleiding=startplan";
       for (const viewport of [
         { name: "desktop", width: 1280, height: 900 },
         { name: "mobile", width: 390, height: 844 },
       ]) {
         await page.setViewportSize({ width: viewport.width, height: viewport.height });
-        await goto(page, "/mijn-eerste-bezoek");
+        await goto(page, intakeRoute);
+        await textContains(page.locator(".intake-page__selection"), "1× per week", "Gekozen product op intakepagina");
         const wizard = page.locator(".visit-wizard");
-        assert(await wizard.getByRole("button", { name: /Volgende stap/i }).isDisabled(), "De lege eerste-bezoekwizard liet doorgaan toe");
+        assert(await wizard.getByRole("button", { name: /Volgende stap/i }).isDisabled(), "De lege gratis-intakewizard liet doorgaan toe");
         for (const choice of ["Sterker worden", "In de avond", "Een persoonlijk startplan"]) {
           await wizard.getByRole("radio", { name: new RegExp(choice, "i") }).click();
-          await wizard.screenshot({ path: path.join(ARTIFACTS_DIR, `${viewport.name}--eerste-bezoek--${choice.toLowerCase().replaceAll(" ", "-")}.png`), animations: "disabled" });
+          await wizard.screenshot({ path: path.join(ARTIFACTS_DIR, `${viewport.name}--gratis-intake--${choice.toLowerCase().replaceAll(" ", "-")}.png`), animations: "disabled" });
           await wizard.getByRole("button", { name: /Volgende stap/i }).click();
         }
         await wizard.getByRole("heading", { name: "Sterk beginnen, slim opbouwen." }).waitFor({ state: "visible" });
-        const contactLink = wizard.getByRole("link", { name: /Plan een kennismaking/i });
+        const contactLink = wizard.getByRole("link", { name: "Vraag je gratis intake aan", exact: true });
         const href = await contactLink.getAttribute("href");
-        assert(href === "/contact?doel=sterker&moment=avond&begeleiding=startplan", `Onjuiste wizardprefill: ${href}`);
-        await wizard.screenshot({ path: path.join(ARTIFACTS_DIR, `${viewport.name}--eerste-bezoek--resultaat.png`), animations: "disabled" });
+        assert(href === expectedContactHref, `Onjuiste intakeprefill: ${href}`);
+        await wizard.screenshot({ path: path.join(ARTIFACTS_DIR, `${viewport.name}--gratis-intake--resultaat.png`), animations: "disabled" });
         await wizard.getByRole("button", { name: "Opnieuw", exact: true }).click();
         await wizard.getByRole("heading", { name: "Waar wil je aan werken?" }).waitFor({ state: "visible" });
         assert(await wizard.getByRole("button", { name: /Volgende stap/i }).isDisabled(), "Reset liet een verborgen wizardantwoord achter");
       }
       await page.setViewportSize({ width: 1280, height: 900 });
+      await goto(page, expectedContactHref);
+      await textContains(page.locator(".contact-prefill"), "Jouw keuze is alvast ingevuld.", "Contactprefill uit intakewizard");
+      for (const [label, expected] of [
+        ["Waar kunnen we mee helpen?", "Gratis persoonlijke intake"],
+        ["Product dat je wilt bespreken (optioneel)", "1× per week"],
+        ["Jouw doel", "Sterker worden"],
+        ["Voorkeursmoment", "Avond"],
+        ["Gewenste begeleiding", "Persoonlijk startplan"],
+      ]) {
+        const select = page.locator("label").filter({ hasText: label }).getByRole("combobox");
+        await textContains(select, expected, `Vooringevuld veld ${label}`);
+      }
     });
 
     await check("Trainingswizard → contactprefill → eerlijk demoformulier", async () => {
@@ -546,23 +682,22 @@ async function main() {
 
       await page.getByRole("heading", { name: "Kracht met een plan" }).waitFor({ state: "visible" });
       await Promise.all([
-        page.waitForURL((url) => url.pathname === "/contact" && url.searchParams.get("doel") === "sterker" && url.searchParams.get("begeleiding") === "start"),
-        page.locator(".route-result").getByRole("link", { name: "Plan een kennismaking", exact: true }).click(),
+        page.waitForURL((url) => url.pathname === "/contact" && url.searchParams.get("onderwerp") === "intake" && url.searchParams.get("doel") === "sterker" && url.searchParams.get("begeleiding") === "start"),
+        page.locator(".route-result").getByRole("link", { name: "Vraag je gratis intake aan", exact: true }).click(),
       ]);
       await settle(page);
 
-      await textContains(page.locator(".contact-prefill"), "Jouw keuzes uit de wizard zijn ingevuld", "Contactprefill");
+      await textContains(page.locator(".contact-prefill"), "Jouw keuze is alvast ingevuld.", "Contactprefill");
       await page.locator(".contact-form").screenshot({ path: path.join(ARTIFACTS_DIR, "desktop--contact--prefill.png"), animations: "disabled" });
       const goalSelect = page.locator("label").filter({ hasText: "Jouw doel" }).getByRole("combobox");
       const guidanceSelect = page.locator("label").filter({ hasText: "Gewenste begeleiding" }).getByRole("combobox");
+      const topicSelect = page.locator("label").filter({ hasText: "Waar kunnen we mee helpen?" }).getByRole("combobox");
+      await textContains(topicSelect, "Gratis persoonlijke intake", "Vooringevuld onderwerp");
       await textContains(goalSelect, "Sterker worden", "Vooringevuld doel");
       await textContains(guidanceSelect, "Begeleide start", "Vooringevulde begeleiding");
 
       await page.getByLabel("Naam").fill("QA Demo");
       await page.getByLabel("E-mailadres").fill("qa@example.com");
-      const topicSelect = page.locator("label").filter({ hasText: "Waar kunnen we mee helpen?" }).getByRole("combobox");
-      await topicSelect.click();
-      await page.getByRole("option", { name: "Kennismaken", exact: true }).click();
       await page.getByLabel("Bericht").fill("Geautomatiseerde browsercontrole van het lokale demoformulier.");
       await page.getByRole("button", { name: /Demoformulier afronden/i }).click();
       const confirmation = page.getByRole("status");
@@ -579,7 +714,7 @@ async function main() {
       assert((await technique.getAttribute("aria-pressed")) === "true", "Techniekfilter werd niet actief");
       await page.getByRole("heading", { name: "Geen momenten binnen dit filter." }).waitFor({ state: "visible" });
       await page.getByRole("button", { name: "Toon alles", exact: true }).click();
-      await page.getByText("Mijn eerste bezoek", { exact: true }).first().waitFor({ state: "visible" });
+      await page.getByText("Gratis persoonlijke intake", { exact: true }).first().waitFor({ state: "visible" });
 
       await page.getByRole("button", { name: "Volgende demoweek" }).click();
       await page.getByRole("heading", { name: "Geen data in deze demoweek." }).waitFor({ state: "visible" });
@@ -627,7 +762,7 @@ async function main() {
       currentActivity = "ledenplanning en factuur";
       await goto(page, "/ledenportaal/rooster");
 
-      const firstVisit = page.locator(".member-schedule article").filter({ hasText: "Mijn eerste bezoek" }).first();
+      const firstVisit = page.locator(".member-schedule article").filter({ hasText: "Gratis persoonlijke intake" }).first();
       await firstVisit.getByRole("button", { name: "Reserveer plek", exact: true }).click();
       await textContains(page.getByRole("status"), "alleen lokaal als gereserveerd", "Reserveringsstatus");
       await firstVisit.getByRole("button", { name: "Annuleren", exact: true }).click();
@@ -824,9 +959,11 @@ async function main() {
       const settingsDetails = await page.evaluate(() => ({
         inputHeights: [...document.querySelectorAll(".admin-settings input")].map((input) => input.getBoundingClientRect().height),
         statuses: [...document.querySelectorAll(".admin-settings__status")].map((status) => status.textContent?.trim()),
+        controlTitles: [...document.querySelectorAll(".admin-control-register h3")].map((heading) => heading.textContent?.trim()),
       }));
       assert(settingsDetails.inputHeights.every((height) => height >= 48), `Mobiele instellingenvelden zijn te klein: ${JSON.stringify(settingsDetails)}`);
       assert(settingsDetails.statuses.length === 4 && settingsDetails.statuses.every((status) => status === "Niet actief"), `Instellingsstatussen zijn geen rustige badges: ${JSON.stringify(settingsDetails)}`);
+      assert(settingsDetails.controlTitles.length === 6 && ["Reguliere openingstijden", "Vier producttypen", "NTC-/NOC*NSF-claim", "Team- en artikelrechten"].every((title) => settingsDetails.controlTitles.includes(title)), `Centraal contentregister is onvolledig: ${JSON.stringify(settingsDetails.controlTitles)}`);
       await page.getByRole("button", { name: "Lokaal opslaan", exact: true }).click();
       const toast = page.locator(".admin-global-notice");
       await toast.waitFor({ state: "visible" });
@@ -912,7 +1049,7 @@ async function main() {
         { name: "phone-landscape", width: 844, height: 390 },
       ]) {
         await page.setViewportSize({ width: viewport.width, height: viewport.height });
-        for (const route of ["/", "/mijn-eerste-bezoek", "/ledenportaal", "/backoffice/rooster"]) {
+        for (const route of ["/", "/gratis-persoonlijke-intake", "/ledenportaal", "/backoffice/rooster"]) {
           await goto(page, route);
           await checkOverflow(page, route, viewport.name);
         }

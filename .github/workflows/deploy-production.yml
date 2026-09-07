@@ -134,8 +134,17 @@ jobs:
 
           for route in \
             / \
+            /gratis-persoonlijke-intake \
+            /abonnementen \
+            /personal-training \
+            /ooievaarspas \
+            /openingstijden \
+            /team \
+            /topsport-en-ntc \
+            /veelgestelde-vragen \
+            /kennisbank \
+            /kennisbank/kleine-stappen-duurzaam-sterker \
             /sporten/krachttraining \
-            /blog/sterker-worden-begint-met-techniek \
             /ledenapp \
             /ledenportaal \
             /backoffice \

@@ -1,0 +1,15 @@
+# External listing corrections
+
+This is a review queue only. No third-party listing was edited as part of this release. The official pages below were rechecked on 7 September 2026.
+
+| URL | Observed issue or verification need | Desired correction | Owner | Status |
+|---|---|---|---|---|
+| https://ooievaarspas.nl/aanbiedingen/fitness-voor-iedereen-voel-je-absolutely-fit/ | Currently shows `50% en/of 100%`, `meer dan 60 apparaten`, daily trainer availability and unnamed Dutch elite-athlete copy. These are broader than the current confirmed brief. | Confirm and publish only the current 50% agreement, eligible products, current conditions and any independently verified facility/staff claims | Absolutely Fit + Ooievaarspas provider | Needs correction/confirmation |
+| https://www.denhaag.nl/nl/geld-en-schulden/ooievaarspas-aanvragen/ | Eligibility and application rules can change | Keep only the official link on evergreen club pages; do not copy changing thresholds | Municipality of The Hague | Monitored by source owner |
+| https://www.nocnsf.nl/en/elite-sports-in-the-netherlands/national-training-centres | The official page explains the general CTO/NTC landscape but does not identify an Absolutely Fit recognition | Obtain exact recognition evidence before any location-specific claim | Absolutely Fit + issuing organisation | Evidence missing |
+| https://www.nocnsf.nl/contact | The official site routes brand questions through NOC*NSF and links to its brand-protection information; this is not a licence for website use | Request written web/marketing permission before using protected marks | Absolutely Fit + NOC*NSF | Permission missing |
+| https://xxlnutrition.com/nl/awin-affiliate | The official programme page is public programme context, not an approved account-specific tracking URL or creative licence | Complete affiliate approval and use only the issued link/creatives | Absolutely Fit + XXL/Awin | URL missing |
+
+## General listing brief
+
+When the club reviews directories, compare name/address/phone/email, four product names and these regular hours: Monday–Thursday 07:00–22:00, Friday 07:00–21:00, Saturday–Sunday 08:00–15:00. Remove mentions of sauna, solarium, managed nutrition/supplement sales and holiday membership freezes. Holiday opening remains unknown and must not be inferred from regular hours.

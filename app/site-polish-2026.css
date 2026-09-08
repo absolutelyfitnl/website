@@ -27,6 +27,7 @@
   display: flex;
   flex-direction: column;
   background: #fbfcff !important;
+  transform-origin: right center;
 }
 
 @media (max-width: 760px) {
@@ -47,7 +48,7 @@
   }
 
   @keyframes af-polish-menu-enter {
-    from { opacity: 0; transform: translate3d(18px, 0, 0) scale(.985); }
+    from { opacity: 0; transform: scale(.985); }
     to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
   }
 }

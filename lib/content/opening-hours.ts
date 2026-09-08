@@ -55,7 +55,25 @@ export function getOpeningStatus(at: Date, timeZone = "Europe/Amsterdam") {
   const ranges = day ? openingHours[day] : [];
   const current = hour * 60 + minute;
   const active = ranges.find((range) => current >= minutes(range.opens) && current < minutes(range.closes));
-  return active
-    ? { isOpen: true, label: `Open tot ${active.closes}`, day }
-    : { isOpen: false, label: "Nu gesloten", day };
+  if (active) return { isOpen: true, label: `Open tot ${active.closes}`, day, closes: active.closes, nextOpens: null, nextDayOffset: 0, nextDayLabel: null };
+
+  const laterToday = ranges.find((range) => current < minutes(range.opens));
+  if (laterToday) return { isOpen: false, label: `Gesloten · open vanaf ${laterToday.opens}`, day, closes: null, nextOpens: laterToday.opens, nextDayOffset: 0, nextDayLabel: day ? openingDays.find((item) => item.key === day)?.label ?? null : null };
+
+  const dayIndex = openingDays.findIndex((item) => item.key === day);
+  if (dayIndex >= 0) {
+    for (let offset = 1; offset <= openingDays.length; offset += 1) {
+      const nextDay = openingDays[(dayIndex + offset) % openingDays.length];
+      const nextRange = openingHours[nextDay.key][0];
+      if (nextRange) return { isOpen: false, label: `Gesloten · ${offset === 1 ? "morgen" : nextDay.label.toLowerCase()} vanaf ${nextRange.opens}`, day, closes: null, nextOpens: nextRange.opens, nextDayOffset: offset, nextDayLabel: nextDay.label };
+    }
+  }
+
+  return { isOpen: false, label: "Gesloten", day, closes: null, nextOpens: null, nextDayOffset: null, nextDayLabel: null };
+}
+
+export function formatCustomerOpeningStatus(status: ReturnType<typeof getOpeningStatus>) {
+  if (status.isOpen && status.closes) return `GEOPEND - VANDAAG TOT ${status.closes} UUR`;
+  if (!status.nextOpens) return "GESLOTEN";
+  return `GESLOTEN - GEOPEND VANAF ${status.nextOpens} UUR`;
 }

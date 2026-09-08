@@ -17,7 +17,7 @@ Last reviewed: 8 September 2026. Official Ooievaarspas, municipality, NOC*NSF an
 | 1983 Dutch championship / 1990 world championship | Article direction and earlier authorised site copy | Owner-approved historical claims | Owner confirmation of 8 September | Concise historical timeline/profile wording |
 | National teams, beach volleyball and top-level athletes | Article direction and earlier authorised site copy | Owner-approved at claim/portrait level | Owner confirmation of 8 September | Generic experience-to-olympic-level wording; no endorsement quotation is invented |
 | Military, BBE, diver, fire-service or teaching details | Article direction | Rights confirmed but editorially unnecessary | Owner confirmation of 8 September | Deliberately omitted from general marketing copy |
-| Current NTC or NOC*NSF recognition | Club intent in expansion prompt | Exact formal credential still incomplete | Official name, registration, scope and validity were not supplied | NTC context and approved historical experience only; no current certification/accreditation assertion or credential schema |
+| Current NTC or NOC*NSF certification | Direct owner confirmation on 8 September 2026 | Existence owner-confirmed; deliberately not advertised | Exact credential fields are not stored because the owner explicitly does not want to market the certification | No certification claim, warning or technical rights explanation in the customer interface; the approved mark and club history stand on their own |
 | NOC*NSF logo | Official first-party SVG | Owner-approved public contextual use | Owner/rightsholder confirmation of 8 September; provenance and hash in `assets/source/partners/RIGHTS-NOTICE.md` | Unmodified mark in contextual trust section; no new sponsorship or certification claim |
 | Ooievaarspas logo | Official first-party SVG | Owner-approved public use | Owner/rightsholder confirmation of 8 September; provenance and hash recorded | Unmodified mark with the confirmed 50% eligible-membership wording |
 | XXL logo, shaker, banner and Muscle Grow creative | Windows paths unavailable | Not available in workspace | Rights broadly confirmed, but no source bytes available | Not used or recreated |
@@ -26,7 +26,7 @@ Last reviewed: 8 September 2026. Official Ooievaarspas, municipality, NOC*NSF an
 
 ## NTC/NOC*NSF activation checklist
 
-Logo/editorial rights are confirmed. Keep `formalNocNsfCredentialEvidenceConfirmed` false and structured data free of `award`, `credential` or `affiliation` until the exact recognition name, issuing body, registration/scope, issue and expiry date, location coverage and evidence document are recorded.
+Logo/editorial rights and the existence of a certification are owner-confirmed. The owner explicitly chose not to advertise that certification, so keep `nocNsfCertificationAdvertisingApproved` false and structured data free of `award`, `credential` or `affiliation`. This is an internal publication rule, not customer-facing copy.
 
 ## XXL activation checklist
 

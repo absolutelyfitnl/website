@@ -8,7 +8,7 @@ import { protectedAthleteClaimPatterns, protectedCredentialClaimPatterns } from 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const approvals = JSON.parse(readFileSync(path.join(root, "lib/content/publication-approvals.json"), "utf8"));
 const nocMarkAllowed = approvals.nocNsfLogoLicenseConfirmed === true && approvals.nocNsfEditorialContextApproved === true;
-const formalCredentialAllowed = approvals.formalNocNsfCredentialEvidenceConfirmed === true;
+const formalCredentialAdvertisingAllowed = approvals.nocNsfCertificationAdvertisingApproved === true;
 const historicClaimsAllowed = approvals.historicPerformanceClaimsApproved === true;
 const xxlCreativeAllowed = approvals.xxlCreativeLicenseConfirmed === true;
 const deployableTextRoots = ["app", "components", "lib"];
@@ -44,8 +44,8 @@ for (const file of textFiles) {
     errors.push(`${file}: protected NOC*NSF/TeamNL/Olympic asset reference without licence flag`);
   }
   const credentialClaim = protectedCredentialClaimPatterns.find((pattern) => pattern.test(source));
-  if (!formalCredentialAllowed && credentialClaim) {
-    errors.push(`${file}: protected accreditation or partnership claim without credential evidence matched ${credentialClaim}`);
+  if (!formalCredentialAdvertisingAllowed && credentialClaim) {
+    errors.push(`${file}: protected accreditation or partnership advertising is disabled and matched ${credentialClaim}`);
   }
   const athleteClaim = protectedAthleteClaimPatterns.find((pattern) => pattern.test(source));
   if (!historicClaimsAllowed && athleteClaim) {
@@ -74,6 +74,8 @@ for (const file of walk("public")) {
 }
 
 assert.equal(nocMarkAllowed, true, "The checked-in NOC*NSF mark requires owner-confirmed logo and editorial-context rights");
+assert.equal(approvals.nocNsfCertificationExistsOwnerConfirmed, true, "The owner's certification confirmation must remain recorded");
+assert.equal(formalCredentialAdvertisingAllowed, false, "NOC*NSF certification advertising must remain disabled by owner request");
 assert.equal(xxlCreativeAllowed, true, "The checked-in XXL creative requires owner-confirmed publication rights");
 assert.equal(existsSync(path.join(root, "public/partners/noc-nsf-full-color.svg")), true, "Approved NOC*NSF mark is missing");
 assert.equal(existsSync(path.join(root, "public/partners/ooievaarspas.svg")), true, "Approved Ooievaarspas mark is missing");

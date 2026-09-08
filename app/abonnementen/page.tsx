@@ -20,8 +20,8 @@ export default function AbonnementenPage() {
     <PageHero eyebrow="Vier actuele mogelijkheden" title={<>Kies een trainingsritme dat bij je week past.</>} intro="Absolutely Fit heeft precies vier producttypen. Tijdens een gratis persoonlijke intake bespreek je welke mogelijkheid, actuele prijs en voorwaarden bij jouw situatie passen." image="/images/cardio-sunrise.jpg" imageAlt="Cardioapparatuur in het zachte ochtendlicht" />
 
     <Reveal as="section" className="section shell membership-intro">
-      <div><span className="eyebrow">Eén bron van waarheid</span><h2 className="display">Vier heldere mogelijkheden.</h2></div>
-      <div><p>We tonen geen verouderde pakketnamen, schijnprijzen of aannames over looptijd. De 10-rittenkaart staat bewust als rittenkaart en niet als abonnement vermeld.</p><Link href="/gratis-persoonlijke-intake" className="text-link">Bespreek wat bij je past <ArrowRight aria-hidden="true" /></Link></div>
+      <div><span className="eyebrow">Jouw trainingsritme</span><h2 className="display">Vier heldere mogelijkheden.</h2></div>
+      <div><p>Kies voor één keer per week, onbeperkt trainen, een 10-rittenkaart of het jeugdproduct. Tijdens de intake bespreek je welk ritme en welke voorwaarden bij je passen.</p><Link href="/gratis-persoonlijke-intake" className="text-link">Bespreek wat bij je past <ArrowRight aria-hidden="true" /></Link></div>
     </Reveal>
 
     <Reveal as="section" className="shell membership-products" aria-label="Vergelijk de vier trainingsproducten">

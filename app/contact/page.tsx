@@ -40,7 +40,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
       </section>
 
       <section className="section shell contact-workspace">
-        <div className="contact-workspace__intro"><span className="eyebrow">Gratis persoonlijke intake</span><h2 className="display">Zet de eerste stap.</h2><p>Vertel kort waar je aan wilt werken. Dit demoformulier verzendt niets; bel of mail de club om werkelijk een gratis intake of antwoord af te spreken.</p><div className="contact-note"><strong>Liever direct overleggen?</strong><p>Bel {contact.phoneDisplay}. Tijdens trainingen kan het team niet altijd meteen opnemen; laat dan gerust een bericht achter.</p></div></div>
+        <div className="contact-workspace__intro"><span className="eyebrow">Gratis persoonlijke intake</span><h2 className="display">Zet de eerste stap.</h2><p>Vertel kort waar je aan wilt werken. Daarna kun je jouw gratis intake of vraag persoonlijk afronden via telefoon of e-mail.</p><div className="contact-note"><strong>Liever direct overleggen?</strong><p>Bel {contact.phoneDisplay}. Tijdens trainingen kan het team niet altijd meteen opnemen; laat dan gerust een bericht achter.</p></div></div>
         <ContactForm prefill={prefill} />
       </section>
 

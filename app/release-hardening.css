@@ -134,12 +134,12 @@ body,
 }
 
 .contact-prefill span,
-.contact-form__demo-note {
+.contact-form__note {
   color: #506078;
   font-size: .82rem;
 }
 
-.contact-form__demo-note {
+.contact-form__note {
   margin: 0;
   padding: 12px 14px;
   border-left: 3px solid #0a5cf5;

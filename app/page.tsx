@@ -77,7 +77,7 @@ export default function Home() {
       </section>
 
       <section className="section ao-shell home-products">
-        <Reveal className="home-products__intro"><div><span className="ao-kicker">Vier actuele producten</span><h2>Van één keer per week tot flexibel trainen.</h2></div><p>Kies nog niets op basis van aannames. Vergelijk de vier bevestigde mogelijkheden en bespreek actuele prijzen en voorwaarden tijdens je gratis intake.</p></Reveal>
+        <Reveal className="home-products__intro"><div><span className="ao-kicker">Vier trainingsproducten</span><h2>Van één keer per week tot flexibel trainen.</h2></div><p>Vergelijk de vier mogelijkheden en bespreek tijdens je gratis intake welk trainingsritme, welke prijs en welke voorwaarden bij je passen.</p></Reveal>
         <Reveal className="home-products__cards" delay={80} distance={18}><MembershipComparison compact /></Reveal>
         <Link className="text-link" href="/abonnementen">Vergelijk alle mogelijkheden <ArrowRight aria-hidden="true" /></Link>
       </section>
@@ -92,9 +92,9 @@ export default function Home() {
       </section>
 
       <section className="ao-ecosystem">
-        <Reveal className="ao-ecosystem__intro ao-shell"><div><span className="ao-kicker">Absolutely One</span><h2>Alles van Absolutely Fit.</h2></div><p>De fysieke club blijft het hart. Een toekomstige ledenomgeving maakt je training, planning en administratie eenvoudiger — in dezelfde herkenbare stijl.</p></Reveal>
+        <Reveal className="ao-ecosystem__intro ao-shell"><div><span className="ao-kicker">Absolutely One</span><h2>Alles van Absolutely Fit.</h2></div><p>De fysieke club blijft het hart. In de ledenomgeving houd je training, planning en administratie overzichtelijk bij elkaar.</p></Reveal>
         <div className="ao-ecosystem__stage ao-shell">
-          <div className="ao-portal-teaser"><header><div><Image src="/brand/absolutely-fit-lockup.svg" alt="Absolutely Fit" width={590} height={142} sizes="150px" /><span>Mijn Absolutely Fit</span></div><small>Demo ledenomgeving</small></header><div className="ao-portal-teaser__body"><aside><span className="is-active">Overzicht</span><span>Training</span><span>Planning</span><span>Lidmaatschap</span></aside><div><p>Goedemorgen</p><h3>Jouw overzicht</h3><section><span>Volgende training</span><strong>Upper body strength</strong><small>Vandaag · 18:00</small><i style={{ width: "72%" }} /></section><div className="ao-teaser-grid"><article><QrCode /><strong>Ledenpas</strong><span>Actief</span></article><article><Clock3 /><strong>Clubinfo</strong><span>Bekijk actuele tijden</span></article></div></div></div></div>
+          <div className="ao-portal-teaser"><header><div><Image src="/brand/absolutely-fit-lockup.svg" alt="Absolutely Fit" width={590} height={142} sizes="150px" /><span>Mijn Absolutely Fit</span></div><small>Ledenomgeving</small></header><div className="ao-portal-teaser__body"><aside><span className="is-active">Overzicht</span><span>Training</span><span>Planning</span><span>Lidmaatschap</span></aside><div><p>Welkom</p><h3>Jouw overzicht</h3><section><span>Volgende training</span><strong>Upper body strength</strong><small>Gepland · 18:00</small><i style={{ width: "72%" }} /></section><div className="ao-teaser-grid"><article><QrCode /><strong>Ledenpas</strong><span>Actief</span></article><article><Clock3 /><strong>Clubinfo</strong><span>Bekijk actuele tijden</span></article></div></div></div></div>
           <div className="ao-phone-stage"><MemberAppDemo /></div>
           <div className="ao-ecosystem__features"><span><Smartphone />Eén herkenbare ervaring</span><span><QrCode />Digitale ledenpas</span><span><ShieldCheck />Rustig en overzichtelijk</span><Link href="/ledenportaal">Open het ledenportaal <ArrowRight /></Link></div>
         </div>

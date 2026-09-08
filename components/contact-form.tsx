@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { memberships } from "@/lib/content/memberships";
+import { contact } from "@/lib/content/site";
 
 type ContactPrefill = {
   topic?: string;
@@ -28,7 +29,7 @@ function ChoiceSelect({ label, name, value, options }: { label: string; name: st
 export function ContactForm({ prefill = {} }: { prefill?: ContactPrefill }) {
   const [sent, setSent] = useState(false);
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); setSent(true); };
-  if (sent) return <div className="form-success" role="status" aria-live="polite"><CheckCircle2 aria-hidden="true" /><span className="eyebrow">Demo afgerond</span><h2 className="display">Bedankt.</h2><p><strong>Demo — er is niets verzonden.</strong> Dit prototype verwerkt of bewaart je ingevulde gegevens niet. Bel of mail de club om echt contact op te nemen.</p><Button type="button" variant="outline" onClick={() => setSent(false)}>Nog een bericht proberen</Button></div>;
+  if (sent) return <div className="form-success" role="status" aria-live="polite"><CheckCircle2 aria-hidden="true" /><span className="eyebrow">Jouw aanvraag</span><h2 className="display">Klaar voor contact.</h2><p>Neem contact op met de club om je gratis intake of vraag persoonlijk af te ronden. Bel <a href={`tel:${contact.phoneHref}`}>{contact.phoneDisplay}</a> of mail naar <a href={`mailto:${contact.email}`}>{contact.email}</a>.</p><Button type="button" variant="outline" onClick={() => setSent(false)}>Gegevens aanpassen</Button></div>;
   return (
     <form className="contact-form" onSubmit={handleSubmit}>
       {(prefill.topic || prefill.membership || prefill.goal || prefill.moment || prefill.guidance) && <div className="contact-prefill" role="status"><strong>Jouw keuze is alvast ingevuld.</strong><span>Je kunt de gegevens hieronder nog aanpassen.</span></div>}
@@ -38,8 +39,8 @@ export function ContactForm({ prefill = {} }: { prefill?: ContactPrefill }) {
       <div className="field-grid"><ChoiceSelect label="Jouw doel" name="goal" value={prefill.goal} options={goals} /><ChoiceSelect label="Voorkeursmoment" name="moment" value={prefill.moment} options={moments} /></div>
       <ChoiceSelect label="Gewenste begeleiding" name="guidance" value={prefill.guidance} options={guidance} />
       <label>Bericht<Textarea required name="message" placeholder="Vertel kort waar je aan wilt werken of wat je wilt weten." rows={6} /></label>
-      <p className="contact-form__demo-note">Demoformulier: invoer blijft alleen in dit venster en wordt niet verstuurd of opgeslagen.</p>
-      <Button type="submit" className="button-primary button-large">Demoformulier afronden <Send aria-hidden="true" /></Button>
+      <p className="contact-form__note">Rond je aanvraag persoonlijk af via telefoon of e-mail.</p>
+      <Button type="submit" className="button-primary button-large">Bekijk contactmogelijkheden <Send aria-hidden="true" /></Button>
     </form>
   );
 }

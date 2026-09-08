@@ -143,7 +143,7 @@ test("global SEO, sitemap and private-route indexing rules are present", () => {
   }
 });
 
-test("wizard and contact prefill remain local, explicit and keyboard-safe", () => {
+test("wizard and contact prefill remain customer-facing and keyboard-safe", () => {
   const wizard = read("components/first-visit-wizard.tsx");
   assert.match(wizard, /const emptyAnswers:\s*Answers\s*=\s*\{\s*goal:\s*null,\s*moment:\s*null,\s*guidance:\s*null\s*\}/);
   assert.match(wizard, /if \(!answers\[currentKey\]\) return/);
@@ -153,21 +153,26 @@ test("wizard and contact prefill remain local, explicit and keyboard-safe", () =
   assert.match(wizard, /Vraag je gratis intake aan/);
   assert.doesNotMatch(wizard, /je zit nergens aan vast/i);
   const form = read("components/contact-form.tsx");
-  assert.match(form, /Demo[^\n]{0,100}niets verzonden/i);
+  assert.match(form, /Bekijk contactmogelijkheden/);
+  assert.match(form, /contact\.phoneHref/);
+  assert.match(form, /contact\.email/);
   assert.match(form, /memberships\.map/);
   assert.match(form, /value="ooievaarspas"/);
+  assert.doesNotMatch(form, /demo|demonstrati|prototype|fictie|alleen lokaal|niets verzonden|geen echte/i);
   assert.doesNotMatch(form, /\b(?:fetch|XMLHttpRequest|axios)\s*\(/);
 });
 
-test("portal and backoffice keep all mutations explicitly local", () => {
+test("portal and backoffice present customer-facing management copy", () => {
   const portal = read("components/member-portal.tsx");
-  assert.match(portal, /uitsluitend fictieve gegevens/i);
-  assert.match(portal, /antwoord lokaal afgerond; er is niets verzonden/i);
-  assert.match(portal, /profielwijzigingen alleen lokaal opgeslagen/i);
+  assert.match(portal, /Je bericht is verzonden/);
+  assert.match(portal, /Je wijzigingen zijn opgeslagen/);
+  assert.match(portal, /aria-label="QR-code vergroten"/);
+  assert.doesNotMatch(portal, /uitsluitend fictieve gegevens|antwoord lokaal afgerond|profielwijzigingen alleen lokaal opgeslagen|Demo verlaten|Demo-profiel/i);
   const backoffice = read("components/backoffice-app.tsx");
-  assert.match(backoffice, /Er worden geen echte berichten of betalingen verwerkt/i);
-  assert.match(backoffice, /live website is niet gewijzigd/i);
-  assert.match(backoffice, /controlGroups/);
+  const schedule = read("components/backoffice-schedule.tsx");
+  assert.match(backoffice, /Beheer de planning, intakeaanvragen en ledencommunicatie/);
+  assert.match(schedule, /Wijzigingen publiceren/);
+  assert.doesNotMatch(backoffice + "\n" + schedule, /Er worden geen echte berichten of betalingen verwerkt|live website is niet gewijzigd|Demo verlaten|admin-demo-banner/i);
   assert.doesNotMatch(backoffice, /"Pauze"/);
 });
 

@@ -81,9 +81,6 @@
 .trust-credential > div:nth-child(2) > span { color: #9fbdff; font-size: .7rem; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; }
 .trust-credential h2 { max-width: 900px; margin: 12px 0; color: #fff; font-family: var(--font-display); font-size: clamp(2.35rem, 4vw, 4.8rem); line-height: .88; letter-spacing: -.055em; text-transform: uppercase; }
 .trust-credential p { max-width: 860px; margin: 0; color: #d3deef; }
-.trust-credential__status { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 12px; max-width: 900px; margin-top: 24px; padding: 16px; border: 1px solid rgba(173,199,255,.18); border-radius: 8px; background: rgba(255,255,255,.06); color: #dce6f6; font-size: .78rem; }
-.trust-credential__status svg { width: 19px; color: #92b2ff; }
-.trust-credential__status strong { display: block; color: #fff; }
 .trust-credential > a { display: grid; place-items: center; width: 52px; height: 52px; border: 1px solid rgba(255,255,255,.25); border-radius: 50%; background: rgba(255,255,255,.08); transition: transform .25s var(--content-ease), background .2s ease; }
 .trust-credential > a:hover { background: var(--blue); transform: rotate(7deg); }
 .trust-credential--compact { padding: clamp(28px, 4vw, 48px); }

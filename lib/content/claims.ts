@@ -39,12 +39,14 @@ export const trustCredential = {
   logoAsset: "/partners/noc-nsf-full-color.svg",
   logoPermission: approvals.nocNsfLogoLicenseConfirmed,
   editorialContextApproved: approvals.nocNsfEditorialContextApproved,
+  certificationExists: approvals.nocNsfCertificationExistsOwnerConfirmed,
+  certificationAdvertisingApproved: approvals.nocNsfCertificationAdvertisingApproved,
   verifiedAt: approvals.approvedByOwnerAt,
-  status: "owner-approved-context",
+  status: "owner-approved-publication",
   historicFacts: [
     "Meervoudig Nederlands kampioen powerliften",
     "Wereldkampioen powerliften in 1990",
     "Ervaring met sporters tot nationaal, internationaal en olympisch niveau",
   ],
-  publicExplanation: "De ervaring van Absolutely Fit loopt van recreatieve krachttraining tot topsport. Het NOC*NSF-beeldmerk en de historische prestatieclaims worden met toestemming getoond; er wordt geen aanvullende actuele certificering of formele accreditatie geïmpliceerd.",
+  publicExplanation: "De ervaring van Absolutely Fit loopt van recreatieve krachttraining tot topsport en wordt op de clubvloer vertaald naar heldere techniek en persoonlijke trainingsopbouw.",
 } as const;

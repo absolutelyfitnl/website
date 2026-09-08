@@ -6,7 +6,9 @@
   "ooievaarspasLogoLicenseConfirmed": true,
   "nocNsfLogoLicenseConfirmed": true,
   "nocNsfEditorialContextApproved": true,
-  "formalNocNsfCredentialEvidenceConfirmed": false,
+  "nocNsfCertificationExistsOwnerConfirmed": true,
+  "nocNsfCertificationAdvertisingApproved": false,
+  "formalNocNsfCredentialDetailsStored": false,
   "historicPerformanceClaimsApproved": true,
   "xxlCreativeLicenseConfirmed": true
 }

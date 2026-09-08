@@ -20,6 +20,6 @@ export function SiteFooter() {
       <div className="c90-footer__contact"><span>Contact & club</span><a href={`tel:${contact.phoneHref}`}><Phone aria-hidden="true" />{contact.phoneDisplay}</a><a href={`mailto:${contact.email}`}><Mail aria-hidden="true" />{contact.email}</a><p><MapPin aria-hidden="true" />{contact.location}</p><div className="c90-footer__hours"><Clock3 aria-hidden="true" /><dl>{openingHourGroups.map((group) => <div key={group.label}><dt>{group.label}</dt><dd>{group.opens}–{group.closes}</dd></div>)}</dl></div></div>
       <div className="c90-footer__nav-groups">{footerGroups.map((group) => <nav key={group} aria-label={`${group} links`}><strong>{group}</strong>{footerItems.filter((item) => item.group === group).map((item) => <Link href={item.href} key={item.href}>{item.label}<ArrowUpRight aria-hidden="true" /></Link>)}</nav>)}</div>
     </div>
-    <div className="c90-footer__base"><span>© {new Date().getFullYear()} Absolutely Fit · sinds 1998</span><span><Link href="/ledenapp">Ledenappconcept</Link> · <Link href="/inloggen">Leden- en backoffice-demo</Link></span><span>Demo’s verwerken geen echte persoonsgegevens, berichten of betalingen</span></div>
+    <div className="c90-footer__base"><span>© {new Date().getFullYear()} Absolutely Fit · sinds 1998</span><span><Link href="/ledenapp">Mijn Absolutely Fit</Link> · <Link href="/inloggen">Inloggen</Link></span><span>Doctor Lelykade 240 · Scheveningen</span></div>
   </footer>;
 }

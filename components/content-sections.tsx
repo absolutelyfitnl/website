@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, CalendarCheck, Check, Clock3, ExternalLink, Newspaper, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, ArrowUpRight, CalendarCheck, Check, Clock3, ExternalLink, Newspaper, Sparkles } from "lucide-react";
 import { memberships } from "@/lib/content/memberships";
 import { openingHourGroups } from "@/lib/content/opening-hours";
 import { ooievaarspas, xxlAffiliate } from "@/lib/content/partners";
@@ -36,11 +36,11 @@ export function OoievaarspasCallout({ detailed = false }: { detailed?: boolean }
 }
 
 export function OpeningHoursCard({ compact = false }: { compact?: boolean }) {
-  return <section className={`opening-hours-card${compact ? " opening-hours-card--compact" : ""}`}><header><Clock3 aria-hidden="true" /><div><span>Clubinformatie</span><h2>Openingstijden</h2></div></header><dl>{openingHourGroups.map((group) => <div key={group.label}><dt>{group.label}</dt><dd>{group.opens}–{group.closes}</dd></div>)}</dl><p>Feestdagopening is niet standaard bevestigd. Neem bij twijfel vooraf contact op.</p>{!compact && <Link href="/contact">Vraag het team <ArrowRight aria-hidden="true" /></Link>}</section>;
+  return <section className={`opening-hours-card${compact ? " opening-hours-card--compact" : ""}`}><header><Clock3 aria-hidden="true" /><div><span>Clubinformatie</span><h2>Openingstijden</h2></div></header><dl>{openingHourGroups.map((group) => <div key={group.label}><dt>{group.label}</dt><dd>{group.opens}–{group.closes}</dd></div>)}</dl><p>Bekijk voor feestdagen de actuele tijden of neem vooraf contact op met het team.</p>{!compact && <Link href="/contact">Vraag het team <ArrowRight aria-hidden="true" /></Link>}</section>;
 }
 
 export function TrustCredentialCard({ compact = false }: { compact?: boolean }) {
-  return <section className={`trust-credential${compact ? " trust-credential--compact" : ""}`}><div className="trust-credential__icon"><Image src="/partners/noc-nsf-full-color.svg" alt="NOC*NSF" width={102} height={90} sizes="102px" /></div><div className="trust-credential__copy"><span>Krachtsportgeschiedenis · techniek · opbouw</span><h2>{trustCredential.publicLabel}</h2><p>{compact ? "Bewezen krachtsportervaring, begrijpelijk toegepast op jouw startpunt." : "Rik Priester senior werd meervoudig Nederlands kampioen en in 1990 wereldkampioen powerliften. Die praktijkervaring vormt een basis voor heldere techniek en trainingsopbouw."}</p><div className="trust-credential__status"><ShieldCheck aria-hidden="true" /><span><strong>Context, geen certificeringsclaim</strong> Het NOC*NSF-logo wordt met toestemming in deze inhoudelijke context getoond. We verbinden daar geen specifieke actuele erkenning, accreditatie of geldigheid aan.</span></div></div><Link href="/topsport-en-ntc" aria-label="Lees over onze topsportgeschiedenis en de NTC-context"><ArrowUpRight aria-hidden="true" /></Link></section>;
+  return <section className={`trust-credential${compact ? " trust-credential--compact" : ""}`}><div className="trust-credential__icon"><Image src="/partners/noc-nsf-full-color.svg" alt="NOC*NSF" width={102} height={90} sizes="102px" /></div><div className="trust-credential__copy"><span>Krachtsportgeschiedenis · techniek · opbouw</span><h2>{trustCredential.publicLabel}</h2><p>{compact ? "Bewezen krachtsportervaring, begrijpelijk toegepast op jouw startpunt." : "Rik Priester senior werd meervoudig Nederlands kampioen en in 1990 wereldkampioen powerliften. Die praktijkervaring vormt een basis voor heldere techniek en trainingsopbouw."}</p></div><Link href="/topsport-en-ntc" aria-label="Lees over onze topsportgeschiedenis en de NTC-context"><ArrowUpRight aria-hidden="true" /></Link></section>;
 }
 
 export function StoryTimeline() {
@@ -71,7 +71,7 @@ export function AffiliatePartnerCard({ placement }: { placement: "knowledge-arti
 
   return <aside className={`affiliate-partner-card${affiliateUrl ? " affiliate-partner-card--linked" : ""}`}>
     <figure><Image src="/partners/xxl-product-range.avif" alt="Een selectie sportvoedingsproducten van XXL Nutrition" width={1080} height={1080} sizes="(max-width: 700px) calc(100vw - 72px), 360px" /></figure>
-    <div className="affiliate-partner-card__copy"><span>{affiliateUrl ? "Externe partnerlink" : "Uitgelicht merk"}</span><h2>XXL Nutrition</h2><p>Een herkenbaar assortiment rond training en sportvoeding. Absolutely Fit verkoopt deze producten niet en deze kaart is geen persoonlijk advies.</p><small>{affiliateUrl ? `${xxlAffiliate.disclosure} ${xxlAffiliate.adviceDisclaimer}` : "Productbeeld met toestemming geplaatst. Er is op dit moment geen affiliate-link of koopknop actief."}</small></div>
+    <div className="affiliate-partner-card__copy"><span>{affiliateUrl ? "Bekijk het assortiment" : "Sportvoeding"}</span><h2>XXL Nutrition</h2><p>Een herkenbaar assortiment rond training, herstel en sportvoeding.</p><small>{affiliateUrl ? xxlAffiliate.disclosure : "Vraag het team welke praktische keuzes bij jouw trainingsdoel passen."}</small></div>
     {affiliateUrl && <a href={affiliateUrl} target="_blank" rel="sponsored noopener noreferrer" aria-label="Open XXL Nutrition via de affiliatepartnerlink in een nieuw venster">Naar XXL Nutrition <ExternalLink aria-hidden="true" /></a>}
   </aside>;
 }

@@ -19,6 +19,18 @@ async function importStandaloneTypeScript(relativePath) {
   return import(`data:text/javascript;base64,${Buffer.from(outputText).toString("base64")}`);
 }
 
+async function importClientUtility(relativePath) {
+  const source = read(relativePath).replace(
+    /import \{ useEffect, useMemo, useState \} from "react";/,
+    "const useEffect = () => {}; const useMemo = (factory) => factory(); const useState = (value) => [value, () => {}];",
+  );
+  const { outputText } = ts.transpileModule(source, {
+    compilerOptions: { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 },
+    fileName: relativePath,
+  });
+  return import(`data:text/javascript;base64,${Buffer.from(outputText).toString("base64")}`);
+}
+
 test("the central membership inventory contains exactly the four confirmed products", async () => {
   const contentModule = await importStandaloneTypeScript("lib/content/memberships.ts");
   assert.deepEqual(contentModule.memberships.map(({ name }) => name), ["1× per week", "Onbeperkt trainen", "10-rittenkaart", "Jeugd"]);
@@ -48,6 +60,30 @@ test("opening status uses the exact seven-day source around Amsterdam day bounda
   ];
   for (const [iso, expected] of checks) assert.equal(hoursModule.getOpeningStatus(new Date(iso)).isOpen, expected, iso);
   assert.equal(hoursModule.formatOpeningRange(hoursModule.openingHours.friday[0]), "07:00–21:00");
+  assert.equal(hoursModule.formatCustomerOpeningStatus(hoursModule.getOpeningStatus(new Date("2026-09-07T05:00:00Z"))), "GEOPEND - VANDAAG TOT 22:00 UUR");
+  assert.equal(hoursModule.formatCustomerOpeningStatus(hoursModule.getOpeningStatus(new Date("2026-09-07T04:59:00Z"))), "GESLOTEN - GEOPEND VANAF 07:00 UUR");
+  assert.equal(hoursModule.formatCustomerOpeningStatus(hoursModule.getOpeningStatus(new Date("2026-09-07T20:00:00Z"))), "GESLOTEN - GEOPEND VANAF 07:00 UUR");
+  assert.equal(hoursModule.formatCustomerOpeningStatus(hoursModule.getOpeningStatus(new Date("2026-09-11T19:00:00Z"))), "GESLOTEN - GEOPEND VANAF 08:00 UUR");
+});
+
+test("customer schedules derive the current ISO week in Europe/Amsterdam", async () => {
+  const weekModule = await importClientUtility("lib/content/current-week.ts");
+  const current = weekModule.getAmsterdamWeek(new Date("2026-09-08T12:00:00Z"));
+  assert.equal(current.isoWeek, 37);
+  assert.equal(current.weekLabel, "Week 37");
+  assert.equal(current.rangeLabel, "7 — 13 september 2026");
+  assert.equal(current.days[1].date, "08 SEP");
+  assert.equal(current.days[1].isToday, true);
+  assert.equal(current.days.filter(({ isToday }) => isToday).length, 1);
+
+  const next = weekModule.getAmsterdamWeek(new Date("2026-09-08T12:00:00Z"), 1);
+  assert.equal(next.isoWeek, 38);
+  assert.equal(next.rangeLabel, "14 — 20 september 2026");
+
+  const amsterdamMidnight = weekModule.getAmsterdamWeek(new Date("2027-01-03T23:30:00Z"));
+  assert.equal(amsterdamMidnight.isoWeek, 1);
+  assert.equal(amsterdamMidnight.days[0].isoDate, "2027-01-04");
+  assert.equal(amsterdamMidnight.days[0].isToday, true);
 });
 
 test("Ooievaarspas, NTC and affiliate publication gates are explicit", () => {
@@ -55,7 +91,9 @@ test("Ooievaarspas, NTC and affiliate publication gates are explicit", () => {
   assert.equal(approvals.ooievaarspasLogoLicenseConfirmed, true);
   assert.equal(approvals.nocNsfLogoLicenseConfirmed, true);
   assert.equal(approvals.nocNsfEditorialContextApproved, true);
-  assert.equal(approvals.formalNocNsfCredentialEvidenceConfirmed, false);
+  assert.equal(approvals.nocNsfCertificationExistsOwnerConfirmed, true);
+  assert.equal(approvals.nocNsfCertificationAdvertisingApproved, false);
+  assert.equal(approvals.formalNocNsfCredentialDetailsStored, false);
   assert.equal(approvals.historicPerformanceClaimsApproved, true);
   assert.equal(approvals.xxlCreativeLicenseConfirmed, true);
   const partners = read("lib/content/partners.ts");
@@ -66,10 +104,12 @@ test("Ooievaarspas, NTC and affiliate publication gates are explicit", () => {
   assert.match(partners, /creativeAsset:\s*"\/partners\/xxl-product-range\.avif"/);
   const claims = read("lib/content/claims.ts");
   assert.match(claims, /logoPermission:\s*approvals\.nocNsfLogoLicenseConfirmed/);
-  assert.match(claims, /status:\s*"owner-approved-context"/);
+  assert.match(claims, /status:\s*"owner-approved-publication"/);
   assert.match(claims, /exactOfficialName:\s*null/);
   assert.match(claims, /registrationNumber:\s*null/);
   const component = read("components/content-sections.tsx");
+  const topsportPage = read("app/topsport-en-ntc/page.tsx");
+  assert.doesNotMatch(`${component}\n${topsportPage}`, /geen certificeringsclaim|geen specifieke actuele erkenning|niet als certificeringsclaim gepresenteerd/i);
   assert.match(component, /if \(!xxlAffiliate\.enabled \|\| !xxlAffiliate\.affiliateUrl/);
   assert.match(component, /rel="sponsored noopener noreferrer"/);
   assert.match(partners, /Affiliate link/);

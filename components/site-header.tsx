@@ -4,11 +4,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, ArrowUpRight, Clock3, MapPin, X } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Clock3, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { navItems } from "@/lib/site-data";
-import { callsToAction } from "@/lib/content/site";
-import { openingHourGroups } from "@/lib/content/opening-hours";
+import { callsToAction, site } from "@/lib/content/site";
+import { formatCustomerOpeningStatus, getOpeningStatus } from "@/lib/content/opening-hours";
 
 export function BrandLogo({ priority = false, variant = "lockup" }: { priority?: boolean; variant?: "lockup" | "official" | "symbol" | "wordmark" }) {
   const [width, height] = variant === "official" ? [960, 880] : variant === "symbol" ? [730, 535] : variant === "wordmark" ? [918, 318] : [590, 142];
@@ -19,6 +19,7 @@ export function SiteHeader() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [openingStatus, setOpeningStatus] = useState<ReturnType<typeof getOpeningStatus> | null>(null);
   const menuTriggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLElement>(null);
 
@@ -35,6 +36,13 @@ export function SiteHeader() {
       cancelAnimationFrame(frame);
       window.removeEventListener("scroll", update);
     };
+  }, []);
+
+  useEffect(() => {
+    const update = () => setOpeningStatus(getOpeningStatus(new Date(), site.timeZone));
+    update();
+    const interval = window.setInterval(update, 60_000);
+    return () => window.clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -103,13 +111,13 @@ export function SiteHeader() {
             <p id="mobile-navigation-description" data-slot="sheet-description">Fitness, begeleiding en clubinformatie.</p>
             <button type="button" className="mobile-menu__close" aria-label="Menu sluiten" onClick={() => setMenuOpen(false)}><span>Sluiten</span><X aria-hidden="true" /></button>
           </div>
-          <div className="mobile-menu__intro"><span><i /> Clubinformatie</span><p><MapPin aria-hidden="true" /> Scheveningen · sinds 1998</p><Link href="/openingstijden" onClick={() => setMenuOpen(false)}><Clock3 aria-hidden="true" /> {openingHourGroups[0].label} {openingHourGroups[0].opens}–{openingHourGroups[0].closes} · bekijk alle tijden</Link></div>
+          <div className="mobile-menu__intro" data-open={openingStatus ? (openingStatus.isOpen ? "true" : "false") : "pending"}><span><i /> Clubinformatie</span><strong role="status" aria-live="polite">{openingStatus ? formatCustomerOpeningStatus(openingStatus) : "ACTUELE OPENINGSTIJDEN"}</strong></div>
           <nav className="mobile-nav" aria-label="Mobiele navigatie">
             {navItems.map((item, index) => <Link href={item.href} key={item.href} onClick={() => setMenuOpen(false)} className={isActive(item.href) ? "is-active" : undefined} aria-current={isActive(item.href) ? "page" : undefined}><span aria-hidden="true">{String(index + 1).padStart(2, "0")}</span><strong>{item.label}</strong><ArrowUpRight aria-hidden="true" /></Link>)}
           </nav>
           <div className="mobile-menu__actions">
             <Button asChild className="button-primary button-large"><Link href="/gratis-persoonlijke-intake" onClick={() => setMenuOpen(false)}>{callsToAction.freeIntake}</Link></Button>
-            <Button asChild variant="outline" className="button-large"><Link href="/inloggen" onClick={() => setMenuOpen(false)}>Inloggen in demo</Link></Button>
+            <Button asChild variant="outline" className="button-large"><Link href="/inloggen" onClick={() => setMenuOpen(false)}>Inloggen</Link></Button>
           </div>
           <footer className="mobile-menu__footer"><span>Absolutely Fit</span><p>Persoonlijke fitness · kracht · begeleiding</p></footer>
         </aside>

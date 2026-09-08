@@ -70,6 +70,7 @@ const backofficeRoutes = [
 
 const privateDemoRoutes = ["/ledenapp", "/inloggen", ...memberRoutes, ...backofficeRoutes];
 const requiredRoutes = [...publicRoutes, ...privateDemoRoutes];
+const customerFacingTechnicalCopy = /(?:\bdemo[\p{L}-]*\b|\bdemonstrati[\p{L}-]*\b|\bprototype\b|\bfictie(?:f|ve|ve gegevens)\b|\bdemo verlaten\b|\balleen lokaal\b|\blokaal (?:opgeslagen|gepubliceerd|afgerond|verwerkt)\b|\bniets (?:echt )?(?:verzonden|opgeslagen|geboekt|verwerkt)\b|\bgeen echte\b|\bniet aan een backend\b|\bgeen certificeringsclaim\b|\bbewijsstatus\b|\bgeen specifieke actuele erkenning\b|\bmet toestemming geplaatst\b|\bgeen affiliate-link\b|\bkoopknop actief\b)/iu;
 const legacyRedirects = [
   { source: "/mijn-eerste-bezoek", destination: "/gratis-persoonlijke-intake" },
   { source: "/sporten/personal-training", destination: "/personal-training" },
@@ -459,6 +460,30 @@ async function main() {
       trackPage(page);
     };
 
+    await check("Klantgerichte copy zonder demo- of techniekmeldingen", async () => {
+      const copyFailures = [];
+      await page.setViewportSize({ width: 1280, height: 900 });
+      for (const route of requiredRoutes) {
+        currentActivity = "klantcopy " + route;
+        await goto(page, route);
+        const surfaces = await page.evaluate(() => {
+          const descriptions = [...document.querySelectorAll('meta[name="description"]')]
+            .map((element) => element.getAttribute("content") ?? "");
+          const accessibleCopy = [...document.querySelectorAll("[aria-label], [title], [placeholder]")]
+            .flatMap((element) => [
+              element.getAttribute("aria-label"),
+              element.getAttribute("title"),
+              element.getAttribute("placeholder"),
+            ])
+            .filter(Boolean);
+          return [document.title, document.body.innerText, ...descriptions, ...accessibleCopy].join("\n");
+        });
+        const match = surfaces.match(customerFacingTechnicalCopy);
+        if (match) copyFailures.push(route + ": " + JSON.stringify(match[0]));
+      }
+      assert(!copyFailures.length, "Technische of demo-copy is nog klantzichtbaar: " + copyFailures.join("; "));
+    });
+
     if (!SKIP_BULK_CAPTURE) {
       for (const viewport of viewportMatrix) {
         await resetPage();
@@ -587,7 +612,12 @@ async function main() {
         await menu.getByRole("link", { name: label, exact: true }).waitFor({ state: "visible" });
       }
       await menu.getByRole("link", { name: "Plan je gratis persoonlijke intake", exact: true }).waitFor({ state: "visible" });
-      await menu.getByRole("link", { name: "Inloggen in demo", exact: true }).waitFor({ state: "visible" });
+      await menu.getByRole("link", { name: "Inloggen", exact: true }).waitFor({ state: "visible" });
+      const clubInformation = menu.locator(".mobile-menu__intro");
+      const clubInformationText = (await clubInformation.innerText()).replace(/\s+/g, " ").trim();
+      assert(/^Clubinformatie (?:GEOPEND - VANDAAG TOT \d{2}:\d{2} UUR|GESLOTEN(?: - GEOPEND VANAF \d{2}:\d{2} UUR)?)$/i.test(clubInformationText), `Mobiele clubstatus is niet actueel geformuleerd: ${clubInformationText}`);
+      assert(!/Scheveningen|sinds 1998|bekijk alle tijden/i.test(clubInformationText), `Mobiele clubstatus bevat verwijderde informatie: ${clubInformationText}`);
+      assert(await clubInformation.locator("a, p").count() === 0, "Mobiele clubinformatie bevat nog de oude locatie- of openingstijdenregel");
       const focusInside = await menu.evaluate((element) => element.contains(document.activeElement));
       assert(focusInside, "Focus staat niet in het geopende mobiele menu");
       const scrollLocked = await page.evaluate(() => document.body.hasAttribute("data-scroll-locked") || getComputedStyle(document.body).overflow === "hidden");
@@ -766,6 +796,8 @@ async function main() {
       await activateScrollReveals(page);
       const nocLogo = await partnerImageState(page, "noc-nsf-full-color\\.svg");
       assert(nocLogo.count >= 1 && nocLogo.images.some((image) => image.visible && image.naturalWidth > 0 && image.naturalHeight > 0), `Officieel NOC*NSF-beeld laadt niet zichtbaar: ${JSON.stringify(nocLogo)}`);
+      const nocPublicCopy = (await page.locator(".trust-credential, .ntc-proof-status").allTextContents()).join(" ");
+      assert(!/geen certificeringsclaim|geen specifieke actuele erkenning|niet als certificeringsclaim gepresenteerd/i.test(nocPublicCopy), `Publieke NOC*NSF-presentatie bevat nog defensieve waarschuwingstekst: ${nocPublicCopy}`);
 
       await goto(page, "/sporten/krachttraining");
       await activateScrollReveals(page);
@@ -846,7 +878,7 @@ async function main() {
       currentActivity = "ledenapp-tabs";
       await goto(page, "/ledenapp");
       const app = page.locator("#app-concept");
-      for (const [tab, heading] of [["Ledenpas", "Jouw ledenpas"], ["Training", "Deze week"], ["Club", "Uit de club"], ["Home", "Vandaag trainen?"]]) {
+      for (const [tab, heading] of [["Ledenpas", "Jouw ledenpas"], ["Training", "Deze week"], ["Club", "Uit de club"], ["Home", "Klaar om te trainen?"]]) {
         await app.getByRole("tab", { name: tab, exact: true }).click();
         await app.getByRole("heading", { name: heading, exact: true }).waitFor({ state: "visible" });
       }
@@ -855,11 +887,11 @@ async function main() {
     await check("Ledenpas: dialogfocus en sluitgedrag", async () => {
       currentActivity = "ledenpas-dialog";
       await goto(page, "/ledenportaal");
-      const trigger = page.getByRole("button", { name: "Demo QR-code vergroten" });
+      const trigger = page.getByRole("button", { name: "QR-code vergroten" });
       await trigger.click();
       const dialog = page.getByRole("dialog", { name: "Digitale ledenpas" });
       await dialog.waitFor({ state: "visible" });
-      await textContains(dialog, "geeft geen toegang", "Ledenpaswaarschuwing");
+      await textContains(dialog, "Toon deze QR-code bij binnenkomst", "Ledenpasinstructie");
       await dialog.screenshot({ path: path.join(ARTIFACTS_DIR, "desktop--ledenpas--qr-dialog.png"), animations: "disabled" });
       await page.keyboard.press("Escape");
       await dialog.waitFor({ state: "hidden" });
@@ -908,7 +940,7 @@ async function main() {
       }
     });
 
-    await check("Trainingswizard → contactprefill → eerlijk demoformulier", async () => {
+    await check("Trainingswizard → contactprefill → klantgerichte contactopties", async () => {
       currentActivity = "trainingswizard en contact";
       await goto(page, "/sporten");
 
@@ -935,13 +967,15 @@ async function main() {
       await textContains(goalSelect, "Sterker worden", "Vooringevuld doel");
       await textContains(guidanceSelect, "Begeleide start", "Vooringevulde begeleiding");
 
-      await page.getByLabel("Naam").fill("QA Demo");
+      await page.getByLabel("Naam").fill("QA Bezoeker");
       await page.getByLabel("E-mailadres").fill("qa@example.com");
-      await page.getByLabel("Bericht").fill("Geautomatiseerde browsercontrole van het lokale demoformulier.");
-      await page.getByRole("button", { name: /Demoformulier afronden/i }).click();
+      await page.getByLabel("Bericht").fill("Geautomatiseerde browsercontrole van de contactmogelijkheden.");
+      await page.getByRole("button", { name: /Bekijk contactmogelijkheden/i }).click();
       const confirmation = page.getByRole("status");
-      await textContains(confirmation, "er is niets verzonden", "Formulierbevestiging");
-      await screenshotVisibleState(page, [page.locator(".form-success"), confirmation], path.join(ARTIFACTS_DIR, "desktop--contact--demo-success.png"));
+      await textContains(confirmation, "Neem contact op met de club", "Contactbevestiging");
+      const contactLinks = await confirmation.locator('a[href^="tel:"], a[href^="mailto:"]').count();
+      assert(contactLinks === 2, "Contactbevestiging toont niet zowel telefoon als e-mail");
+      await screenshotVisibleState(page, [page.locator(".form-success"), confirmation], path.join(ARTIFACTS_DIR, "desktop--contact--mogelijkheden.png"));
     });
 
     await check("Publiek rooster: filters en weeknavigatie", async () => {
@@ -955,10 +989,10 @@ async function main() {
       await page.getByRole("button", { name: "Toon alles", exact: true }).click();
       await page.getByText("Gratis persoonlijke intake", { exact: true }).first().waitFor({ state: "visible" });
 
-      await page.getByRole("button", { name: "Volgende demoweek" }).click();
-      await page.getByRole("heading", { name: "Geen data in deze demoweek." }).waitFor({ state: "visible" });
-      await page.getByRole("button", { name: "Terug naar week 36" }).click();
-      await textContains(page.getByRole("status"), "Demoweek 36 geselecteerd", "Weekstatus");
+      await page.getByRole("button", { name: "Volgende week" }).click();
+      await page.getByRole("heading", { name: "Geen planning voor deze week." }).waitFor({ state: "visible" });
+      await page.getByRole("button", { name: "Terug naar deze week" }).click();
+      await textContains(page.getByRole("status"), "Deze week geselecteerd", "Weekstatus");
     });
 
     await check("Ledenportaal: navigatie, training, bericht en profiel", async () => {
@@ -971,51 +1005,51 @@ async function main() {
         page.getByRole("link", { name: "Training", exact: true }).first().click(),
       ]);
       await page.getByRole("button", { name: /Start training/i }).click();
-      await textContains(page.getByRole("status"), "Demotraining actief", "Trainingstatus");
+      await textContains(page.getByRole("status"), "Training actief", "Trainingstatus");
       await page.getByRole("checkbox", { name: /Goblet squat afronden/i }).click();
       await textContains(page.getByRole("status"), "1 van 5", "Oefeningsvoortgang");
       await page.locator(".portal-content").screenshot({ path: path.join(ARTIFACTS_DIR, "desktop--portal--training-active.png"), animations: "disabled" });
-      await page.getByRole("button", { name: /Pauzeer demo/i }).click();
+      await page.getByRole("button", { name: /Pauzeren/i }).click();
 
       await Promise.all([
         page.waitForURL((url) => url.pathname === "/ledenportaal/berichten"),
         page.getByRole("link", { name: "Berichten", exact: true }).first().click(),
       ]);
       await page.getByRole("button", { name: /Praktische clubinformatie/i }).click();
-      await page.getByLabel("Lokaal conceptantwoord").fill("Dank, dit is alleen een lokale QA-reactie.");
-      await page.getByRole("button", { name: /Demo afronden/i }).click();
-      await textContains(page.getByRole("status"), "er is niets verzonden", "Berichtstatus");
+      await page.getByLabel("Jouw antwoord").fill("Dank, dit is een QA-reactie.");
+      await page.getByRole("button", { name: /Versturen/i }).click();
+      await textContains(page.getByRole("status"), "Je bericht is verzonden", "Berichtstatus");
 
       await Promise.all([
         page.waitForURL((url) => url.pathname === "/ledenportaal/profiel"),
         page.getByRole("link", { name: "Profiel", exact: true }).first().click(),
       ]);
       await page.getByLabel("E-mailadres").fill("qa-profiel@example.com");
-      await page.getByRole("button", { name: /Wijzigingen lokaal opslaan/i }).click();
-      await textContains(page.getByRole("status"), "alleen lokaal opgeslagen", "Profielstatus");
+      await page.getByRole("button", { name: /Wijzigingen opslaan/i }).click();
+      await textContains(page.getByRole("status"), "Je wijzigingen zijn opgeslagen", "Profielstatus");
       const savedProfile = await page.evaluate(() => window.localStorage.getItem("af-demo-profile-v1"));
-      assert(savedProfile?.includes("qa-profiel@example.com"), "Het demoprofiel is niet lokaal opgeslagen");
+      assert(savedProfile?.includes("qa-profiel@example.com"), "Het profiel is niet opgeslagen");
     });
 
-    await check("Ledenportaal: reserveren, wachtlijst, annuleren en demofactuur", async () => {
+    await check("Ledenportaal: reserveren, wachtlijst, annuleren en factuur", async () => {
       currentActivity = "ledenplanning en factuur";
       await goto(page, "/ledenportaal/rooster");
 
       const firstVisit = page.locator(".member-schedule article").filter({ hasText: "Gratis persoonlijke intake" }).first();
       await firstVisit.getByRole("button", { name: "Reserveer plek", exact: true }).click();
-      await textContains(page.getByRole("status"), "alleen lokaal als gereserveerd", "Reserveringsstatus");
+      await textContains(page.getByRole("status"), "je plek is gereserveerd", "Reserveringsstatus");
       await firstVisit.getByRole("button", { name: "Annuleren", exact: true }).click();
-      await textContains(page.getByRole("status"), "lokaal geannuleerd", "Annuleringsstatus");
+      await textContains(page.getByRole("status"), "je reservering is geannuleerd", "Annuleringsstatus");
 
       const fullTraining = page.locator(".member-schedule article").filter({ hasText: "Personal training" }).first();
       await fullTraining.getByRole("button", { name: "Wachtlijst", exact: true }).click();
-      await textContains(page.getByRole("status"), "alleen lokaal op de wachtlijst", "Wachtlijststatus");
+      await textContains(page.getByRole("status"), "je staat op de wachtlijst", "Wachtlijststatus");
 
       await goto(page, "/ledenportaal/facturen");
       const downloadPromise = page.waitForEvent("download");
-      await page.getByRole("button", { name: /Download demo-tekst/i }).first().click();
+      await page.getByRole("button", { name: /Download factuur/i }).first().click();
       const download = await downloadPromise;
-      assert(download.suggestedFilename() === "af-demo-0084.txt", `Onverwachte demofactuurnaam: ${download.suggestedFilename()}`);
+      assert(download.suggestedFilename() === "af-2026-0084.txt", "Onverwachte factuurnaam: " + download.suggestedFilename());
     });
 
     await check("Backoffice-polish: acht schermen, states en responsieve details", async () => {
@@ -1062,7 +1096,7 @@ async function main() {
       await page.setViewportSize({ width: 1440, height: 1000 });
       await goto(page, "/backoffice/trainers");
       assert(await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight + 4), "Korte backofficepagina heeft nog decoratieve lege scrollruimte");
-      await page.getByRole("button", { name: "Alleen democoaches", exact: true }).click();
+      await page.getByRole("button", { name: "Toon overige coaches", exact: true }).click();
       const filteredTrainerWidths = await page.locator(".admin-trainer-grid > article").evaluateAll((cards) => cards.map((card) => card.getBoundingClientRect().width));
       assert(filteredTrainerWidths.length === 2 && Math.abs(filteredTrainerWidths[0] - filteredTrainerWidths[1]) <= 1, `Gefilterde trainerkaarten verdelen de ruimte niet: ${JSON.stringify(filteredTrainerWidths)}`);
 
@@ -1158,8 +1192,8 @@ async function main() {
       await goto(page, "/backoffice/leden");
       const memberControls = await page.locator(".admin-list-toolbar :is(input,button)").evaluateAll((controls) => controls.map((control) => control.getBoundingClientRect().height));
       assert(memberControls.every((height) => height >= 44), `Ledenfilters hebben te kleine raakvlakken: ${JSON.stringify(memberControls)}`);
-      await page.getByLabel("Zoek demoleden").fill("bestaat niet");
-      await page.getByText("Geen demoleden gevonden", { exact: true }).waitFor({ state: "visible" });
+      await page.getByLabel("Zoek leden").fill("bestaat niet");
+      await page.getByText("Geen leden gevonden", { exact: true }).waitFor({ state: "visible" });
       await page.getByRole("button", { name: "Wis zoeken en filters", exact: true }).click();
       await page.getByText("Sam de Vries", { exact: true }).waitFor({ state: "visible" });
 
@@ -1197,13 +1231,13 @@ async function main() {
       await goto(page, "/backoffice/instellingen");
       const settingsDetails = await page.evaluate(() => ({
         inputHeights: [...document.querySelectorAll(".admin-settings input")].map((input) => input.getBoundingClientRect().height),
-        statuses: [...document.querySelectorAll(".admin-settings__status")].map((status) => status.textContent?.trim()),
-        controlTitles: [...document.querySelectorAll(".admin-control-register h3")].map((heading) => heading.textContent?.trim()),
+        sectionTitles: [...document.querySelectorAll(".admin-settings h2")].map((heading) => heading.textContent?.trim()),
+        openingRows: document.querySelectorAll(".admin-settings > section:last-child article").length,
       }));
-      assert(settingsDetails.inputHeights.every((height) => height >= 48), `Mobiele instellingenvelden zijn te klein: ${JSON.stringify(settingsDetails)}`);
-      assert(settingsDetails.statuses.length === 4 && settingsDetails.statuses.every((status) => status === "Niet actief"), `Instellingsstatussen zijn geen rustige badges: ${JSON.stringify(settingsDetails)}`);
-      assert(settingsDetails.controlTitles.length === 6 && ["Reguliere openingstijden", "Vier producttypen", "XXL-partnercontent", "NTC-/NOC*NSF-context", "Team- en artikelrechten"].every((title) => settingsDetails.controlTitles.includes(title)), `Centraal contentregister is onvolledig: ${JSON.stringify(settingsDetails.controlTitles)}`);
-      await page.getByRole("button", { name: "Lokaal opslaan", exact: true }).click();
+      assert(settingsDetails.inputHeights.length === 4 && settingsDetails.inputHeights.every((height) => height >= 48), "Mobiele instellingenvelden zijn te klein: " + JSON.stringify(settingsDetails));
+      assert(JSON.stringify(settingsDetails.sectionTitles) === JSON.stringify(["Clubgegevens", "Openingstijden"]), "Instellingensecties zijn onvolledig: " + JSON.stringify(settingsDetails.sectionTitles));
+      assert(settingsDetails.openingRows === 3, "Openingstijdenregister bevat niet alle drie daggroepen: " + settingsDetails.openingRows);
+      await page.getByRole("button", { name: "Wijzigingen opslaan", exact: true }).click();
       const toast = page.locator(".admin-global-notice");
       await toast.waitFor({ state: "visible" });
       assert((await toast.evaluate((element) => getComputedStyle(element).position)) === "fixed", "Backofficestatus verschijnt niet als zichtbare toast");
@@ -1219,7 +1253,7 @@ async function main() {
       await page.setViewportSize({ width: 1280, height: 900 });
     });
 
-    await check("Backoffice-rooster: template bewerken en lokaal publiceren", async () => {
+    await check("Backoffice-rooster: template bewerken en publiceren", async () => {
       await resetPage();
       currentActivity = "backoffice rooster";
       await goto(page, "/backoffice/rooster");
@@ -1271,11 +1305,11 @@ async function main() {
       await editor.getByRole("button", { name: "Concept sluiten", exact: true }).click();
 
       await page.getByRole("button", { name: /1 wijziging publiceren/i }).click();
-      const publishDialog = page.getByRole("dialog", { name: "Wijzigingen lokaal publiceren?" });
+      const publishDialog = page.getByRole("dialog", { name: "Wijzigingen publiceren?" });
       await publishDialog.waitFor({ state: "visible" });
       await publishDialog.screenshot({ path: path.join(ARTIFACTS_DIR, "desktop--backoffice-rooster--publish-dialog.png"), animations: "disabled" });
-      await publishDialog.getByRole("button", { name: /1 wijziging lokaal publiceren/i }).click();
-      await textContains(page.getByRole("status"), "alleen lokaal gepubliceerd", "Publicatiestatus");
+      await publishDialog.getByRole("button", { name: /1 wijziging publiceren/i }).click();
+      await textContains(page.getByRole("status"), "1 wijziging gepubliceerd", "Publicatiestatus");
 
       await goto(page, "/rooster");
       await page.getByText("QA openbare krachttraining", { exact: true }).waitFor({ state: "visible" });

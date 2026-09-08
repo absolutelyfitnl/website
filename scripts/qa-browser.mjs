@@ -181,6 +181,85 @@ async function checkOverflow(page, route, viewportName) {
   );
 }
 
+async function checkFocusedPublicOverflow(page, route, viewportName) {
+  const issues = await page.evaluate(() => {
+    const selectors = [
+      ".home-products__intro",
+      ".membership-comparison",
+      ".ooievaar-callout",
+      ".ooievaar-sources",
+      ".faq-preview",
+      ".trust-credential",
+      ".affiliate-partner-card",
+      ".free-intake-cta--compact",
+    ];
+    const viewportWidth = document.documentElement.clientWidth;
+
+    return selectors.flatMap((selector) => [...document.querySelectorAll(selector)].flatMap((element) => {
+      if (!(element instanceof HTMLElement)) return [];
+      const bounds = element.getBoundingClientRect();
+      if (bounds.width <= 0 || bounds.height <= 0) return [];
+      const styles = getComputedStyle(element);
+      if (styles.display === "none" || styles.visibility === "hidden") return [];
+
+      const horizontallyContained = bounds.left >= -2 && bounds.right <= viewportWidth + 2;
+      const directChildrenContained = [...element.children].every((child) => {
+        if (!(child instanceof HTMLElement)) return true;
+        const childBounds = child.getBoundingClientRect();
+        const childStyles = getComputedStyle(child);
+        if (childStyles.position === "absolute" || childStyles.display === "none" || childStyles.visibility === "hidden") return true;
+        return childBounds.left >= bounds.left - 2 && childBounds.right <= bounds.right + 2;
+      });
+      // Several polished surfaces deliberately clip a decorative pseudo-element
+      // beyond their rounded edge. Measure rendered children instead of treating
+      // that invisible decoration as content overflow.
+      const contentContained = directChildrenContained && (
+        element.scrollWidth <= element.clientWidth + 2
+        || styles.overflowX === "hidden"
+        || styles.overflowX === "clip"
+      );
+      return horizontallyContained && contentContained ? [] : [{
+        selector,
+        left: bounds.left,
+        right: bounds.right,
+        viewportWidth,
+        clientWidth: element.clientWidth,
+        scrollWidth: element.scrollWidth,
+      }];
+    }));
+  });
+
+  assert(!issues.length, `${route} heeft sectie-overflow op ${viewportName}: ${JSON.stringify(issues)}`);
+}
+
+async function partnerImageState(page, filenamePattern) {
+  return page.evaluate((patternSource) => {
+    const pattern = new RegExp(patternSource, "i");
+    const matches = [...document.images].filter((image) => {
+      const rawSource = image.currentSrc || image.src || "";
+      let source = rawSource;
+      try { source = decodeURIComponent(rawSource); } catch {}
+      return pattern.test(source);
+    });
+
+    return {
+      count: matches.length,
+      images: matches.map((image) => {
+        const bounds = image.getBoundingClientRect();
+        const styles = getComputedStyle(image);
+        return {
+          source: image.currentSrc || image.src,
+          naturalWidth: image.naturalWidth,
+          naturalHeight: image.naturalHeight,
+          width: bounds.width,
+          height: bounds.height,
+          visible: bounds.width > 1 && bounds.height > 1 && styles.display !== "none" && styles.visibility !== "hidden" && Number.parseFloat(styles.opacity) > 0,
+        };
+      }),
+    };
+  }, filenamePattern);
+}
+
 async function activateScrollReveals(page) {
   await page.evaluate(async () => {
     for (const image of document.images) image.loading = "eager";
@@ -513,6 +592,32 @@ async function main() {
       assert(focusInside, "Focus staat niet in het geopende mobiele menu");
       const scrollLocked = await page.evaluate(() => document.body.hasAttribute("data-scroll-locked") || getComputedStyle(document.body).overflow === "hidden");
       assert(scrollLocked, "Achtergrondscroll is niet vergrendeld bij het mobiele menu");
+      const menuLayerGeometry = await page.evaluate(() => {
+        const overlay = document.querySelector(".mobile-menu-overlay");
+        const dialog = document.querySelector('[role="dialog"].mobile-menu');
+        if (!(overlay instanceof HTMLElement) || !(dialog instanceof HTMLElement)) return null;
+        const overlayBounds = overlay.getBoundingClientRect();
+        const dialogBounds = dialog.getBoundingClientRect();
+        return {
+          viewport: { width: window.innerWidth, height: window.innerHeight },
+          overlay: { left: overlayBounds.left, top: overlayBounds.top, right: overlayBounds.right, bottom: overlayBounds.bottom },
+          dialog: { left: dialogBounds.left, top: dialogBounds.top, right: dialogBounds.right, bottom: dialogBounds.bottom },
+        };
+      });
+      assert(menuLayerGeometry, "Mobiele menu-overlay of dialoog ontbreekt");
+      assert(
+        menuLayerGeometry.overlay.left <= 1
+          && menuLayerGeometry.overlay.top <= 1
+          && menuLayerGeometry.overlay.right >= menuLayerGeometry.viewport.width - 1
+          && menuLayerGeometry.overlay.bottom >= menuLayerGeometry.viewport.height - 1,
+        `Mobiele menu-overlay bedekt niet de volledige viewport: ${JSON.stringify(menuLayerGeometry)}`,
+      );
+      assert(
+        menuLayerGeometry.dialog.left >= -1
+          && menuLayerGeometry.dialog.right <= menuLayerGeometry.viewport.width + 1
+          && menuLayerGeometry.dialog.bottom <= menuLayerGeometry.viewport.height + 1,
+        `Mobiele menudialoog valt buiten de viewport: ${JSON.stringify(menuLayerGeometry)}`,
+      );
       await menu.screenshot({ path: path.join(ARTIFACTS_DIR, "phone-430--home--menu-open.png"), animations: "disabled" });
       await page.keyboard.press("Escape");
       await menu.waitFor({ state: "hidden" });
@@ -520,6 +625,7 @@ async function main() {
     });
 
     await check("Publieke uitlijning, contrast en mobiele vergelijkbaarheid", async () => {
+      await resetPage();
       currentActivity = "publieke detailaudit";
       await page.setViewportSize({ width: 1440, height: 1000 });
       await goto(page, "/");
@@ -550,6 +656,57 @@ async function main() {
       assert(Math.abs(desktopDetails.clubHeadHeight - desktopDetails.clubPrinciplesHeight) <= 1, `Clubverhaal heeft ongelijke kolomhoogtes: ${JSON.stringify(desktopDetails)}`);
       assert(desktopDetails.navFontSize >= 11, `Desktopmenu blijft te klein: ${desktopDetails.navFontSize}px`);
 
+      const productIntroDetails = await page.evaluate(() => {
+        const intro = document.querySelector(".home-products__intro");
+        const heading = intro?.querySelector("h2");
+        const copy = intro?.querySelector("p");
+        const comparison = document.querySelector(".home-products .membership-comparison");
+        if (!(intro instanceof HTMLElement) || !(heading instanceof HTMLElement) || !(copy instanceof HTMLElement) || !(comparison instanceof HTMLElement)) return null;
+        const introBounds = intro.getBoundingClientRect();
+        const headingBounds = heading.getBoundingClientRect();
+        const copyBounds = copy.getBoundingClientRect();
+        const comparisonBounds = comparison.getBoundingClientRect();
+        const overlapWidth = Math.min(headingBounds.right, copyBounds.right) - Math.max(headingBounds.left, copyBounds.left);
+        const overlapHeight = Math.min(headingBounds.bottom, copyBounds.bottom) - Math.max(headingBounds.top, copyBounds.top);
+        return {
+          height: introBounds.height,
+          width: introBounds.width,
+          maxHeight: Math.min(480, window.innerHeight * .5),
+          headingCopyOverlap: overlapWidth > 1 && overlapHeight > 1,
+          contentContained: [headingBounds, copyBounds].every((bounds) => bounds.left >= introBounds.left - 2 && bounds.right <= introBounds.right + 2),
+          gapToCards: comparisonBounds.top - introBounds.bottom,
+        };
+      });
+      assert(productIntroDetails, "Compacte productintro ontbreekt op de homepage");
+      assert(productIntroDetails.height <= productIntroDetails.maxHeight, `Productintro houdt nog te veel verticale ruimte over: ${JSON.stringify(productIntroDetails)}`);
+      assert(!productIntroDetails.headingCopyOverlap && productIntroDetails.contentContained, `Productintro overlapt of loopt buiten het eigen vlak: ${JSON.stringify(productIntroDetails)}`);
+      assert(productIntroDetails.gapToCards >= -2 && productIntroDetails.gapToCards <= 110, `Productintro en productkaarten staan onlogisch ver uit elkaar: ${JSON.stringify(productIntroDetails)}`);
+
+      for (const route of ["/", "/abonnementen"]) {
+        await goto(page, route);
+        await activateScrollReveals(page);
+        const productAlignment = await page.evaluate(() => {
+          const cards = [...document.querySelectorAll(".membership-comparison > article")];
+          const rowSelectors = ["header", "h3", ":scope > p", ":scope > ul", ":scope > small", ":scope > a"];
+          if (cards.length !== 4 || cards.some((card) => !(card instanceof HTMLElement))) return null;
+          const cardBounds = cards.map((card) => card.getBoundingClientRect());
+          const rowSpreads = Object.fromEntries(rowSelectors.map((selector) => {
+            const tops = cards.map((card) => card.querySelector(selector)?.getBoundingClientRect().top ?? Number.NaN);
+            return [selector, tops.every(Number.isFinite) ? Math.max(...tops) - Math.min(...tops) : null];
+          }));
+          return {
+            cardCount: cards.length,
+            singleRow: Math.max(...cardBounds.map((bounds) => bounds.top)) - Math.min(...cardBounds.map((bounds) => bounds.top)) <= 4,
+            heightSpread: Math.max(...cardBounds.map((bounds) => bounds.height)) - Math.min(...cardBounds.map((bounds) => bounds.height)),
+            rowSpreads,
+          };
+        });
+        assert(productAlignment?.cardCount === 4 && productAlignment.singleRow, `${route} zet de vier productkaarten niet op één desktoprij: ${JSON.stringify(productAlignment)}`);
+        assert(productAlignment.heightSpread <= 8, `${route} heeft ongelijke productkaarthoogtes: ${JSON.stringify(productAlignment)}`);
+        assert(Object.values(productAlignment.rowSpreads).every((spread) => typeof spread === "number" && spread <= 8), `${route} lijnt kop, omschrijving, kenmerken, toelichting en CTA niet per rij uit: ${JSON.stringify(productAlignment)}`);
+      }
+
+      await resetPage();
       await page.setViewportSize({ width: 768, height: 1024 });
       await goto(page, "/");
       await activateScrollReveals(page);
@@ -577,6 +734,84 @@ async function main() {
       const trustTitleColor = await page.locator(".trust-credential h2").evaluate((element) => getComputedStyle(element).color);
       assert(trustTitleColor === "rgb(255, 255, 255)", `De trusttitel heeft onvoldoende contrast op marine: ${trustTitleColor}`);
 
+      await resetPage();
+      await page.setViewportSize({ width: 1440, height: 1000 });
+      await goto(page, "/");
+      await activateScrollReveals(page);
+      const compactOoievaarDetails = await page.evaluate(() => {
+        const callout = document.querySelector(".ooievaar-callout:not(.ooievaar-callout--detailed)");
+        if (!(callout instanceof HTMLElement)) return null;
+        const bounds = callout.getBoundingClientRect();
+        const content = [...callout.children].filter((child) => child instanceof HTMLElement).map((child) => child.getBoundingClientRect());
+        const overlaps = content.flatMap((first, firstIndex) => content.slice(firstIndex + 1).filter((second) => {
+          const overlapWidth = Math.min(first.right, second.right) - Math.max(first.left, second.left);
+          const overlapHeight = Math.min(first.bottom, second.bottom) - Math.max(first.top, second.top);
+          return overlapWidth > 2 && overlapHeight > 2;
+        }).map(() => firstIndex));
+        return {
+          width: bounds.width,
+          height: bounds.height,
+          maxHeight: Math.min(460, bounds.width * .4),
+          contentContained: content.every((childBounds) => childBounds.left >= bounds.left - 2 && childBounds.right <= bounds.right + 2),
+          overlapCount: overlaps.length,
+        };
+      });
+      assert(compactOoievaarDetails, "Compacte Ooievaarspas-callout ontbreekt op de homepage");
+      assert(compactOoievaarDetails.height <= compactOoievaarDetails.maxHeight, `Ooievaarspas-callout is nog te hoog: ${JSON.stringify(compactOoievaarDetails)}`);
+      assert(compactOoievaarDetails.contentContained && compactOoievaarDetails.overlapCount === 0, `Ooievaarspas-callout overlapt of loopt over: ${JSON.stringify(compactOoievaarDetails)}`);
+      const ooievaarLogo = await partnerImageState(page, "ooievaarspas\\.svg");
+      assert(ooievaarLogo.count >= 1 && ooievaarLogo.images.some((image) => image.visible && image.naturalWidth > 0 && image.naturalHeight > 0), `Officieel Ooievaarspasbeeld laadt niet zichtbaar: ${JSON.stringify(ooievaarLogo)}`);
+
+      await goto(page, "/topsport-en-ntc");
+      await activateScrollReveals(page);
+      const nocLogo = await partnerImageState(page, "noc-nsf-full-color\\.svg");
+      assert(nocLogo.count >= 1 && nocLogo.images.some((image) => image.visible && image.naturalWidth > 0 && image.naturalHeight > 0), `Officieel NOC*NSF-beeld laadt niet zichtbaar: ${JSON.stringify(nocLogo)}`);
+
+      await goto(page, "/sporten/krachttraining");
+      await activateScrollReveals(page);
+      const xxlDetails = await page.evaluate(() => {
+        const card = document.querySelector(".affiliate-partner-card");
+        if (!(card instanceof HTMLElement)) return null;
+        const sponsoredLinks = [...card.querySelectorAll("a")].filter((link) => link.relList.contains("sponsored") || (() => {
+          try { return new URL(link.href).hostname.includes("xxlnutrition"); } catch { return false; }
+        })());
+        return { sponsoredLinkCount: sponsoredLinks.length, text: card.textContent?.trim() ?? "" };
+      });
+      assert(xxlDetails, "XXL-partnerkaart ontbreekt op de krachttrainingspagina");
+      const xxlImage = await partnerImageState(page, "xxl-product-range\\.avif");
+      assert(xxlImage.count >= 1 && xxlImage.images.some((image) => image.visible && image.naturalWidth > 0 && image.naturalHeight > 0), `XXL-productbeeld laadt niet zichtbaar: ${JSON.stringify(xxlImage)}`);
+      assert(xxlDetails.sponsoredLinkCount === 0, `XXL-kaart toont zonder geconfigureerde affiliate-URL toch een externe affiliate-CTA: ${JSON.stringify(xxlDetails)}`);
+      const programCtaWidth = await page.evaluate(() => {
+        const outer = document.querySelector(".program-cta");
+        const inner = outer?.querySelector(":scope > .free-intake-cta");
+        if (!(outer instanceof HTMLElement) || !(inner instanceof HTMLElement)) return null;
+        return { outer: outer.getBoundingClientRect().width, inner: inner.getBoundingClientRect().width };
+      });
+      assert(programCtaWidth && programCtaWidth.inner >= programCtaWidth.outer - 4, `De intake-CTA op de trainingspagina benut niet de volledige container: ${JSON.stringify(programCtaWidth)}`);
+
+      await goto(page, "/ooievaarspas");
+      await activateScrollReveals(page);
+      const faqAlignment = await page.evaluate(() => {
+        const section = document.querySelector(".faq-preview");
+        const intro = section?.querySelector(":scope > div:first-child");
+        const title = intro?.querySelector("h2");
+        const accordion = section?.querySelector(".faq-accordion");
+        if (!(section instanceof HTMLElement) || !(intro instanceof HTMLElement) || !(title instanceof HTMLElement) || !(accordion instanceof HTMLElement)) return null;
+        const introBounds = intro.getBoundingClientRect();
+        const titleBounds = title.getBoundingClientRect();
+        const accordionBounds = accordion.getBoundingClientRect();
+        const overlapWidth = Math.min(introBounds.right, accordionBounds.right) - Math.max(introBounds.left, accordionBounds.left);
+        const overlapHeight = Math.min(introBounds.bottom, accordionBounds.bottom) - Math.max(introBounds.top, accordionBounds.top);
+        return {
+          overlaps: overlapWidth > 2 && overlapHeight > 2,
+          titleContained: titleBounds.left >= introBounds.left - 2 && titleBounds.right <= introBounds.right + 2 && title.scrollWidth <= title.clientWidth + 2,
+          accordionContained: accordion.scrollWidth <= accordion.clientWidth + 2,
+        };
+      });
+      assert(faqAlignment, "Ooievaarspas-FAQ mist de verwachte intro- of accordionstructuur");
+      assert(!faqAlignment.overlaps && faqAlignment.titleContained && faqAlignment.accordionContained, `Ooievaarspas-FAQ overlapt of loopt buiten de kolom: ${JSON.stringify(faqAlignment)}`);
+
+      await resetPage();
       await page.setViewportSize({ width: 430, height: 932 });
       await goto(page, "/abonnementen");
       const comparisonDetails = await page.evaluate(() => {
@@ -601,6 +836,10 @@ async function main() {
       assert(comparisonDetails.footerContactHeight >= 44, `Mobiele footerlink heeft een te klein raakvlak: ${JSON.stringify(comparisonDetails)}`);
     });
 
+    // The public visual audit eagerly decodes several large responsive images.
+    // Start the interactive suite on a fresh renderer to avoid a Chromium
+    // target crash masking otherwise valid interaction results.
+    await resetPage();
     await page.setViewportSize({ width: 1280, height: 900 });
 
     await check("Ledenapp: alle vier app-tabs", async () => {
@@ -963,7 +1202,7 @@ async function main() {
       }));
       assert(settingsDetails.inputHeights.every((height) => height >= 48), `Mobiele instellingenvelden zijn te klein: ${JSON.stringify(settingsDetails)}`);
       assert(settingsDetails.statuses.length === 4 && settingsDetails.statuses.every((status) => status === "Niet actief"), `Instellingsstatussen zijn geen rustige badges: ${JSON.stringify(settingsDetails)}`);
-      assert(settingsDetails.controlTitles.length === 6 && ["Reguliere openingstijden", "Vier producttypen", "NTC-/NOC*NSF-claim", "Team- en artikelrechten"].every((title) => settingsDetails.controlTitles.includes(title)), `Centraal contentregister is onvolledig: ${JSON.stringify(settingsDetails.controlTitles)}`);
+      assert(settingsDetails.controlTitles.length === 6 && ["Reguliere openingstijden", "Vier producttypen", "XXL-partnercontent", "NTC-/NOC*NSF-context", "Team- en artikelrechten"].every((title) => settingsDetails.controlTitles.includes(title)), `Centraal contentregister is onvolledig: ${JSON.stringify(settingsDetails.controlTitles)}`);
       await page.getByRole("button", { name: "Lokaal opslaan", exact: true }).click();
       const toast = page.locator(".admin-global-notice");
       await toast.waitFor({ state: "visible" });
@@ -981,6 +1220,7 @@ async function main() {
     });
 
     await check("Backoffice-rooster: template bewerken en lokaal publiceren", async () => {
+      await resetPage();
       currentActivity = "backoffice rooster";
       await goto(page, "/backoffice/rooster");
       await page.evaluate(() => {
@@ -1042,16 +1282,23 @@ async function main() {
     });
 
     await check("200%-reflowequivalent en lage viewport", async () => {
+      await resetPage();
       currentActivity = "200 procent reflow en lage viewport";
       for (const viewport of [
         { name: "zoom-200-equivalent", width: 640, height: 450 },
+        { name: "phone-small", width: 320, height: 740 },
         { name: "phone-low-height", width: 390, height: 650 },
         { name: "phone-landscape", width: 844, height: 390 },
       ]) {
-        await page.setViewportSize({ width: viewport.width, height: viewport.height });
-        for (const route of ["/", "/gratis-persoonlijke-intake", "/ledenportaal", "/backoffice/rooster"]) {
+        for (const route of ["/", "/abonnementen", "/ooievaarspas", "/sporten/krachttraining", "/topsport-en-ntc", "/gratis-persoonlijke-intake", "/ledenportaal", "/backoffice/rooster"]) {
+          // Resize and image decoding across these long pages can accumulate in
+          // Chromium's renderer. A fresh page keeps the reflow assertion itself
+          // deterministic instead of depending on renderer memory history.
+          await resetPage();
+          await page.setViewportSize({ width: viewport.width, height: viewport.height });
           await goto(page, route);
           await checkOverflow(page, route, viewport.name);
+          await checkFocusedPublicOverflow(page, route, viewport.name);
         }
       }
     });

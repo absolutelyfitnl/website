@@ -16,7 +16,7 @@ export default function OverOnsPage() {
 
     <Reveal as="section" className="section shell page-intro">
       <h2 className="display">Een vaste plek aan de haven.</h2>
-      <div className="page-intro__copy"><p>{clubStory.publicSummary}</p><p>Wat begon vanuit liefde voor krachttraining, groeide uit tot een ontmoetingsplek waar buurtgenoten, nieuwkomers en ervaren sporters naast elkaar trainen.</p><p>De trainingsvloer is professioneel ingericht. De omgang blijft persoonlijk: vragen mogen gesteld worden en ontwikkeling krijgt de tijd.</p></div>
+      <div className="page-intro__copy"><p>{clubStory.publicSummary}</p><p>Oprichter Rik Priester werd meervoudig Nederlands kampioen en in 1990 wereldkampioen powerliften. Die praktijkervaring vormt nog altijd een basis voor techniek, trainingsopbouw en begeleiding.</p><p>Wat begon vanuit liefde voor krachttraining, groeide uit tot een ontmoetingsplek waar buurtgenoten, nieuwkomers en ervaren sporters naast elkaar trainen.</p></div>
     </Reveal>
 
     <Reveal as="section" className="section shell story-timeline-section">

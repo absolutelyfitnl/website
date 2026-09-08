@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import test from "node:test";
@@ -50,14 +51,24 @@ test("opening status uses the exact seven-day source around Amsterdam day bounda
 });
 
 test("Ooievaarspas, NTC and affiliate publication gates are explicit", () => {
+  const approvals = JSON.parse(read("lib/content/publication-approvals.json"));
+  assert.equal(approvals.ooievaarspasLogoLicenseConfirmed, true);
+  assert.equal(approvals.nocNsfLogoLicenseConfirmed, true);
+  assert.equal(approvals.nocNsfEditorialContextApproved, true);
+  assert.equal(approvals.formalNocNsfCredentialEvidenceConfirmed, false);
+  assert.equal(approvals.historicPerformanceClaimsApproved, true);
+  assert.equal(approvals.xxlCreativeLicenseConfirmed, true);
   const partners = read("lib/content/partners.ts");
   assert.match(partners, /50% korting op een daarvoor in aanmerking komend abonnement/);
   assert.match(partners, /eligibilityByProduct:\s*"unknown"/);
   assert.match(partners, /XXL_AFFILIATE_APPROVED === "true"/);
   assert.match(partners, /approvedHttpsUrl/);
+  assert.match(partners, /creativeAsset:\s*"\/partners\/xxl-product-range\.avif"/);
   const claims = read("lib/content/claims.ts");
-  assert.match(claims, /logoPermission:\s*false/);
-  assert.match(claims, /status:\s*"needsConfirmation"/);
+  assert.match(claims, /logoPermission:\s*approvals\.nocNsfLogoLicenseConfirmed/);
+  assert.match(claims, /status:\s*"owner-approved-context"/);
+  assert.match(claims, /exactOfficialName:\s*null/);
+  assert.match(claims, /registrationNumber:\s*null/);
   const component = read("components/content-sections.tsx");
   assert.match(component, /if \(!xxlAffiliate\.enabled \|\| !xxlAffiliate\.affiliateUrl/);
   assert.match(component, /rel="sponsored noopener noreferrer"/);
@@ -93,11 +104,13 @@ test("structured data is central, price-free and excludes unverified credentials
   assert.match(read("components/structured-data.tsx"), /replace\(\/<\/g, "\\\\u003c"\)/);
 });
 
-test("required reports and the non-public source asset are present", () => {
+test("required reports, source originals and approved public partner assets are present", () => {
   for (const file of [
     "docs/CONTENT-MIGRATION-MATRIX.md", "docs/FACTS-AND-RIGHTS-REGISTER.md",
     "docs/EXTERNAL-LISTING-CORRECTIONS.md", "docs/SEO-IMPLEMENTATION-REPORT.md",
-    "docs/VERIFICATION-REPORT.md", "assets/source/xxl/RIGHTS-NOTICE.md", "assets/source/xxl/32535009.avif",
+    "docs/VERIFICATION-REPORT.md", "assets/source/partners/RIGHTS-NOTICE.md",
+    "assets/source/xxl/RIGHTS-NOTICE.md", "assets/source/xxl/32535009.avif",
+    "lib/content/publication-approvals.json",
   ]) assert.equal(existsSync(path.join(root, file)), true, file);
   const publicFiles = [];
   const visit = (relative) => {
@@ -107,6 +120,15 @@ test("required reports and the non-public source asset are present", () => {
     }
   };
   visit("public");
-  assert.equal(publicFiles.some((file) => /32535009|noc[-_. ]?nsf|team[-_. ]?nl|olymp/i.test(file)), false);
+  const approvedAssets = new Map([
+    ["public/partners/noc-nsf-full-color.svg", "2e30b2ec125c15c13c12c510279d7f234f82fc46e0ef627cf3dc416ddfa6397b"],
+    ["public/partners/ooievaarspas.svg", "601c0fbcffea25a9bee9016741a297bde537ffee9f7125ec4e3e7314913e9fd2"],
+    ["public/partners/xxl-product-range.avif", "6aa341ccac817ad013a77a33d2eb743d33faedd103a0afddb90c0e0b9d4c0d5e"],
+  ]);
+  for (const [file, expectedHash] of approvedAssets) {
+    assert.equal(publicFiles.includes(file), true, file);
+    const hash = createHash("sha256").update(readFileSync(path.join(root, file))).digest("hex");
+    assert.equal(hash, expectedHash, `${file} must remain an unmodified approved asset`);
+  }
   assert.equal(pathToFileURL(path.join(root, "assets/source/xxl/32535009.avif")).protocol, "file:");
 });

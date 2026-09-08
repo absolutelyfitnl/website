@@ -66,8 +66,9 @@ export const articles: readonly KnowledgeArticle[] = [
     image: "/images/hero-coaching.webp",
     readTime: "7 min",
     publishedAt: "2026-09-07",
-    updatedAt: "2026-09-07",
+    updatedAt: "2026-09-08",
     sections: [
+      { heading: "Ervaring als stevig vertrekpunt", paragraphs: ["De krachtsportgeschiedenis van Absolutely Fit is concreet: oprichter Rik Priester werd meervoudig Nederlands kampioen en in 1990 wereldkampioen powerliften. Het team deed daarnaast ervaring op met begeleiding tot nationaal, internationaal en olympisch niveau.", "Die achtergrond is geen reden om iedereen als wedstrijdsporter te behandelen. Juist de vertaalslag naar een haalbaar persoonlijk plan maakt de ervaring bruikbaar op de dagelijkse clubvloer."] },
       { heading: "Het principe blijft, de uitvoering verandert", paragraphs: ["Een ervaren wedstrijdsporter en iemand die net begint hebben niet hetzelfde programma nodig. Beiden hebben wel baat bij een helder doel, passende belasting en aandacht voor herstel tussen trainingen.", "De kunst zit in vertalen: niet méér ingewikkeld maken, maar kiezen welke trainingsprincipes nu relevant zijn."] },
       { heading: "Meten wat voor jou betekenis heeft", paragraphs: ["Niet iedere sporter hoeft maximale prestaties te testen. Voortgang kan ook blijken uit een stabielere beweging, een training die beter in de week past of meer vertrouwen in zelfstandig oefenen."], points: ["Maak het doel concreet", "Kies een passende maat voor voortgang", "Evalueer op vaste, rustige momenten"] },
       { heading: "Coaching is ook uitleg", paragraphs: ["Een schema zonder context geeft weinig houvast. Wanneer je begrijpt waarom belasting, herhalingen en rustmomenten zijn gekozen, kun je betere beslissingen nemen.", "Daarom horen vragen stellen en techniek bespreken net zo goed bij begeleiding als het programma zelf."] },

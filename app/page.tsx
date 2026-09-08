@@ -76,9 +76,13 @@ export default function Home() {
         <p className="ao-program-scroll-hint">Veeg door alle trainingsvormen <ArrowRight aria-hidden="true" /></p>
       </section>
 
-      <section className="section ao-shell home-products"><Reveal><span className="ao-kicker">Vier actuele producten</span><h2>Van één keer per week tot flexibel trainen.</h2><p>Kies nog niets op basis van aannames. Vergelijk de vier bevestigde mogelijkheden en bespreek actuele prijzen en voorwaarden tijdens je gratis intake.</p></Reveal><MembershipComparison compact /><Link className="text-link" href="/abonnementen">Vergelijk alle mogelijkheden <ArrowRight aria-hidden="true" /></Link></section>
+      <section className="section ao-shell home-products">
+        <Reveal className="home-products__intro"><div><span className="ao-kicker">Vier actuele producten</span><h2>Van één keer per week tot flexibel trainen.</h2></div><p>Kies nog niets op basis van aannames. Vergelijk de vier bevestigde mogelijkheden en bespreek actuele prijzen en voorwaarden tijdens je gratis intake.</p></Reveal>
+        <Reveal className="home-products__cards" delay={80} distance={18}><MembershipComparison compact /></Reveal>
+        <Link className="text-link" href="/abonnementen">Vergelijk alle mogelijkheden <ArrowRight aria-hidden="true" /></Link>
+      </section>
 
-      <section className="section ao-shell"><OoievaarspasCallout /></section>
+      <section className="section ao-shell home-ooievaar"><Reveal distance={18}><OoievaarspasCallout /></Reveal></section>
 
       <section className="ao-visit-section" id="eerste-bezoek"><div className="ao-shell"><FirstVisitWizard compact /></div></section>
 

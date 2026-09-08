@@ -1,3 +1,5 @@
+import approvals from "@/lib/content/publication-approvals.json";
+
 export const clubStory = {
   since: "1998",
   neighborhood: "Scheveningse Havenkwartier",
@@ -11,7 +13,7 @@ export const teamProfiles = [
     id: "rik-priester",
     name: "Rik Priester",
     role: "Oprichter en coach",
-    summary: "Bouwde Absolutely Fit vanuit de krachtsportpraktijk op als een club waar techniek, aandacht en realistische ontwikkeling centraal staan.",
+    summary: "Meervoudig Nederlands kampioen en wereldkampioen powerliften in 1990. Hij bouwde Absolutely Fit vanuit de krachtsportpraktijk op rond techniek, aandacht en realistische ontwikkeling.",
     specialties: ["Krachttraining", "Powerlifting", "Gewichtheffen", "Persoonlijke begeleiding"],
     publicationStatus: "owner-approved",
   },
@@ -34,8 +36,15 @@ export const trustCredential = {
   issuedAt: null,
   expiresAt: null,
   evidenceDocument: null,
-  logoPermission: false,
-  verifiedAt: null,
-  status: "needsConfirmation",
-  publicExplanation: "De club werkt vanuit ervaring met kracht- en prestatiesport. De precieze actuele NTC- of NOC*NSF-status en het recht op merkgebruik zijn nog niet als publieke certificeringsclaim geverifieerd.",
+  logoAsset: "/partners/noc-nsf-full-color.svg",
+  logoPermission: approvals.nocNsfLogoLicenseConfirmed,
+  editorialContextApproved: approvals.nocNsfEditorialContextApproved,
+  verifiedAt: approvals.approvedByOwnerAt,
+  status: "owner-approved-context",
+  historicFacts: [
+    "Meervoudig Nederlands kampioen powerliften",
+    "Wereldkampioen powerliften in 1990",
+    "Ervaring met sporters tot nationaal, internationaal en olympisch niveau",
+  ],
+  publicExplanation: "De ervaring van Absolutely Fit loopt van recreatieve krachttraining tot topsport. Het NOC*NSF-beeldmerk en de historische prestatieclaims worden met toestemming getoond; er wordt geen aanvullende actuele certificering of formele accreditatie geïmpliceerd.",
 } as const;

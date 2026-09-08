@@ -10,6 +10,7 @@ import "./release-hardening.css";
 import "./experience-polish.css";
 import "./backoffice-polish.css";
 import "./content-expansion.css";
+import "./site-polish-2026.css";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { siteUrl } from "@/lib/metadata";
@@ -43,7 +44,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="nl">
+    <html lang="nl" data-scroll-behavior="smooth">
       <body className="antialiased">
         <a className="skip-link" href="#main-content">Naar hoofdinhoud</a>
         <SiteHeader />

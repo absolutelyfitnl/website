@@ -1,6 +1,6 @@
 # Facts and rights register
 
-Last reviewed: 7 September 2026. Official Ooievaarspas, municipality, NOC*NSF and XXL/Awin context pages were rechecked on that date. `owner-approved` below means the fact was explicitly supplied as current business information in the authorised expansion brief. It does not grant third-party trademark or creative rights.
+Last reviewed: 8 September 2026. Official Ooievaarspas, municipality, NOC*NSF and XXL/Awin context pages were rechecked on 7 September. On 8 September the authorised owner explicitly confirmed the club facts and claims, logo/photo rights, portrait/model permissions and public website use. That production-task confirmation is recorded in `lib/content/publication-approvals.json`; it does not fill in facts that were never supplied.
 
 | Fact, claim or asset | Source | Status | Permission / evidence | Public wording or action |
 |---|---|---|---|---|
@@ -12,22 +12,22 @@ Last reviewed: 7 September 2026. Official Ooievaarspas, municipality, NOC*NSF an
 | Regular seven-day hours | Expansion prompt | Confirmed | Owner-supplied | Exact hours from `lib/content/opening-hours.ts` |
 | Ooievaarspas: 50% discount on an eligible membership | Expansion prompt | Confirmed core claim | Owner-supplied; product mapping missing | Exact cautious claim; every product eligibility remains `unknown` |
 | Rond de Haven, summer 2026, page 6 | Expansion prompt; original scan unavailable | Editorial source confirmed, source file unavailable | No integral republication right recorded | Own summary and attribution only; no scan or long quotation |
-| Rik Priester as founder/coach | Article direction plus owner-authorised brief | Owner-approved identity/role | No new portrait file supplied; existing repository portrait remains in use under prior project authorisation | Restricted biography with general expertise only |
-| Henriëtte, Rik jr./Ricardo, René, Luc, recognisable athletes | Article direction | Needs confirmation | Name, role and portrait permissions not recorded | Not published |
-| 1983 Dutch championship / 1990 world championship | Article direction | Needs confirmation | Documentary evidence and deliberate publication approval not recorded for this new release | Removed from public copy |
-| National teams, beach volleyball, named Olympic athletes | Article direction | Needs confirmation | Role, timing, athlete consent and endorsement boundaries not recorded | Not published |
-| Military, BBE, diver, fire-service or teaching details | Article direction | Sensitive; not approved | Explicit written consent and editorial decision absent | Not published |
-| Current NTC or NOC*NSF recognition | Club intent in expansion prompt | Needs confirmation | Exact name, issuer, scope, validity and evidence missing | Transparent fallback only; no accreditation assertion |
-| NOC*NSF / Olympic logo | Windows attachment path unavailable | Prohibited by default | Written web/marketing licence absent; asset not available | Not stored in `public`, metadata, schema or CSS |
-| Ooievaarspas logo/photo | Windows attachment path unavailable | Needs asset/right confirmation | Source file unavailable | Custom icon-and-type fallback; no copied/recreated trademark |
-| XXL logo, shaker, banner and Muscle Grow creative | Windows paths unavailable | Needs confirmation | Files unavailable and affiliate creative licence absent | Not used |
-| XXL whey image `32535009.avif` | Supplied attachment | Source retained, public use not approved | Affiliate creative licence absent | Stored only under `assets/source/xxl`; never imported or published |
+| Rik Priester as founder/coach | Article direction plus owner-authorised brief | Owner-approved identity/role/portrait | Owner confirmation of 8 September; existing repository portrait | Public profile and coach context |
+| Henriëtte, Rik jr./Ricardo, René, Luc, recognisable athletes | Article direction | Rights confirmed; current role wording still incomplete | Name/portrait/model permissions confirmed on 8 September; precise current roles were not supplied | Not expanded until each current role can be stated accurately |
+| 1983 Dutch championship / 1990 world championship | Article direction and earlier authorised site copy | Owner-approved historical claims | Owner confirmation of 8 September | Concise historical timeline/profile wording |
+| National teams, beach volleyball and top-level athletes | Article direction and earlier authorised site copy | Owner-approved at claim/portrait level | Owner confirmation of 8 September | Generic experience-to-olympic-level wording; no endorsement quotation is invented |
+| Military, BBE, diver, fire-service or teaching details | Article direction | Rights confirmed but editorially unnecessary | Owner confirmation of 8 September | Deliberately omitted from general marketing copy |
+| Current NTC or NOC*NSF recognition | Club intent in expansion prompt | Exact formal credential still incomplete | Official name, registration, scope and validity were not supplied | NTC context and approved historical experience only; no current certification/accreditation assertion or credential schema |
+| NOC*NSF logo | Official first-party SVG | Owner-approved public contextual use | Owner/rightsholder confirmation of 8 September; provenance and hash in `assets/source/partners/RIGHTS-NOTICE.md` | Unmodified mark in contextual trust section; no new sponsorship or certification claim |
+| Ooievaarspas logo | Official first-party SVG | Owner-approved public use | Owner/rightsholder confirmation of 8 September; provenance and hash recorded | Unmodified mark with the confirmed 50% eligible-membership wording |
+| XXL logo, shaker, banner and Muscle Grow creative | Windows paths unavailable | Not available in workspace | Rights broadly confirmed, but no source bytes available | Not used or recreated |
+| XXL whey image `32535009.avif` | Supplied attachment | Owner-approved public creative | Owner/rightsholder confirmation of 8 September; exact public copy is hash-tested | Neutral non-affiliate partner visual; no product-benefit claim |
 | XXL affiliate link | Official affiliate-programme context | Needs account approval | No approved Awin tracking URL supplied | Component disabled; production CTA hidden |
 
 ## NTC/NOC*NSF activation checklist
 
-Do not set a future logo flag to true until the exact recognition name, issuing body, registration/scope, issue and expiry date, location coverage, evidence document, written logo permission and applicable branding rules are recorded. Structured data must remain free of an `award`, `credential` or `affiliation` until then.
+Logo/editorial rights are confirmed. Keep `formalNocNsfCredentialEvidenceConfirmed` false and structured data free of `award`, `credential` or `affiliation` until the exact recognition name, issuing body, registration/scope, issue and expiry date, location coverage and evidence document are recorded.
 
 ## XXL activation checklist
 
-An approved HTTPS tracking URL, active account approval and the exact permitted creative must all be recorded. Configure `NEXT_PUBLIC_XXL_AFFILIATE_URL`, set `XXL_AFFILIATE_APPROVED=true`, and set `XXL_CREATIVE_LICENSE_CONFIRMED=true` only when an image is actually licensed. The visible disclosure and `rel="sponsored noopener noreferrer"` may not be removed.
+The supplied creative is approved and may appear in neutral partner context. An affiliate CTA still requires an approved HTTPS tracking URL and active account approval: configure `NEXT_PUBLIC_XXL_AFFILIATE_URL` and set `XXL_AFFILIATE_APPROVED=true`. The visible disclosure and `rel="sponsored noopener noreferrer"` may not be removed from an active affiliate link.

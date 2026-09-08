@@ -29,7 +29,7 @@ export function PageHero({ eyebrow, title, intro, image, imageAlt, parentHref, p
         <h1 className="display">{title}</h1>
         <p>{intro}</p>
       </div>
-      <div className="page-hero__media"><Image src={image} alt={imageAlt} width={imageWidth} height={imageHeight} sizes="(max-width: 760px) 100vw, 50vw" unoptimized /></div>
+      <div className="page-hero__media"><Image src={image} alt={imageAlt} width={imageWidth} height={imageHeight} sizes="(max-width: 760px) 100vw, 50vw" preload unoptimized /></div>
     </section>
   );
 }

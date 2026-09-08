@@ -1,6 +1,6 @@
 # Content migration matrix
 
-Baseline: repository at `e4d5140913541406481bd86969b35666ee5cda10`, audited 7 September 2026. The attached expansion prompt is the primary source for current commercial facts. Unknown details remain `needsConfirmation`.
+Baseline: repository at `e4d5140913541406481bd86969b35666ee5cda10`, audited 7 September 2026 and rights-updated 8 September 2026. The attached expansion prompt is the primary source for current commercial facts; the later owner confirmation authorises the named facts and visual assets. Details that were never supplied remain `needsConfirmation`.
 
 | Element or claim | Previous location / wording | Action | New source | Final location |
 |---|---|---|---|---|
@@ -14,11 +14,11 @@ Baseline: repository at `e4d5140913541406481bd86969b35666ee5cda10`, audited 7 Se
 | Ooievaarspas product eligibility | Implied without product mapping | Mark unknown | Prompt | `ooievaarspasEligibility: "unknown"` per product |
 | Club age | Missing | Add | Prompt/article direction | “Sinds 1998” on homepage, story, team, metadata and JSON-LD |
 | Club story | Short generic copy | Expand and paraphrase | Rond de Haven direction supplied in prompt | Homepage, `/over-ons`, media page and knowledge article |
-| Championship/Olympic claims | Homepage, Over ons and Begeleiding contained specific world/Dutch champion and Olympic-athlete claims | Remove from public marketing copy | Rights gate in prompt | General, transparent performance-sport wording; exact claims in facts register only |
+| Championship/top-level claims | Earlier pages contained specific world/Dutch champion and top-level-athlete claims | Restore after explicit approval | Owner confirmation of 8 September + earlier authorised copy | Central claims data, team/story and NTC context; no invented athlete endorsement |
 | Recognised training-company claim | `/over-ons`: “Erkend leerbedrijf” | Remove pending evidence | Rights gate | Not published |
 | Coach tenure and athlete claims | `/begeleiding`: 15 years and national/international athletes | Remove | Rights gate | General team method; owner-approved identity only |
-| NTC/NOC*NSF | No previous component | Add a safe textual fallback | Prompt + official context | `TrustCredentialCard`, `/topsport-en-ntc`, no protected mark |
-| XXL Nutrition | No previous placement | Build gated component | Prompt + official affiliate programme | Component exists but renders nothing without approved HTTPS URL and approval flag |
+| NTC/NOC*NSF | Text-only fallback with stale permission warning | Add approved contextual visual and keep formal credential boundary | Owner confirmation + official asset | `TrustCredentialCard`, `/topsport-en-ntc`; approved mark, no fabricated registration/accreditation/schema |
+| XXL Nutrition | Fully hidden gated component | Show approved neutral creative; keep affiliate action gated | Owner confirmation + supplied creative + official affiliate programme | Visual can render; tracked CTA still requires approved HTTPS URL and approval flag |
 | Blog | `/blog` with three articles | Expand and migrate | SEO/content strategy | `/kennisbank` with nine articles; old URLs permanently redirect |
 | Public demo indexing | `/ledenapp` was indexable and in sitemap | Correct | Prompt technical SEO rules | `noindex`, robots disallow, excluded from sitemap |
 | Member status | Backoffice “Pauze” | Remove | No holiday/freeze programme | Neutral fictive `Inactief` status |

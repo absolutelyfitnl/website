@@ -8,11 +8,11 @@ import { Reveal } from "@/components/reveal";
 import { clubStory } from "@/lib/content/claims";
 import { pageMetadata } from "@/lib/metadata";
 
-export const metadata = pageMetadata("Over Absolutely Fit — sinds 1998", "Ontdek het verhaal van familieclub Absolutely Fit, sinds 1998 een persoonlijke trainingsplek in het Scheveningse Havenkwartier.", "/over-ons");
+export const metadata = pageMetadata("Over Absolutely Fit — sinds 2008", "Ontdek het verhaal van familieclub Absolutely Fit, sinds 2008 een persoonlijke trainingsplek in het Scheveningse Havenkwartier.", "/over-ons");
 
 export default function OverOnsPage() {
   return <main className="story-page">
-    <PageHero eyebrow="Familieclub in Scheveningen · sinds 1998" title={<>Serieus trainen. Prettig binnenkomen.</>} intro="Absolutely Fit is een familiegedreven club in het Havenkwartier. Persoonlijke aandacht, nuchtere trainingskennis en ruimte voor ieder startpunt vormen hier de basis." image="/images/lotus-window.jpg" imageAlt="De herkenbare lotusbloem van Absolutely Fit" variant="reverse" />
+    <PageHero eyebrow="Familieclub in Scheveningen · sinds 2008" title={<>Serieus trainen. Prettig binnenkomen.</>} intro="Absolutely Fit is een familiegedreven club in het Havenkwartier. Persoonlijke aandacht, nuchtere trainingskennis en ruimte voor ieder startpunt vormen hier de basis." image="/images/lotus-window.jpg" imageAlt="De herkenbare lotusbloem van Absolutely Fit" variant="reverse" />
 
     <Reveal as="section" className="section shell page-intro">
       <h2 className="display">Een vaste plek aan de haven.</h2>
@@ -20,7 +20,7 @@ export default function OverOnsPage() {
     </Reveal>
 
     <Reveal as="section" className="section shell story-timeline-section">
-      <div><span className="eyebrow">Ons verhaal</span><h2 className="display">Sinds 1998, stap voor stap opgebouwd.</h2></div>
+      <div><span className="eyebrow">Ons verhaal</span><h2 className="display">Sinds 2008, stap voor stap opgebouwd.</h2></div>
       <StoryTimeline />
     </Reveal>
 

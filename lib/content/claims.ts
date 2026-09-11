@@ -1,9 +1,9 @@
 import approvals from "@/lib/content/publication-approvals.json";
 
 export const clubStory = {
-  since: "1998",
+  since: "2008",
   neighborhood: "Scheveningse Havenkwartier",
-  publicSummary: "Sinds 1998 is Absolutely Fit een vaste trainingsplek in het Scheveningse Havenkwartier: persoonlijk, nuchter en toegankelijk voor verschillende niveaus.",
+  publicSummary: "Sinds 2008 is Absolutely Fit een vaste trainingsplek in het Scheveningse Havenkwartier: persoonlijk, nuchter en toegankelijk voor verschillende niveaus.",
   source: "Rond de Haven, zomer 2026, pagina 6; geparafraseerd",
   publicationStatus: "owner-approved",
 } as const;

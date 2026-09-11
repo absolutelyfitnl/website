@@ -90,7 +90,7 @@ export function SiteHeader() {
   return (
     <>
       <header className={`site-header ao-header${isScrolled ? " is-scrolled" : ""}${menuOpen ? " is-menu-open" : ""}`}>
-        <div className="ao-utility"><div><span>Familieclub sinds 1998</span><span>Doctor Lelykade 240</span><span>Voor ieder niveau</span><Link href="/openingstijden"><Clock3 aria-hidden="true" /> Vandaag: bekijk openingstijden <ArrowRight aria-hidden="true" /></Link></div></div>
+        <div className="ao-utility"><div><span>Familieclub sinds 2008</span><span>Doctor Lelykade 240</span><span>Voor ieder niveau</span><Link href="/openingstijden"><Clock3 aria-hidden="true" /> Vandaag: bekijk openingstijden <ArrowRight aria-hidden="true" /></Link></div></div>
         <div className="site-header__inner">
           <Link href="/" className="brand-link" aria-label="Absolutely Fit homepage"><BrandLogo priority /></Link>
           <nav className="desktop-nav" aria-label="Hoofdnavigatie">

@@ -43,6 +43,22 @@ test("the central membership inventory contains exactly the four confirmed produ
   }
 });
 
+test("owner-updated customer facts stay central and visible", async () => {
+  const siteModule = await importStandaloneTypeScript("lib/content/site.ts");
+  assert.equal(siteModule.site.foundingDate, "2008");
+  assert.equal(siteModule.contact.phoneDisplay, "070 358 77 81");
+  assert.equal(siteModule.contact.phoneHref, "+31703587781");
+  assert.equal(siteModule.customerFacts.startingPrice, "€ 24,50 per maand");
+  assert.match(siteModule.customerFacts.intake, /inbegrepen bij bepaalde abonnementen of bij Personal Training/);
+  assert.match(siteModule.customerFacts.flexibility, /individueel vrij sporten|professionele begeleiding/);
+  assert.match(siteModule.customerFacts.personalTraining, /powerliften en gewichtheffen/);
+  const partners = read("lib/content/partners.ts");
+  assert.match(partners, /jeugd onder de 18 jaar.*100 procent.*eerste sport/);
+  for (const file of ["app/page.tsx", "app/abonnementen/page.tsx", "app/personal-training/page.tsx", "app/over-ons/page.tsx", "app/in-de-media/rond-de-haven-2026/page.tsx"]) {
+    assert.doesNotMatch(read(file), /1998/);
+  }
+});
+
 test("opening status uses the exact seven-day source around Amsterdam day boundaries", async () => {
   const hoursModule = await importStandaloneTypeScript("lib/content/opening-hours.ts");
   assert.equal(Object.keys(hoursModule.openingHours).length, 7);

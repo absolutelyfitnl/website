@@ -5,7 +5,7 @@ import { FirstVisitWizard } from "@/components/first-visit-wizard";
 import { MemberAppDemo } from "@/components/member-app-demo";
 import { Reveal } from "@/components/reveal";
 import { FreeIntakeCTA, MediaMentionCard, MembershipComparison, OoievaarspasCallout, OpeningHoursCard, TrustCredentialCard } from "@/components/content-sections";
-import { callsToAction, contact } from "@/lib/content/site";
+import { callsToAction, contact, customerFacts } from "@/lib/content/site";
 import { disciplines, posts, programs } from "@/lib/site-data";
 import { pageMetadata } from "@/lib/metadata";
 import { StructuredData } from "@/components/structured-data";
@@ -42,12 +42,12 @@ export default function Home() {
       <section className="ao-hero">
         <Image className="ao-hero__ribbon" src="/brand/absolutely-fit-ribbon-wide.svg" alt="" aria-hidden="true" width={1600} height={900} sizes="100vw" />
         <div className="ao-hero__copy">
-          <div className="ao-hero__meta"><span><i /> Familieclub in Scheveningen · sinds 1998</span><span>Doctor Lelykade 240</span></div>
+          <div className="ao-hero__meta"><span><i /> Familieclub in Scheveningen · sinds 2008</span><span>Doctor Lelykade 240</span></div>
           <p className="ao-overline">Persoonlijke fitness · kracht · begeleiding</p>
           <h1><span>Fitness</span><span>zoals het</span><span><em>bedoeld is.</em></span></h1>
           <p className="ao-hero__intro">Een professionele sportschool waar iedereen zich welkom voelt. Train zelfstandig of met persoonlijke begeleiding — altijd op jouw niveau.</p>
           <div className="ao-actions"><Link className="ao-button ao-button--blue" href="/gratis-persoonlijke-intake">{callsToAction.freeIntake} <ArrowRight aria-hidden="true" /></Link><Link className="ao-button ao-button--line" href="/sporten">Ontdek de club <ArrowDown aria-hidden="true" /></Link></div>
-          <div className="ao-hero__proof"><span><Check />Sinds 1998</span><span><Check />Ooievaarspas: 50% op passend abonnement</span><span><Check />Voor ieder niveau</span></div>
+          <div className="ao-hero__proof"><span><Check />Sinds 2008</span><span><Check />Sporten vanaf {customerFacts.startingPrice}</span><span><Check />Voor ieder niveau</span></div>
         </div>
         <figure className="ao-hero__media"><Image src="/images/absolutely-fit-hero-cable-coaching.png" alt="Een coach begeleidt een sporter tijdens een gecontroleerde kabeltraining" width={1672} height={941} sizes="(max-width: 760px) 100vw, 58vw" preload /><figcaption><span>Persoonlijke begeleiding</span><strong>Jouw doel. Ons plan.</strong></figcaption><Link href="/begeleiding" aria-label="Bekijk persoonlijke begeleiding"><ArrowUpRight aria-hidden="true" /></Link></figure>
         <aside className="ao-hero__side-note"><span>Absolutely Fit</span><small>Scheveningen · een vertrouwde familieclub</small></aside>
@@ -59,7 +59,7 @@ export default function Home() {
 
       <section className="ao-intro ao-shell">
         <Reveal className="ao-intro__heading"><span className="ao-kicker">De club</span><h2>Een sportschool waar je geen nummer bent.</h2></Reveal>
-        <Reveal className="ao-intro__copy"><p>Sinds 1998 staat bij Absolutely Fit centraal dat iedereen zich welkom voelt, plezier heeft in sporten en zich op het eigen niveau kan ontwikkelen.</p><Link href="/over-ons">Lees ons verhaal sinds 1998 <ArrowUpRight aria-hidden="true" /></Link></Reveal>
+        <Reveal className="ao-intro__copy"><p>Sinds 2008 staat bij Absolutely Fit centraal dat iedereen zich welkom voelt, plezier heeft in sporten en zich op het eigen niveau kan ontwikkelen.</p><Link href="/over-ons">Lees ons verhaal sinds 2008 <ArrowUpRight aria-hidden="true" /></Link></Reveal>
         <div className="ao-principles">{principles.map(([number,title,text], index) => <Reveal key={number} className="ao-principle" delay={index * 65}><span>{number}</span><h3>{title}</h3><p>{text}</p></Reveal>)}</div>
       </section>
 
@@ -77,7 +77,7 @@ export default function Home() {
       </section>
 
       <section className="section ao-shell home-products">
-        <Reveal className="home-products__intro"><div><span className="ao-kicker">Vier trainingsproducten</span><h2>Van één keer per week tot flexibel trainen.</h2></div><p>Vergelijk de vier mogelijkheden en bespreek tijdens je gratis intake welk trainingsritme, welke prijs en welke voorwaarden bij je passen.</p></Reveal>
+        <Reveal className="home-products__intro"><div><span className="ao-kicker">Vier trainingsproducten</span><h2>Van één keer per week tot flexibel trainen.</h2></div><p>{customerFacts.flexibility} Sporten vanaf {customerFacts.startingPrice}. {customerFacts.intake}</p></Reveal>
         <Reveal className="home-products__cards" delay={80} distance={18}><MembershipComparison compact /></Reveal>
         <Link className="text-link" href="/abonnementen">Vergelijk alle mogelijkheden <ArrowRight aria-hidden="true" /></Link>
       </section>

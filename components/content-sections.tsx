@@ -30,7 +30,7 @@ export function MembershipComparison({ compact = false }: { compact?: boolean })
 export function OoievaarspasCallout({ detailed = false }: { detailed?: boolean }) {
   return <section className={`ooievaar-callout${detailed ? " ooievaar-callout--detailed" : ""}`}>
     <div className="ooievaar-callout__mark"><Image src="/partners/ooievaarspas.svg" alt="Ooievaarspas" width={71} height={90} sizes="90px" /><span><strong>50%</strong><small>korting</small></span></div>
-    <div className="ooievaar-callout__copy"><span>Toegankelijk sporten in Den Haag</span><h2>{ooievaarspas.claim}</h2><p>{ooievaarspas.applicationNote}</p>{detailed && <div className="ooievaar-callout__links"><Link href="/contact?onderwerp=ooievaarspas">Bespreek je Ooievaarspas <ArrowRight aria-hidden="true" /></Link><a href={ooievaarspas.officialApplicationUrl} target="_blank" rel="noopener noreferrer">Aanvragen bij gemeente Den Haag <ExternalLink aria-hidden="true" /></a><a href={ooievaarspas.officialOfferUrl} target="_blank" rel="noopener noreferrer">Officiële aanbiedingspagina <ExternalLink aria-hidden="true" /></a></div>}</div>
+    <div className="ooievaar-callout__copy"><span>Toegankelijk sporten in Den Haag</span><h2>{ooievaarspas.claim}</h2><p>{ooievaarspas.applicationNote}</p><p className="ooievaar-callout__youth">{ooievaarspas.youthClaim}</p>{detailed && <div className="ooievaar-callout__links"><Link href="/contact?onderwerp=ooievaarspas">Bespreek je Ooievaarspas <ArrowRight aria-hidden="true" /></Link><a href={ooievaarspas.officialApplicationUrl} target="_blank" rel="noopener noreferrer">Aanvragen bij gemeente Den Haag <ExternalLink aria-hidden="true" /></a><a href={ooievaarspas.officialOfferUrl} target="_blank" rel="noopener noreferrer">Officiële aanbiedingspagina <ExternalLink aria-hidden="true" /></a></div>}</div>
     {!detailed && <Link href="/ooievaarspas">Bekijk hoe het werkt <ArrowRight aria-hidden="true" /></Link>}
   </section>;
 }
@@ -46,7 +46,7 @@ export function TrustCredentialCard({ compact = false }: { compact?: boolean }) 
 export function StoryTimeline() {
   const moments = [
     ["1990", "Wereldkampioen powerliften", "Rik Priester senior wordt wereldkampioen powerliften; die praktijkkennis vormt nog altijd een basis voor techniek en opbouw."],
-    ["1998", "Een vaste plek in het Havenkwartier", "Absolutely Fit opent als familiegedreven trainingsplek in Scheveningen."],
+    ["2008", "Een vaste plek in het Havenkwartier", "Absolutely Fit opent als familiegedreven trainingsplek in Scheveningen."],
     ["Vandaag", "Voor ieder niveau", "Beginners, ervaren sporters, locals en nieuwkomers trainen naast elkaar met aandacht voor hun eigen route."],
   ] as const;
   return <div className="story-timeline">{moments.map(([year, title, text], index) => <article key={year}><span>{String(index + 1).padStart(2, "0")}</span><strong>{year}</strong><h3>{title}</h3><p>{text}</p></article>)}</div>;

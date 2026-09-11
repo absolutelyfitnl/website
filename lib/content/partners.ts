@@ -15,6 +15,7 @@ function approvedHttpsUrl(value: string | undefined) {
 export const ooievaarspas = {
   discount: 50,
   claim: "Met een geldige Ooievaarspas ontvang je bij Absolutely Fit 50% korting op een daarvoor in aanmerking komend abonnement.",
+  youthClaim: "Voor jeugd onder de 18 jaar geldt met de Ooievaarspas een vergoeding van 100 procent, mits dit de eerste sport is.",
   applicationNote: "Bespreek tijdens je gratis persoonlijke intake welke actuele abonnementsoptie en voorwaarden van toepassing zijn.",
   eligibilityByProduct: "unknown",
   logoAsset: "/partners/ooievaarspas.svg",

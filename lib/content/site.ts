@@ -1,7 +1,7 @@
 export const site = {
   name: "Absolutely Fit",
-  foundingDate: "1998",
-  description: "Familiegedreven sportschool in het Scheveningse Havenkwartier met persoonlijke begeleiding voor ieder niveau.",
+  foundingDate: "2008",
+  description: "Familiegedreven sportschool in het Scheveningse Havenkwartier sinds 2008, met persoonlijke begeleiding voor ieder niveau.",
   productionUrl: "https://abso.dgwebservices.nl",
   timeZone: "Europe/Amsterdam",
   address: {
@@ -14,12 +14,19 @@ export const site = {
 } as const;
 
 export const contact = {
-  phoneDisplay: "06 12 59 51 12",
-  phoneHref: "+31612595112",
+  phoneDisplay: "070 358 77 81",
+  phoneHref: "+31703587781",
   landlineDisplay: "070 358 77 81",
   landlineHref: "+31703587781",
   email: "info@absolutely-fit.nl",
   location: `${site.address.streetAddress}, ${site.address.postalCode} ${site.address.addressLocality}`,
+} as const;
+
+export const customerFacts = {
+  startingPrice: "€ 24,50 per maand",
+  intake: "Een intakegesprek is inbegrepen bij bepaalde abonnementen of bij Personal Training.",
+  flexibility: "Kies voor individueel vrij sporten of ga aan de slag onder professionele begeleiding.",
+  personalTraining: "Uitgebreide atletenvoorbereiding en coaching voor diverse sporten, waaronder powerliften en gewichtheffen. Ook gespecialiseerd in Strength & Conditioning voor diverse sportdisciplines en gericht op afvaltrajecten. Neem contact op voor meer informatie.",
 } as const;
 
 export const callsToAction = {

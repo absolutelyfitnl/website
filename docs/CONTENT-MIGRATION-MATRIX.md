@@ -12,7 +12,11 @@ Baseline: repository at `e4d5140913541406481bd86969b35666ee5cda10`, audited 7 Se
 | Personal training | Thin dynamic programme page | Expand and canonicalise | Confirmed service in prompt | `/personal-training`; old programme route redirects |
 | Ooievaarspas | Vague “mogelijkheden” copy | Expand and specify safely | Prompt + official municipality/offer links | Dedicated page, product page, homepage, FAQ, intake and contact subject |
 | Ooievaarspas product eligibility | Implied without product mapping | Mark unknown | Prompt | `ooievaarspasEligibility: "unknown"` per product |
-| Club age | Missing | Add | Prompt/article direction | “Sinds 1998” on homepage, story, team, metadata and JSON-LD |
+| Club age | Missing | Add | Owner update | “Sinds 2008” on homepage, story, team, metadata and JSON-LD |
+| Starting price | Missing | Add | Owner update | “Sporten vanaf € 24,50 per maand” in membership and start content |
+| Intake policy | Generic free-intake copy | Clarify | Owner update | Included with certain memberships or Personal Training |
+| Flexibility | Generic training copy | Clarify | Owner update | Individual free training or professional guidance across start and membership pages |
+| Youth Ooievaarspas reimbursement | General 50% copy only | Add qualified youth condition | Owner update | 100% reimbursement under 18 when it is the first sport |
 | Club story | Short generic copy | Expand and paraphrase | Rond de Haven direction supplied in prompt | Homepage, `/over-ons`, media page and knowledge article |
 | Championship/top-level claims | Earlier pages contained specific world/Dutch champion and top-level-athlete claims | Restore after explicit approval | Owner confirmation of 8 September + earlier authorised copy | Central claims data, team/story and NTC context; no invented athlete endorsement |
 | Recognised training-company claim | `/over-ons`: “Erkend leerbedrijf” | Remove pending evidence | Rights gate | Not published |

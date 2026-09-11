@@ -1,6 +1,6 @@
 # Verification report
 
-Release candidate: customer-facing interface cleanup, live mobile club status and approved partner presentation, 8 September 2026.
+Release candidate: customer-facing interface cleanup, live mobile club status, approved partner presentation and owner-updated club facts, 11 September 2026.
 
 ## Automated verification
 
@@ -9,7 +9,7 @@ Release candidate: customer-facing interface cleanup, live mobile club status an
 | Full quality gate | `npm run check` | Passed |
 | ESLint | `npm run lint` | Passed without warnings |
 | TypeScript | `npm run typecheck` | Passed |
-| Contract/content tests | `npm test` | Passed: 16/16, including Amsterdam calendar, content-rights and protected-claim guards |
+| Contract/content tests | `npm test` | Passed: 17/17, including Amsterdam calendar, owner-updated facts, content-rights and protected-claim guards |
 | Production build | `npm run build` | Passed: 62 generated application routes |
 | Dependency audit | `npm audit --omit=dev --audit-level=high` | Passed: 0 vulnerabilities |
 | Browser, links, keyboard and responsive regression | `QA_ARTIFACTS_DIR=.artifacts/qa-customer-ready-full npm run qa:browser` | Passed: 217/217 checks, with no console, page or network errors |
@@ -33,7 +33,7 @@ The final polish run verifies the requested areas at desktop and narrow-screen w
 
 Focused reflow checks passed at 320, 375, 390 and 430 pixels for the homepage, memberships, Ooievaarspas, topsport/NTC, strength training, about and member-app routes. The broader suite also covers 768, 1024, 1280, 1440 and 1920-pixel viewports and fails on document or focused-component horizontal overflow.
 
-The complete responsive screenshot matrix and functional suite passed all 217 checks in `.artifacts/qa-customer-ready-full`; the focused rerun passed all 20 control groups in `.artifacts/qa-customer-ready-rerun`. These QA artifacts are intentionally gitignored.
+The complete responsive screenshot matrix and functional suite passed all 217 checks in `.artifacts/qa-content-update-full-v2`. These QA artifacts are intentionally gitignored.
 
 ## Rights and publication boundaries
 
@@ -43,7 +43,7 @@ The complete responsive screenshot matrix and functional suite passed all 217 ch
 - Historical strength-sport results and editorial NOC*NSF context are approved for publication.
 - The owner confirms that the certification exists and explicitly chooses not to advertise it. The customer interface therefore contains neither a certification claim nor a technical disclaimer about it.
 - XXL affiliate rendering stays fail-closed: it requires both an approved HTTPS URL and the explicit environment gate. No URL is configured in this release, so no public affiliate CTA is rendered.
-- Prices and product-specific Ooievaarspas eligibility continue to be confirmed during the personal intake rather than published as unsupported fixed terms.
+- The owner-supplied starting price of € 24,50 per month is published; product-specific prices, terms and general Ooievaarspas product eligibility continue to be confirmed during the personal intake. The qualified 100% youth reimbursement is published for under-18 visitors whose first sport is Absolutely Fit.
 
 ## Production gate
 

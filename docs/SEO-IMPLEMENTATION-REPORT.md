@@ -1,6 +1,6 @@
 # SEO implementation report
 
-Implemented on 7 September 2026.
+Implemented on 7 September 2026; customer facts refreshed on 11 September 2026.
 
 ## Information architecture
 
@@ -22,7 +22,7 @@ Implemented on 7 September 2026.
 
 ## Structured data
 
-- Homepage: `ExerciseGym` with official business details, `foundingDate: 1998`, all seven central opening-hour specifications and exactly four price-free `Service` offers.
+- Homepage: `ExerciseGym` with official business details, `foundingDate: 2008`, all seven central opening-hour specifications and exactly four price-free `Service` offers. The visible membership content separately states the owner-supplied starting price of € 24,50 per month.
 - FAQ page: visible FAQ items and matching `FAQPage` data.
 - Knowledge articles: `Article` data with dates, canonical page, image and self-contained organisation publisher.
 - Editorial and article routes: `BreadcrumbList` matching visible breadcrumbs where implemented.
@@ -34,7 +34,7 @@ Implemented on 7 September 2026.
 - Local intent: Scheveningen, Havenkwartier and Den Haag are used naturally in page titles, introductions and contextual copy.
 - Start cluster connects products, free intake, Ooievaarspas, FAQ and contact.
 - Expertise cluster connects personal training, strength disciplines, team, topsport principles and knowledge articles.
-- Story cluster connects homepage, since-1998 narrative, media summary and team.
+- Story cluster connects homepage, since-2008 narrative, media summary and team.
 - Links use descriptive labels; protected or unknown facts are not used as keyword bait.
 
 ## Editorial safeguards

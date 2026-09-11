@@ -407,7 +407,7 @@ async function main() {
       const homeData = await pageData("/");
       const gym = homeData.find((item) => item["@type"] === "ExerciseGym");
       assert(gym, "Homepage mist geldige ExerciseGym JSON-LD");
-      assert(gym.foundingDate === "1998", `ExerciseGym foundingDate klopt niet: ${gym.foundingDate}`);
+      assert(gym.foundingDate === "2008", `ExerciseGym foundingDate klopt niet: ${gym.foundingDate}`);
       assert(gym.openingHoursSpecification?.length === 7, "ExerciseGym bevat niet exact zeven openingsdagregels");
       const offers = gym.hasOfferCatalog?.itemListElement ?? [];
       assert(offers.length === 4, `ExerciseGym bevat ${offers.length} in plaats van vier producten`);
@@ -616,7 +616,7 @@ async function main() {
       const clubInformation = menu.locator(".mobile-menu__intro");
       const clubInformationText = (await clubInformation.innerText()).replace(/\s+/g, " ").trim();
       assert(/^Clubinformatie (?:GEOPEND - VANDAAG TOT \d{2}:\d{2} UUR|GESLOTEN(?: - GEOPEND VANAF \d{2}:\d{2} UUR)?)$/i.test(clubInformationText), `Mobiele clubstatus is niet actueel geformuleerd: ${clubInformationText}`);
-      assert(!/Scheveningen|sinds 1998|bekijk alle tijden/i.test(clubInformationText), `Mobiele clubstatus bevat verwijderde informatie: ${clubInformationText}`);
+      assert(!/Scheveningen|sinds 2008|bekijk alle tijden/i.test(clubInformationText), `Mobiele clubstatus bevat verwijderde informatie: ${clubInformationText}`);
       assert(await clubInformation.locator("a, p").count() === 0, "Mobiele clubinformatie bevat nog de oude locatie- of openingstijdenregel");
       const focusInside = await menu.evaluate((element) => element.contains(document.activeElement));
       assert(focusInside, "Focus staat niet in het geopende mobiele menu");

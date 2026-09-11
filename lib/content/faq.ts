@@ -1,23 +1,24 @@
 import { ooievaarspas } from "@/lib/content/partners";
 import { openingHoursSummary } from "@/lib/content/opening-hours";
+import { customerFacts } from "@/lib/content/site";
 
 export const frequentlyAskedQuestions = [
   {
     category: "Starten",
     question: "Wat gebeurt er tijdens de gratis persoonlijke intake?",
-    answer: "We bespreken je doel, ervaring, voorkeursmoment en gewenste begeleiding. Daarna bekijken we welke trainingsaanpak en welk product logisch aansluiten. De intake is gratis en is geen proeftraining.",
+    answer: `We bespreken je doel, ervaring, voorkeursmoment en gewenste begeleiding. Daarna bekijken we welke trainingsaanpak en welk product logisch aansluiten. De intake is gratis en is geen proeftraining. ${customerFacts.intake}`,
     href: "/gratis-persoonlijke-intake",
   },
   {
     category: "Lidmaatschap",
     question: "Welke producten biedt Absolutely Fit aan?",
-    answer: "Je kunt kiezen uit 1× per week, Onbeperkt trainen, een 10-rittenkaart en Jeugd. Actuele prijzen, looptijden en overige voorwaarden bespreek je rechtstreeks met de club.",
+    answer: `Je kunt kiezen uit 1× per week, Onbeperkt trainen, een 10-rittenkaart en Jeugd. Sporten vanaf ${customerFacts.startingPrice}. Actuele prijzen, looptijden en overige voorwaarden bespreek je rechtstreeks met de club. ${customerFacts.flexibility}`,
     href: "/abonnementen",
   },
   {
     category: "Begeleiding",
     question: "Kan ik personal training volgen?",
-    answer: "Ja. Personal training wordt aangeboden. Tijdens de gratis intake bespreek je je doel, planning en welke vorm van persoonlijke begeleiding past.",
+    answer: `Ja. Personal training wordt aangeboden. ${customerFacts.personalTraining} ${customerFacts.intake}`,
     href: "/personal-training",
   },
   {
@@ -29,7 +30,7 @@ export const frequentlyAskedQuestions = [
   {
     category: "Ooievaarspas",
     question: "Hoeveel korting krijg ik met de Ooievaarspas?",
-    answer: ooievaarspas.claim,
+    answer: `${ooievaarspas.claim} ${ooievaarspas.youthClaim}`,
     href: "/ooievaarspas",
   },
   {

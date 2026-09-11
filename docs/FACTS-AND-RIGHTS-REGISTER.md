@@ -1,16 +1,18 @@
 # Facts and rights register
 
-Last reviewed: 8 September 2026. Official Ooievaarspas, municipality, NOC*NSF and XXL/Awin context pages were rechecked on 7 September. On 8 September the authorised owner explicitly confirmed the club facts and claims, logo/photo rights, portrait/model permissions and public website use. That production-task confirmation is recorded in `lib/content/publication-approvals.json`; it does not fill in facts that were never supplied.
+Last reviewed: 11 September 2026. Official Ooievaarspas, municipality, NOC*NSF and XXL/Awin context pages were rechecked on 7 September. On 8 September the authorised owner explicitly confirmed the club facts and claims, logo/photo rights, portrait/model permissions and public website use. The 11 September content update adds the owner-supplied starting price, youth reimbursement condition, 2008 founding year, specialist coaching copy and fixed landline. That production-task confirmation is recorded in `lib/content/publication-approvals.json`.
 
 | Fact, claim or asset | Source | Status | Permission / evidence | Public wording or action |
 |---|---|---|---|---|
-| Absolutely Fit exists since 1998 | Expansion prompt and article direction | Confirmed | Owner-supplied | “Sinds 1998” |
-| Address, phone and email | Existing authorised repository | Confirmed for this release | Existing public business data | Central `site` and `contact` data |
-| Four products: 1× per week, Onbeperkt trainen, 10-rittenkaart, Jeugd | Expansion prompt | Confirmed | Owner-supplied | Exact names only; no invented price or contract data |
-| Personal training | Expansion prompt | Confirmed | Owner-supplied | Full service page; details discussed personally |
+| Absolutely Fit exists since 2008 | Owner update of the club story | Confirmed | Owner-supplied | “Sinds 2008” |
+| Address, fixed phone and email | Existing authorised repository plus owner update | Confirmed for this release | Existing public business data and owner-supplied landline | Central `site` and `contact` data |
+| Four products: 1× per week, Onbeperkt trainen, 10-rittenkaart, Jeugd | Expansion prompt | Confirmed | Owner-supplied | Exact names; product terms remain personal |
+| Starting membership price | Owner update | Confirmed | Owner-supplied | “Sporten vanaf € 24,50 per maand” |
+| Personal training and coaching scope | Owner update and expansion prompt | Confirmed | Owner-supplied | Athlete preparation, powerlifting, weightlifting, Strength & Conditioning and weight-loss trajectories |
 | Free personal intake | Expansion prompt | Confirmed | Owner-supplied | Always “gratis persoonlijke intake”; never presented as a free workout |
 | Regular seven-day hours | Expansion prompt | Confirmed | Owner-supplied | Exact hours from `lib/content/opening-hours.ts` |
 | Ooievaarspas: 50% discount on an eligible membership | Expansion prompt | Confirmed core claim | Owner-supplied; product mapping missing | Exact cautious claim; every product eligibility remains `unknown` |
+| Ooievaarspas: 100% youth reimbursement | Owner update | Confirmed with condition | Owner-supplied | Under 18 and first sport only |
 | Rond de Haven, summer 2026, page 6 | Expansion prompt; original scan unavailable | Editorial source confirmed, source file unavailable | No integral republication right recorded | Own summary and attribution only; no scan or long quotation |
 | Rik Priester as founder/coach | Article direction plus owner-authorised brief | Owner-approved identity/role/portrait | Owner confirmation of 8 September; existing repository portrait | Public profile and coach context |
 | Henriëtte, Rik jr./Ricardo, René, Luc, recognisable athletes | Article direction | Rights confirmed; current role wording still incomplete | Name/portrait/model permissions confirmed on 8 September; precise current roles were not supplied | Not expanded until each current role can be stated accurately |
@@ -19,7 +21,7 @@ Last reviewed: 8 September 2026. Official Ooievaarspas, municipality, NOC*NSF an
 | Military, BBE, diver, fire-service or teaching details | Article direction | Rights confirmed but editorially unnecessary | Owner confirmation of 8 September | Deliberately omitted from general marketing copy |
 | Current NTC or NOC*NSF certification | Direct owner confirmation on 8 September 2026 | Existence owner-confirmed; deliberately not advertised | Exact credential fields are not stored because the owner explicitly does not want to market the certification | No certification claim, warning or technical rights explanation in the customer interface; the approved mark and club history stand on their own |
 | NOC*NSF logo | Official first-party SVG | Owner-approved public contextual use | Owner/rightsholder confirmation of 8 September; provenance and hash in `assets/source/partners/RIGHTS-NOTICE.md` | Unmodified mark in contextual trust section; no new sponsorship or certification claim |
-| Ooievaarspas logo | Official first-party SVG | Owner-approved public use | Owner/rightsholder confirmation of 8 September; provenance and hash recorded | Unmodified mark with the confirmed 50% eligible-membership wording |
+| Ooievaarspas logo | Official first-party SVG | Owner-approved public use | Owner/rightsholder confirmation of 8 September; provenance and hash recorded | Unmodified mark with the confirmed 50% and youth reimbursement wording |
 | XXL logo, shaker, banner and Muscle Grow creative | Windows paths unavailable | Not available in workspace | Rights broadly confirmed, but no source bytes available | Not used or recreated |
 | XXL whey image `32535009.avif` | Supplied attachment | Owner-approved public creative | Owner/rightsholder confirmation of 8 September; exact public copy is hash-tested | Neutral non-affiliate partner visual; no product-benefit claim |
 | XXL affiliate link | Official affiliate-programme context | Needs account approval | No approved Awin tracking URL supplied | Component disabled; production CTA hidden |

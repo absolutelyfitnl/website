@@ -6,22 +6,23 @@ import { PageHero } from "@/components/page-hero";
 import { Reveal } from "@/components/reveal";
 import { frequentlyAskedQuestions } from "@/lib/content/faq";
 import { memberships } from "@/lib/content/memberships";
+import { customerFacts } from "@/lib/content/site";
 import { pageMetadata } from "@/lib/metadata";
 
 export const metadata = pageMetadata(
   "Abonnementen en 10-rittenkaart",
-  "Vergelijk de vier actuele trainingsproducten van Absolutely Fit: 1× per week, onbeperkt trainen, 10-rittenkaart en jeugd.",
+  "Sporten vanaf € 24,50 per maand. Vergelijk de vier actuele trainingsproducten van Absolutely Fit: 1× per week, onbeperkt trainen, 10-rittenkaart en jeugd.",
   "/abonnementen",
 );
 
 export default function AbonnementenPage() {
   const faq = frequentlyAskedQuestions.filter((item) => item.category === "Lidmaatschap" || item.category === "Ooievaarspas");
   return <main className="memberships-page">
-    <PageHero eyebrow="Vier actuele mogelijkheden" title={<>Kies een trainingsritme dat bij je week past.</>} intro="Absolutely Fit heeft precies vier producttypen. Tijdens een gratis persoonlijke intake bespreek je welke mogelijkheid, actuele prijs en voorwaarden bij jouw situatie passen." image="/images/cardio-sunrise.jpg" imageAlt="Cardioapparatuur in het zachte ochtendlicht" />
+    <PageHero eyebrow="Vier actuele mogelijkheden" title={<>Kies een trainingsritme dat bij je week past.</>} intro={`Sporten vanaf ${customerFacts.startingPrice}. Absolutely Fit heeft precies vier producttypen. Tijdens een gratis persoonlijke intake bespreek je welke mogelijkheid, actuele prijs en voorwaarden bij jouw situatie passen.`} image="/images/cardio-sunrise.jpg" imageAlt="Cardioapparatuur in het zachte ochtendlicht" />
 
     <Reveal as="section" className="section shell membership-intro">
       <div><span className="eyebrow">Jouw trainingsritme</span><h2 className="display">Vier heldere mogelijkheden.</h2></div>
-      <div><p>Kies voor één keer per week, onbeperkt trainen, een 10-rittenkaart of het jeugdproduct. Tijdens de intake bespreek je welk ritme en welke voorwaarden bij je passen.</p><Link href="/gratis-persoonlijke-intake" className="text-link">Bespreek wat bij je past <ArrowRight aria-hidden="true" /></Link></div>
+      <div><p>{customerFacts.flexibility}</p><p>{customerFacts.intake}</p><p>Sporten vanaf {customerFacts.startingPrice}; de actuele productprijs en voorwaarden bespreek je tijdens je intake.</p><Link href="/gratis-persoonlijke-intake" className="text-link">Bespreek wat bij je past <ArrowRight aria-hidden="true" /></Link></div>
     </Reveal>
 
     <Reveal as="section" className="shell membership-products" aria-label="Vergelijk de vier trainingsproducten">
@@ -42,6 +43,6 @@ export default function AbonnementenPage() {
       </Accordion>
     </section>
 
-    <section className="section shell"><FreeIntakeCTA title="Eerst bespreken. Daarna pas een product kiezen." text="De intake is gratis en persoonlijk. Je krijgt actuele informatie over prijs, looptijd en voorwaarden rechtstreeks van de club." /></section>
+    <section className="section shell"><FreeIntakeCTA title="Eerst bespreken. Daarna pas een product kiezen." text={`${customerFacts.intake} Je krijgt actuele informatie over prijs, looptijd en voorwaarden rechtstreeks van de club.`} /></section>
   </main>;
 }

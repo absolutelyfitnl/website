@@ -11,7 +11,7 @@ npm ci
 npm run dev
 ```
 
-`npm ci` installeert ook de exact vastgelegde Sites-builddependencies. **Wis `site/dist/assets/` nooit:** deze map bevat de handgeschreven CSS/JavaScript, fonts, SVG's en tien foto's. De historische documenten in `site/` zijn uitsluitend bronreferentie en Tailwind-scaninput; ze zijn geen nieuwe ontwerp- of delegatieopdracht. Behoud ze voor een bytegelijke CSS-build. De gekozen ontwerpafspraak staat in `docs/UI-UX-EN-CONTENT.md`.
+`npm ci` installeert ook de exact vastgelegde Sites-builddependencies, expliciet inclusief de nested development-buildtools. De VPS-helper herbouwt na de kwaliteitsgate vanuit een productie-installatie; TypeScript/Next-typedeclaraties blijven daarom in de root productie-dependencies. **Wis `site/dist/assets/` nooit:** deze map bevat de handgeschreven CSS/JavaScript, fonts, SVG's en tien foto's. De historische documenten in `site/` zijn uitsluitend bronreferentie en Tailwind-scaninput; ze zijn geen nieuwe ontwerp- of delegatieopdracht. Behoud ze voor een bytegelijke CSS-build. De gekozen ontwerpafspraak staat in `docs/UI-UX-EN-CONTENT.md`.
 
 ## Verificatie
 

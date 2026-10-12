@@ -1,0 +1,10 @@
+[
+  {
+    "path": "dist/assets/site.css",
+    "originalSha256": "aae1e39e5cc077b8ea0473fa6175633aa2f46907938ad3ec395a2c0c288c1b31",
+    "bytes": 30312,
+    "sha256": "0f316eff5cdf84a6df43455840dfeac6e755a2d84c63c720f7a25549d3627b43",
+    "approvedOn": "2026-10-12",
+    "reason": "Gebruiker vraagt de header even breed te maken als de overige containers, inclusief push en productiedeployment. Alleen gedeelde containerbreedtes op desktop, tablet en mobiel gewijzigd."
+  }
+]

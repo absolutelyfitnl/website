@@ -1,5 +1,7 @@
 # Canon voor UI, UX en content — Absolutely Fit
 
+Vervolgaanpassing op verzoek van de gebruiker, 12 oktober 2026: de header gebruikt nu dezelfde containerbreedte en responsive zijmarges als `.wrap` en `.ev-wrap`. De exacte gewijzigde CSS-hash staat apart in `tests/approved-asset-changes.json`; de oorspronkelijke bronmanifesten blijven behouden.
+
 Deze canon beschrijft de bestaande implementatie die ongewijzigd moet worden overgenomen. Het is geen nieuw ontwerpbrief. De gebruiker koos uitsluitend concept 20, **Absolutely Perspective**. De overige concepten en de oude actieve website mogen niet naast deze nieuwe website blijven bestaan. De oude GitHub-versie blijft uitsluitend behouden via de vooraf aangemaakte en gecontroleerde archive-branch en de bestaande Git-geschiedenis.
 
 ## Vast referentiepunt

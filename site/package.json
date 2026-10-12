@@ -1,0 +1,16 @@
+{
+  "name": "absolutely-fit-design-showcase",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "node src/build.mjs && tailwindcss -i ./src/tailwind.css -o ./dist/assets/tailwind.css --minify"
+  },
+  "devDependencies": {
+    "tailwindcss": "^4.1.0",
+    "@tailwindcss/cli": "^4.1.0"
+  },
+  "dependencies": {
+    "motion": "^12.0.0"
+  }
+}

@@ -84,7 +84,7 @@ jobs:
           npm run typecheck
           npm test
           npm run build
-          npm audit --omit=dev --audit-level=high
+          npm run audit
 
       - name: Smoke-test standalone artifact
         shell: bash
@@ -132,26 +132,7 @@ jobs:
             exit 1
           fi
 
-          for route in \
-            / \
-            /gratis-persoonlijke-intake \
-            /abonnementen \
-            /personal-training \
-            /ooievaarspas \
-            /openingstijden \
-            /team \
-            /topsport-en-ntc \
-            /veelgestelde-vragen \
-            /kennisbank \
-            /kennisbank/kleine-stappen-duurzaam-sterker \
-            /sporten/krachttraining \
-            /ledenapp \
-            /ledenportaal \
-            /backoffice \
-            /rooster
-          do
-            curl -fsS "http://127.0.0.1:${smoke_port}${route}" >/dev/null
-          done
+          BASE_URL="http://127.0.0.1:${smoke_port}" npm run qa:http
 
           health="$(curl -fsS "http://127.0.0.1:${smoke_port}/api/health")"
           node -e '
@@ -213,5 +194,7 @@ jobs:
               }
             }
           ' "${health}" "${GITHUB_SHA}"
+
+          BASE_URL=https://abso.dgwebservices.nl npm run qa:http
 
           echo "Absolutely Fit production OK at ${GITHUB_SHA}"

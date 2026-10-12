@@ -1,6 +1,6 @@
 # Facts and rights register
 
-Last reviewed: 11 September 2026. Official Ooievaarspas, municipality, NOC*NSF and XXL/Awin context pages were rechecked on 7 September. On 8 September the authorised owner explicitly confirmed the club facts and claims, logo/photo rights, portrait/model permissions and public website use. The 11 September content update adds the owner-supplied starting price, youth reimbursement condition, 2008 founding year, specialist coaching copy and fixed landline. That production-task confirmation is recorded in `lib/content/publication-approvals.json`.
+Last reviewed: 11 September 2026. Official Ooievaarspas, municipality, NOC*NSF and XXL/Awin context pages were rechecked on 7 September. On 8 September the authorised owner explicitly confirmed the club facts and claims, logo/photo rights, portrait/model permissions and public website use. The 11 September content update adds the owner-supplied starting price, youth reimbursement condition, 2008 founding year, specialist coaching copy and fixed landline. That production-task confirmation is recorded in `docs/publication-approvals.json`.
 
 | Fact, claim or asset | Source | Status | Permission / evidence | Public wording or action |
 |---|---|---|---|---|
@@ -20,7 +20,7 @@ Last reviewed: 11 September 2026. Official Ooievaarspas, municipality, NOC*NSF a
 | National teams, beach volleyball and top-level athletes | Article direction and earlier authorised site copy | Owner-approved at claim/portrait level | Owner confirmation of 8 September | Generic experience-to-olympic-level wording; no endorsement quotation is invented |
 | Military, BBE, diver, fire-service or teaching details | Article direction | Rights confirmed but editorially unnecessary | Owner confirmation of 8 September | Deliberately omitted from general marketing copy |
 | Current NTC or NOC*NSF certification | Direct owner confirmation on 8 September 2026 | Existence owner-confirmed; deliberately not advertised | Exact credential fields are not stored because the owner explicitly does not want to market the certification | No certification claim, warning or technical rights explanation in the customer interface; the approved mark and club history stand on their own |
-| NOC*NSF logo | Official first-party SVG | Owner-approved public contextual use | Owner/rightsholder confirmation of 8 September; provenance and hash in `assets/source/partners/RIGHTS-NOTICE.md` | Unmodified mark in contextual trust section; no new sponsorship or certification claim |
+| NOC*NSF logo | Official first-party SVG | Owner-approved public contextual use | Owner/rightsholder confirmation of 8 September; provenance and hash in `docs/licenses/partner-marks-provenance.md` | Unmodified mark in contextual trust section; no new sponsorship or certification claim |
 | Ooievaarspas logo | Official first-party SVG | Owner-approved public use | Owner/rightsholder confirmation of 8 September; provenance and hash recorded | Unmodified mark with the confirmed 50% and youth reimbursement wording |
 | XXL logo, shaker, banner and Muscle Grow creative | Windows paths unavailable | Not available in workspace | Rights broadly confirmed, but no source bytes available | Not used or recreated |
 | XXL whey image `32535009.avif` | Supplied attachment | Owner-approved public creative | Owner/rightsholder confirmation of 8 September; exact public copy is hash-tested | Neutral non-affiliate partner visual; no product-benefit claim |
@@ -33,3 +33,7 @@ Logo/editorial rights and the existence of a certification are owner-confirmed. 
 ## XXL activation checklist
 
 The supplied creative is approved and may appear in neutral partner context. An affiliate CTA still requires an approved HTTPS tracking URL and active account approval: configure `NEXT_PUBLIC_XXL_AFFILIATE_URL` and set `XXL_AFFILIATE_APPROVED=true`. The visible disclosure and `rel="sponsored noopener noreferrer"` may not be removed from an active affiliate link.
+
+## Geselecteerde Sites-migratie — 12 oktober 2026
+
+De historische registratie hierboven blijft als bron-/rechteninformatie bewaard. De actuele publieke bron is Sites-commit `cd1f4e7f78b0e1f3ceea3d9d3d12ab9cf2456ed8`. Alleen de tien meegeleverde clubfoto’s en oorspronkelijke SVG’s worden gebruikt. De historische XXL-productafbeelding en oude clubportretten zijn uit de actieve assetinventaris verwijderd; XXL blijft uitsluitend neutrale tekst. Er is geen actieve affiliate-integratie. Het oorspronkelijke eigenaarsrecord is ongewijzigd verplaatst naar `docs/publication-approvals.json`. Fontcopyright en SIL OFL-licenties staan in `docs/licenses/`.

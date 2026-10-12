@@ -1,0 +1,100 @@
+[
+  {
+    "from": "/blog/",
+    "to": "/kennisbank/",
+    "production_http_status": "301 or 308",
+    "preserve_query": true,
+    "type": "public"
+  },
+  {
+    "from": "/blog/beginnen-met-krachttraining-scheveningen/",
+    "to": "/kennisbank/beginnen-met-krachttraining-scheveningen/",
+    "production_http_status": "301 or 308",
+    "preserve_query": true,
+    "type": "public"
+  },
+  {
+    "from": "/blog/kleine-stappen-duurzaam-sterker/",
+    "to": "/kennisbank/kleine-stappen-duurzaam-sterker/",
+    "production_http_status": "301 or 308",
+    "preserve_query": true,
+    "type": "public"
+  },
+  {
+    "from": "/blog/sporten-met-de-ooievaarspas-bij-absolutely-fit/",
+    "to": "/kennisbank/sporten-met-de-ooievaarspas-bij-absolutely-fit/",
+    "production_http_status": "301 or 308",
+    "preserve_query": true,
+    "type": "public"
+  },
+  {
+    "from": "/blog/sportschool-als-ontmoetingsplek-havenkwartier/",
+    "to": "/kennisbank/sportschool-als-ontmoetingsplek-havenkwartier/",
+    "production_http_status": "301 or 308",
+    "preserve_query": true,
+    "type": "public"
+  },
+  {
+    "from": "/blog/sterker-worden-begint-met-techniek/",
+    "to": "/kennisbank/sterker-worden-begint-met-techniek/",
+    "production_http_status": "301 or 308",
+    "preserve_query": true,
+    "type": "public"
+  },
+  {
+    "from": "/blog/topsportkennis-voor-ieder-niveau/",
+    "to": "/kennisbank/topsportkennis-voor-ieder-niveau/",
+    "production_http_status": "301 or 308",
+    "preserve_query": true,
+    "type": "public"
+  },
+  {
+    "from": "/blog/waarom-herstel-bij-training-hoort/",
+    "to": "/kennisbank/waarom-herstel-bij-training-hoort/",
+    "production_http_status": "301 or 308",
+    "preserve_query": true,
+    "type": "public"
+  },
+  {
+    "from": "/blog/wat-gebeurt-er-tijdens-een-gratis-persoonlijke-intake/",
+    "to": "/kennisbank/wat-gebeurt-er-tijdens-een-gratis-persoonlijke-intake/",
+    "production_http_status": "301 or 308",
+    "preserve_query": true,
+    "type": "public"
+  },
+  {
+    "from": "/blog/zo-bouw-je-een-trainingsschema-op/",
+    "to": "/kennisbank/zo-bouw-je-een-trainingsschema-op/",
+    "production_http_status": "301 or 308",
+    "preserve_query": true,
+    "type": "public"
+  },
+  {
+    "from": "/inloggen/",
+    "to": "/ledenapp/",
+    "production_http_status": "301 or 308",
+    "preserve_query": true,
+    "type": "members"
+  },
+  {
+    "from": "/ledenportaal/",
+    "to": "/ledenapp/",
+    "production_http_status": "301 or 308",
+    "preserve_query": true,
+    "type": "members"
+  },
+  {
+    "from": "/mijn-eerste-bezoek/",
+    "to": "/gratis-persoonlijke-intake/",
+    "production_http_status": "301 or 308",
+    "preserve_query": true,
+    "type": "public"
+  },
+  {
+    "from": "/sporten/personal-training/",
+    "to": "/personal-training/",
+    "production_http_status": "301 or 308",
+    "preserve_query": true,
+    "type": "public"
+  }
+]

@@ -1,1427 +1,273 @@
-#!/usr/bin/env node
-
-import { mkdir } from "node:fs/promises";
+import assert from "node:assert/strict";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { chromium } from "playwright";
+import { PNG } from "pngjs";
 
-const BASE_URL = (process.env.BASE_URL ?? process.argv[2] ?? "http://127.0.0.1:3000").replace(/\/$/, "");
-const ARTIFACTS_DIR = path.resolve(process.env.QA_ARTIFACTS_DIR ?? ".artifacts/qa");
-const NAVIGATION_TIMEOUT = Number(process.env.QA_TIMEOUT_MS ?? 45_000);
-const SKIP_BULK_CAPTURE = process.env.QA_SKIP_BULK_CAPTURE === "1";
-
-const knowledgeArticleSlugs = [
-  "kleine-stappen-duurzaam-sterker",
-  "beginnen-met-krachttraining-scheveningen",
-  "topsportkennis-voor-ieder-niveau",
-  "wat-gebeurt-er-tijdens-een-gratis-persoonlijke-intake",
-  "sporten-met-de-ooievaarspas-bij-absolutely-fit",
-  "sportschool-als-ontmoetingsplek-havenkwartier",
-  "sterker-worden-begint-met-techniek",
-  "waarom-herstel-bij-training-hoort",
-  "zo-bouw-je-een-trainingsschema-op",
-];
-
-const knowledgeArticleRoutes = knowledgeArticleSlugs.map((slug) => `/kennisbank/${slug}`);
-
-const publicRoutes = [
-  "/",
-  "/sporten",
-  "/sporten/krachttraining",
-  "/sporten/cardio-conditie",
-  "/sporten/powerlifting-gewichtheffen",
-  "/sporten/strength-conditioning",
-  "/begeleiding",
-  "/abonnementen",
-  "/gratis-persoonlijke-intake",
-  "/personal-training",
-  "/ooievaarspas",
-  "/rooster",
-  "/openingstijden",
-  "/over-ons",
-  "/team",
-  "/topsport-en-ntc",
-  "/veelgestelde-vragen",
-  "/in-de-media/rond-de-haven-2026",
-  "/kennisbank",
-  ...knowledgeArticleRoutes,
-  "/contact",
-];
-
-const memberRoutes = [
-  "/ledenportaal",
-  "/ledenportaal/training",
-  "/ledenportaal/rooster",
-  "/ledenportaal/lidmaatschap",
-  "/ledenportaal/facturen",
-  "/ledenportaal/berichten",
-  "/ledenportaal/profiel",
-];
-
-const backofficeRoutes = [
-  "/backoffice",
-  "/backoffice/rooster",
-  "/backoffice/leden",
-  "/backoffice/trainers",
-  "/backoffice/kennismakingen",
-  "/backoffice/communicatie",
-  "/backoffice/content",
-  "/backoffice/instellingen",
-];
-
-const privateDemoRoutes = ["/ledenapp", "/inloggen", ...memberRoutes, ...backofficeRoutes];
-const requiredRoutes = [...publicRoutes, ...privateDemoRoutes];
-const customerFacingTechnicalCopy = /(?:\bdemo[\p{L}-]*\b|\bdemonstrati[\p{L}-]*\b|\bprototype\b|\bfictie(?:f|ve|ve gegevens)\b|\bdemo verlaten\b|\balleen lokaal\b|\blokaal (?:opgeslagen|gepubliceerd|afgerond|verwerkt)\b|\bniets (?:echt )?(?:verzonden|opgeslagen|geboekt|verwerkt)\b|\bgeen echte\b|\bniet aan een backend\b|\bgeen certificeringsclaim\b|\bbewijsstatus\b|\bgeen specifieke actuele erkenning\b|\bmet toestemming geplaatst\b|\bgeen affiliate-link\b|\bkoopknop actief\b)/iu;
-const legacyRedirects = [
-  { source: "/mijn-eerste-bezoek", destination: "/gratis-persoonlijke-intake" },
-  { source: "/sporten/personal-training", destination: "/personal-training" },
-  { source: "/blog", destination: "/kennisbank" },
-  ...knowledgeArticleSlugs.map((slug) => ({ source: `/blog/${slug}`, destination: `/kennisbank/${slug}` })),
-];
-const platformRoutes = ["/api/health", "/robots.txt", "/sitemap.xml"];
-const notFoundRoutes = ["/sporten/niet-bestaand", "/kennisbank/niet-bestaand", "/dit-bestaat-niet"];
-
-const visualRoutes = [
-  "/",
-  "/abonnementen",
-  "/gratis-persoonlijke-intake",
-  "/personal-training",
-  "/ooievaarspas",
-  "/openingstijden",
-  "/team",
-  "/topsport-en-ntc",
-  "/veelgestelde-vragen",
-  "/kennisbank",
-  "/kennisbank/kleine-stappen-duurzaam-sterker",
-  "/rooster",
-  "/ledenportaal",
-  "/backoffice",
-  "/backoffice/rooster",
-];
-
-const viewportMatrix = [
-  { name: "phone-320", width: 320, height: 740 },
-  { name: "phone-375", width: 375, height: 812 },
-  { name: "phone-390", width: 390, height: 844 },
-  { name: "phone-430", width: 430, height: 932 },
-  { name: "tablet-768", width: 768, height: 1024 },
-  { name: "laptop-1024", width: 1024, height: 768 },
-  { name: "desktop-1280", width: 1280, height: 800 },
-  { name: "desktop-1440", width: 1440, height: 1000 },
-  { name: "wide-1920", width: 1920, height: 1080 },
-];
-
-function assert(condition, message) {
-  if (!condition) throw new Error(message);
+const base = process.env.BASE_URL || "http://127.0.0.1:3000";
+const reference = process.env.REFERENCE_URL || "http://127.0.0.1:8000";
+const compare = process.env.VISUAL_COMPARE !== "false";
+const output = path.resolve(process.env.QA_OUTPUT || "artifacts/sites-migration");
+await mkdir(output, { recursive: true });
+const pages = JSON.parse(await readFile("site/src/content/page-manifest.json", "utf8"));
+const browser = await chromium.launch({ headless: true });
+const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, locale: "nl-NL", timezoneId: "Europe/Amsterdam", reducedMotion: "reduce", permissions: ["clipboard-read", "clipboard-write"] });
+let page = await context.newPage();
+let original = compare ? await context.newPage() : null;
+const errors = [];
+for (const p of [page, original].filter(Boolean)) {
+  p.on("pageerror", (error) => errors.push(error.message));
+  await p.clock.setFixedTime(new Date("2026-10-12T10:00:00Z"));
 }
-
-function routeUrl(route) {
-  return new URL(route, `${BASE_URL}/`).toString();
+const prior = process.env.BROWSER_SCOPE === "interactions" ? JSON.parse(await readFile(path.join(output, "browser-results.json"), "utf8")) : null;
+if (prior) {
+  assert.equal(prior.base, base);
+  assert.equal(prior.viewports.length, 6);
+  assert.ok(prior.viewports.every((row) => row.routes === 30));
 }
-
-function artifactName(route, viewportName) {
-  const routeName = route === "/" ? "home" : route.slice(1).replaceAll("/", "--");
-  return path.join(ARTIFACTS_DIR, `${viewportName}--${routeName}.png`);
-}
-
-function normalizedPathname(value, base = `${BASE_URL}/`) {
-  const pathname = new URL(value, base).pathname;
-  return pathname.length > 1 ? pathname.replace(/\/$/, "") : pathname;
-}
-
-function canonicalPathname(html, route) {
-  const canonicalTag = (html.match(/<link\b[^>]*>/gi) ?? []).find((tag) => /\brel=["']canonical["']/i.test(tag));
-  const href = canonicalTag?.match(/\bhref=["']([^"']+)["']/i)?.[1];
-  return href ? normalizedPathname(href, routeUrl(route)) : null;
-}
-
-function hasNoIndexNoFollow(html) {
-  const robotsTag = (html.match(/<meta\b[^>]*>/gi) ?? []).find((tag) => /\bname=["']robots["']/i.test(tag));
-  const content = robotsTag?.match(/\bcontent=["']([^"']+)["']/i)?.[1] ?? "";
-  return /(?:^|[,\s])noindex(?:[,\s]|$)/i.test(content) && /(?:^|[,\s])nofollow(?:[,\s]|$)/i.test(content);
-}
-
-function structuredDataFromHtml(html) {
-  return [...html.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)]
-    .flatMap((match) => {
-      const value = JSON.parse(match[1]);
-      return Array.isArray(value) ? value : [value];
-    });
-}
-
-async function settle(page) {
-  await page.waitForLoadState("domcontentloaded");
-  await page.waitForLoadState("networkidle", { timeout: 8_000 }).catch(() => {});
-  await page.evaluate(() => document.fonts.ready);
-}
-
-async function goto(page, route) {
-  const response = await page.goto(routeUrl(route), { waitUntil: "domcontentloaded" });
-  assert(response, `${route} leverde geen documentresponse op`);
-  assert(response.status() === 200, `${route} gaf HTTP ${response.status()} in de browser`);
-  await settle(page);
-  await page.locator("h1").first().waitFor({ state: "visible" });
-}
-
-async function textContains(locator, expected, description) {
-  await locator.waitFor({ state: "visible" });
-  const content = (await locator.textContent()) ?? "";
-  const matches = expected instanceof RegExp ? expected.test(content) : content.includes(expected);
-  assert(matches, `${description}: verwacht ${String(expected)}, kreeg ${JSON.stringify(content.trim())}`);
-}
-
-async function checkOverflow(page, route, viewportName) {
-  const dimensions = await page.evaluate(() => ({
-    body: document.body.scrollWidth,
-    document: document.documentElement.scrollWidth,
-    viewport: document.documentElement.clientWidth,
-  }));
-  const renderedWidth = Math.max(dimensions.body, dimensions.document);
-  assert(
-    renderedWidth <= dimensions.viewport + 2,
-    `${route} loopt horizontaal over op ${viewportName}: ${renderedWidth}px inhoud bij ${dimensions.viewport}px viewport`,
-  );
-}
-
-async function checkFocusedPublicOverflow(page, route, viewportName) {
-  const issues = await page.evaluate(() => {
-    const selectors = [
-      ".home-products__intro",
-      ".membership-comparison",
-      ".ooievaar-callout",
-      ".ooievaar-sources",
-      ".faq-preview",
-      ".trust-credential",
-      ".affiliate-partner-card",
-      ".free-intake-cta--compact",
-    ];
-    const viewportWidth = document.documentElement.clientWidth;
-
-    return selectors.flatMap((selector) => [...document.querySelectorAll(selector)].flatMap((element) => {
-      if (!(element instanceof HTMLElement)) return [];
-      const bounds = element.getBoundingClientRect();
-      if (bounds.width <= 0 || bounds.height <= 0) return [];
-      const styles = getComputedStyle(element);
-      if (styles.display === "none" || styles.visibility === "hidden") return [];
-
-      const horizontallyContained = bounds.left >= -2 && bounds.right <= viewportWidth + 2;
-      const directChildrenContained = [...element.children].every((child) => {
-        if (!(child instanceof HTMLElement)) return true;
-        const childBounds = child.getBoundingClientRect();
-        const childStyles = getComputedStyle(child);
-        if (childStyles.position === "absolute" || childStyles.display === "none" || childStyles.visibility === "hidden") return true;
-        return childBounds.left >= bounds.left - 2 && childBounds.right <= bounds.right + 2;
-      });
-      // Several polished surfaces deliberately clip a decorative pseudo-element
-      // beyond their rounded edge. Measure rendered children instead of treating
-      // that invisible decoration as content overflow.
-      const contentContained = directChildrenContained && (
-        element.scrollWidth <= element.clientWidth + 2
-        || styles.overflowX === "hidden"
-        || styles.overflowX === "clip"
-      );
-      return horizontallyContained && contentContained ? [] : [{
-        selector,
-        left: bounds.left,
-        right: bounds.right,
-        viewportWidth,
-        clientWidth: element.clientWidth,
-        scrollWidth: element.scrollWidth,
-      }];
-    }));
+const report = { base, reference: compare ? reference : null, viewports: prior?.viewports || [], screenshots: prior?.screenshots || [], interactions: {}, errors };
+const routeURL = (origin, route) => origin + (route === "/" ? "/" : route + "/");
+async function ready(p, url) {
+  const response = await p.goto(url, { waitUntil: "networkidle" });
+  assert.equal(response.status(), 200, url);
+  await p.evaluate(async () => {
+    document.querySelectorAll("img[loading='lazy']").forEach((img) => { img.loading = "eager"; });
+    await document.fonts.ready;
+    await Promise.all([...document.images].map((img) => img.decode().catch(() => {})));
+    // Chromium can retain fallback glyphs in off-screen native selects until
+    // they are painted in the viewport after the webfont finishes loading.
+    for (const select of document.querySelectorAll("select")) {
+      select.scrollIntoView({ behavior: "instant", block: "center" });
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    }
+    scrollTo({ top: 0, behavior: "instant" });
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
   });
-
-  assert(!issues.length, `${route} heeft sectie-overflow op ${viewportName}: ${JSON.stringify(issues)}`);
 }
-
-async function partnerImageState(page, filenamePattern) {
-  return page.evaluate((patternSource) => {
-    const pattern = new RegExp(patternSource, "i");
-    const matches = [...document.images].filter((image) => {
-      const rawSource = image.currentSrc || image.src || "";
-      let source = rawSource;
-      try { source = decodeURIComponent(rawSource); } catch {}
-      return pattern.test(source);
-    });
-
-    return {
-      count: matches.length,
-      images: matches.map((image) => {
-        const bounds = image.getBoundingClientRect();
-        const styles = getComputedStyle(image);
-        return {
-          source: image.currentSrc || image.src,
-          naturalWidth: image.naturalWidth,
-          naturalHeight: image.naturalHeight,
-          width: bounds.width,
-          height: bounds.height,
-          visible: bounds.width > 1 && bounds.height > 1 && styles.display !== "none" && styles.visibility !== "hidden" && Number.parseFloat(styles.opacity) > 0,
-        };
-      }),
-    };
-  }, filenamePattern);
+const geometry = (p) => p.evaluate(() => ({
+  overflow: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) - innerWidth,
+  fonts: [document.fonts.check('400 16px Inter'), document.fonts.check('800 32px Manrope')],
+  h1: document.querySelector("h1").textContent,
+  images: [...document.querySelectorAll("main img")].map((img) => ({ loaded: img.complete && img.naturalWidth > 0, crop: getComputedStyle(img).objectFit, position: getComputedStyle(img).objectPosition, width: img.getBoundingClientRect().width, height: img.getBoundingClientRect().height })),
+}));
+async function capture(p, file) {
+  // Activate each tab and paint off-screen native form controls before comparing.
+  await p.bringToFront();
+  await p.screenshot({ fullPage: true, animations: "disabled" });
+  return p.screenshot({ path: file, fullPage: true, animations: "disabled" });
 }
-
-async function activateScrollReveals(page) {
-  await page.evaluate(async () => {
-    for (const image of document.images) image.loading = "eager";
-    const step = Math.max(240, Math.floor(window.innerHeight * 0.72));
-    for (let top = 0; top <= document.documentElement.scrollHeight; top += step) {
-      window.scrollTo({ top, behavior: "instant" });
-      await new Promise((resolve) => window.setTimeout(resolve, 24));
-    }
-    window.scrollTo({ top: 0, behavior: "instant" });
-  });
-  await page.waitForTimeout(80);
-  await page.waitForFunction(() => [...document.images].every((image) => image.naturalWidth > 0));
-}
-
-async function screenshotVisibleState(page, candidates, screenshotPath) {
-  const candidateList = Array.isArray(candidates) ? candidates : [candidates];
-  let target;
-
-  for (const candidate of candidateList) {
-    const locator = typeof candidate === "string" ? page.locator(candidate) : candidate;
-    const count = await locator.count();
-    for (let index = 0; index < count; index += 1) {
-      const item = locator.nth(index);
-      if (await item.isVisible()) {
-        target = item;
-        break;
-      }
-    }
-    if (target) break;
-  }
-
-  assert(target, `Geen zichtbare screenshotstatus gevonden voor ${screenshotPath}`);
-  await target.scrollIntoViewIfNeeded();
-  await target.waitFor({ state: "visible" });
-  const box = await target.boundingBox();
-  assert(box && box.width > 0 && box.height > 0, `Screenshotstatus heeft geen bruikbaar formaat voor ${screenshotPath}`);
-  await target.screenshot({ path: screenshotPath, animations: "disabled" });
-}
-
-async function main() {
-  await mkdir(ARTIFACTS_DIR, { recursive: true });
-
-  const failures = [];
-  const browserIssues = [];
-  const completed = [];
-  let browser;
-
-  const check = async (name, operation) => {
-    try {
-      await operation();
-      completed.push(name);
-      console.log(`PASS  ${name}`);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      failures.push({ name, message });
-      console.error(`FAIL  ${name}\n      ${message}`);
-    }
-  };
-
-  try {
-    browser = await chromium.launch({ headless: true });
-    const context = await browser.newContext({
-      baseURL: BASE_URL,
-      locale: "nl-NL",
-      timezoneId: "Europe/Amsterdam",
-      colorScheme: "light",
-      deviceScaleFactor: 1,
-      reducedMotion: "no-preference",
-      viewport: { width: 1440, height: 1000 },
-    });
-    context.setDefaultTimeout(NAVIGATION_TIMEOUT);
-    context.setDefaultNavigationTimeout(NAVIGATION_TIMEOUT);
-
-    await check(`HTTP-routekaart (${requiredRoutes.length} routes)`, async () => {
-      const routeFailures = [];
-      for (const route of requiredRoutes) {
-        try {
-          const response = await context.request.get(routeUrl(route), { maxRedirects: 0, timeout: NAVIGATION_TIMEOUT });
-          if (response.status() !== 200) {
-            routeFailures.push(`${route}: HTTP ${response.status()}`);
-            continue;
-          }
-          const html = await response.text();
-          if (publicRoutes.includes(route)) {
-            const canonical = canonicalPathname(html, route);
-            if (canonical !== normalizedPathname(route)) routeFailures.push(`${route}: canonical is ${canonical ?? "afwezig"}`);
-          }
-          if (privateDemoRoutes.includes(route) && !hasNoIndexNoFollow(html)) {
-            routeFailures.push(`${route}: noindex,nofollow ontbreekt`);
-          }
-        } catch (error) {
-          routeFailures.push(`${route}: ${error instanceof Error ? error.message : String(error)}`);
-        }
-      }
-      assert(!routeFailures.length, routeFailures.join("; "));
-    });
-
-    await check(`Legacy redirects (${legacyRedirects.length} routes)`, async () => {
-      const routeFailures = [];
-      for (const { source, destination } of legacyRedirects) {
-        try {
-          const response = await context.request.get(routeUrl(source), { maxRedirects: 0, timeout: NAVIGATION_TIMEOUT });
-          const location = response.headers().location;
-          const redirectUrl = location ? new URL(location, routeUrl(source)) : null;
-          if (![307, 308].includes(response.status())) routeFailures.push(`${source}: verwacht 307/308, kreeg ${response.status()}`);
-          if (!redirectUrl || normalizedPathname(redirectUrl.toString()) !== destination || redirectUrl.search || redirectUrl.hash) {
-            routeFailures.push(`${source}: Location ${location ?? "ontbreekt"}, verwacht ${destination}`);
-          }
-        } catch (error) {
-          routeFailures.push(`${source}: ${error instanceof Error ? error.message : String(error)}`);
-        }
-      }
-      assert(!routeFailures.length, routeFailures.join("; "));
-    });
-
-    await check("Platformroutes", async () => {
-      const routeFailures = [];
-      for (const route of platformRoutes) {
-        const response = await context.request.get(routeUrl(route), { maxRedirects: 0, timeout: NAVIGATION_TIMEOUT });
-        if (response.status() !== 200) routeFailures.push(`${route}: HTTP ${response.status()}`);
-      }
-      assert(!routeFailures.length, routeFailures.join("; "));
-      const health = await (await context.request.get(routeUrl("/api/health"))).json();
-      assert(health.status === "ok" && health.service === "absolutely-fit", `Ongeldige healthpayload: ${JSON.stringify(health)}`);
-      const robots = await (await context.request.get(routeUrl("/robots.txt"))).text();
-      for (const route of ["/inloggen", "/ledenapp", "/ledenportaal", "/backoffice"]) {
-        assert(robots.includes(`Disallow: ${route}`), `robots.txt schermt ${route} niet af voor indexering`);
-      }
-      const sitemap = await (await context.request.get(routeUrl("/sitemap.xml"))).text();
-      const sitemapPaths = new Set((sitemap.match(/<loc>[^<]+<\/loc>/g) ?? []).map((entry) => {
-        const location = entry.slice(5, -6);
-        return normalizedPathname(location);
-      }));
-      for (const route of publicRoutes) {
-        assert(sitemapPaths.has(route), `Canonieke route ${route} ontbreekt in sitemap.xml`);
-      }
-      for (const route of [...privateDemoRoutes, ...legacyRedirects.map(({ source }) => source)]) {
-        assert(!sitemapPaths.has(route), `Niet-indexeerbare route ${route} staat in sitemap.xml`);
-      }
-    });
-
-    await check("Gestructureerde data", async () => {
-      const pageData = async (route) => structuredDataFromHtml(await (await context.request.get(routeUrl(route))).text());
-      const homeData = await pageData("/");
-      const gym = homeData.find((item) => item["@type"] === "ExerciseGym");
-      assert(gym, "Homepage mist geldige ExerciseGym JSON-LD");
-      assert(gym.foundingDate === "2008", `ExerciseGym foundingDate klopt niet: ${gym.foundingDate}`);
-      assert(gym.openingHoursSpecification?.length === 7, "ExerciseGym bevat niet exact zeven openingsdagregels");
-      const offers = gym.hasOfferCatalog?.itemListElement ?? [];
-      assert(offers.length === 4, `ExerciseGym bevat ${offers.length} in plaats van vier producten`);
-      assert(JSON.stringify(gym).match(/NOC\*NSF|Olympisch|TeamNL|"price"|"award"|"rating"|"review"/i) === null, "ExerciseGym bevat een onbevestigde claim, prijs of waardering");
-
-      const faqData = await pageData("/veelgestelde-vragen");
-      const faq = faqData.find((item) => item["@type"] === "FAQPage");
-      assert(faq?.mainEntity?.length === 10, `FAQPage bevat niet de tien zichtbare vragen: ${faq?.mainEntity?.length ?? 0}`);
-
-      const articleData = await pageData("/kennisbank/kleine-stappen-duurzaam-sterker");
-      assert(articleData.some((item) => item["@type"] === "Article"), "Kennisbankartikel mist Article JSON-LD");
-      assert(articleData.some((item) => item["@type"] === "BreadcrumbList"), "Kennisbankartikel mist BreadcrumbList JSON-LD");
-    });
-
-    await check("404-routes", async () => {
-      const routeFailures = [];
-      for (const route of notFoundRoutes) {
-        const response = await context.request.get(routeUrl(route), { maxRedirects: 0, timeout: NAVIGATION_TIMEOUT });
-        if (response.status() !== 404) routeFailures.push(`${route}: verwacht 404, kreeg ${response.status()}`);
-      }
-      assert(!routeFailures.length, routeFailures.join("; "));
-    });
-
-    let currentActivity = "browserstart";
-    const trackPage = (trackedPage) => {
-      trackedPage.on("console", (message) => {
-        if (message.type() !== "error") return;
-        const location = message.location();
-        browserIssues.push({
-          type: "console",
-          activity: currentActivity,
-          message: message.text(),
-          source: location.url ? `${location.url}:${location.lineNumber ?? 0}` : "onbekend",
-        });
-      });
-      trackedPage.on("pageerror", (error) => {
-        browserIssues.push({ type: "pageerror", activity: currentActivity, message: error.message });
-      });
-      trackedPage.on("requestfailed", (request) => {
-        const reason = request.failure()?.errorText ?? "onbekende netwerkfout";
-        if (/ERR_ABORTED|NS_BINDING_ABORTED/i.test(reason)) return;
-        browserIssues.push({ type: "requestfailed", activity: currentActivity, message: `${request.method()} ${request.url()} — ${reason}` });
-      });
-    };
-    let page = await context.newPage();
-    trackPage(page);
-    const resetPage = async () => {
-      await page.close().catch(() => {});
+try {
+  for (const width of prior ? [] : [1440, 1024, 768, 390, 375, 320]) {
+    await page.setViewportSize({ width, height: 1000 });
+    if (original) await original.setViewportSize({ width, height: 1000 });
+    const row = { width, routes: 0, pixelComparisons: 0 };
+    for (const entry of pages) {
+      await page.close();
+      if (original) await original.close();
       page = await context.newPage();
-      trackPage(page);
-    };
-
-    await check("Klantgerichte copy zonder demo- of techniekmeldingen", async () => {
-      const copyFailures = [];
-      await page.setViewportSize({ width: 1280, height: 900 });
-      for (const route of requiredRoutes) {
-        currentActivity = "klantcopy " + route;
-        await goto(page, route);
-        const surfaces = await page.evaluate(() => {
-          const descriptions = [...document.querySelectorAll('meta[name="description"]')]
-            .map((element) => element.getAttribute("content") ?? "");
-          const accessibleCopy = [...document.querySelectorAll("[aria-label], [title], [placeholder]")]
-            .flatMap((element) => [
-              element.getAttribute("aria-label"),
-              element.getAttribute("title"),
-              element.getAttribute("placeholder"),
-            ])
-            .filter(Boolean);
-          return [document.title, document.body.innerText, ...descriptions, ...accessibleCopy].join("\n");
-        });
-        const match = surfaces.match(customerFacingTechnicalCopy);
-        if (match) copyFailures.push(route + ": " + JSON.stringify(match[0]));
+      original = compare ? await context.newPage() : null;
+      for (const p of [page, original].filter(Boolean)) {
+        p.on("pageerror", (error) => errors.push(error.message));
+        await p.setViewportSize({ width, height: 1000 });
+        await p.clock.setFixedTime(new Date("2026-10-12T10:00:00Z"));
       }
-      assert(!copyFailures.length, "Technische of demo-copy is nog klantzichtbaar: " + copyFailures.join("; "));
-    });
-
-    if (!SKIP_BULK_CAPTURE) {
-      for (const viewport of viewportMatrix) {
-        await resetPage();
-        await page.setViewportSize({ width: viewport.width, height: viewport.height });
-        for (const route of visualRoutes) {
-          await check(`Responsief ${viewport.name} ${route}`, async () => {
-            currentActivity = `responsief ${viewport.name} ${route}`;
-            await goto(page, route);
-            await checkOverflow(page, route, viewport.name);
-            await activateScrollReveals(page);
-            await page.screenshot({ path: artifactName(route, viewport.name), fullPage: true, animations: "disabled" });
-          });
-        }
-      }
-
-      const extendedCaptureMatrix = [
-        { name: "desktop-1440", width: 1440, height: 1000, routes: requiredRoutes },
-        { name: "phone-430", width: 430, height: 932, routes: publicRoutes },
-        { name: "phone-390", width: 390, height: 844, routes: privateDemoRoutes },
-      ];
-      for (const capture of extendedCaptureMatrix) {
-        await resetPage();
-        await page.setViewportSize({ width: capture.width, height: capture.height });
-        for (const route of capture.routes) {
-          if (visualRoutes.includes(route) && viewportMatrix.some((viewport) => viewport.name === capture.name)) continue;
-          await check(`Routecapture ${capture.name} ${route}`, async () => {
-            currentActivity = `routecapture ${capture.name} ${route}`;
-            await goto(page, route);
-            await checkOverflow(page, route, capture.name);
-            await activateScrollReveals(page);
-            await page.screenshot({ path: artifactName(route, capture.name), fullPage: true, animations: "disabled" });
-          });
-        }
+      await Promise.all([ready(page, routeURL(base, entry.path)), ...(original ? [ready(original, routeURL(reference, entry.path))] : [])]);
+      const actual = await geometry(page);
+      assert.ok(actual.overflow <= 1, `Overflow ${entry.path} at ${width}: ${actual.overflow}`);
+      assert.deepEqual(actual.fonts, [true, true], `Fonts ${entry.path}`);
+      assert.ok(actual.images.every((img) => img.loaded), `Images ${entry.path}`);
+      if (original) assert.deepEqual(actual, await geometry(original), `Browser geometry ${entry.path} at ${width}`);
+      row.routes++;
+      if (entry.path === "/" || ([1440, 390].includes(width) && ["/sporten", "/contact", "/gratis-persoonlijke-intake", "/rooster", "/kennisbank", "/veelgestelde-vragen", "/ooievaarspas"].includes(entry.path))) {
+        const slug = entry.path === "/" ? "home" : entry.path.slice(1).replaceAll("/", "-");
+        const actualFile = `${slug}-${width}-migration.png`;
+        const actualBuffer = await capture(page, path.join(output, actualFile));
+        if (original) {
+          const referenceFile = `${slug}-${width}-reference.png`;
+          const referenceBuffer = await capture(original, path.join(output, referenceFile));
+          const a = PNG.sync.read(actualBuffer), b = PNG.sync.read(referenceBuffer);
+          assert.equal(a.width, b.width); assert.equal(a.height, b.height);
+          let different = 0, rasterRoundingPixels = 0;
+          for (let i = 0; i < a.data.length; i += 4) {
+            const delta = Math.max(...[0, 1, 2, 3].map((channel) => Math.abs(a.data[i + channel] - b.data[i + channel])));
+            if (delta > 1) different++;
+            else if (delta > 0) rasterRoundingPixels++;
+          }
+          if (different) {
+            const controls = (p) => p.locator("select").evaluateAll((els) => els.map((el) => ({ name: el.name, value: el.value, rect: el.getBoundingClientRect().toJSON(), font: getComputedStyle(el).font })));
+            console.log(JSON.stringify({ actualControls: await controls(page), referenceControls: await controls(original) }));
+          }
+          assert.equal(different, 0, `Screenshot ${entry.path} at ${width}: ${different} pixels differ`);
+          report.screenshots.push({ route: entry.path, width, referenceFile, actualFile, differentPixels: different, rasterRoundingPixels });
+          row.pixelComparisons++;
+        } else report.screenshots.push({ route: entry.path, width, actualFile });
       }
     }
-
-    await check("Homepage-regiocaptures en mobiel menugedrag", async () => {
-      await resetPage();
-      const regions = [
-        ["header", [".site-header"]],
-        ["hero", [".ao-hero"]],
-        ["programmas", [".ao-training"]],
-        ["begeleidingsbeeld", [".ao-program-photo", ".ao-training"]],
-        ["producten", [".home-products"]],
-        ["ooievaarspas", [".ooievaar-callout"]],
-        ["wizard", [".ao-visit-section"]],
-        ["ecosysteem", [".ao-ecosystem"]],
-        ["clubverhaal", [".ao-club-story"]],
-        ["vertrouwen", [".home-trust-grid"]],
-        ["kennisbank", [".ao-journal"]],
-        ["praktisch", [".home-practical"]],
-        ["locatie", [".ao-location"]],
-        ["footer", [".site-footer"]],
-      ];
-      for (const viewport of [{ name: "desktop-1440", width: 1440, height: 1000 }, { name: "phone-430", width: 430, height: 932 }]) {
-        currentActivity = `home-regios ${viewport.name}`;
-        await page.setViewportSize({ width: viewport.width, height: viewport.height });
-        await goto(page, "/");
-        const headerGeometry = await page.evaluate(() => {
-          const header = document.querySelector(".site-header");
-          const hero = document.querySelector(".ao-hero");
-          const inner = document.querySelector(".site-header__inner");
-          if (!(header instanceof HTMLElement) || !(hero instanceof HTMLElement) || !(inner instanceof HTMLElement)) return null;
-          const headerRect = header.getBoundingClientRect();
-          const heroRect = hero.getBoundingClientRect();
-          const innerRect = inner.getBoundingClientRect();
-          const styles = getComputedStyle(header);
-          return {
-            header: { x: headerRect.x, width: headerRect.width },
-            hero: { x: heroRect.x, width: heroRect.width },
-            innerWidth: innerRect.width,
-            background: styles.backgroundColor,
-            radius: Number.parseFloat(styles.borderTopLeftRadius),
-            shadow: styles.boxShadow,
-            position: styles.position,
-            top: Number.parseFloat(styles.top),
-          };
-        });
-        assert(headerGeometry, `Headergeometrie ontbreekt op ${viewport.name}`);
-        assert(Math.abs(headerGeometry.header.width - headerGeometry.hero.width) <= 2, `Header en hero verschillen in breedte op ${viewport.name}: ${JSON.stringify(headerGeometry)}`);
-        assert(Math.abs(headerGeometry.header.x - headerGeometry.hero.x) <= 2, `Header en hero lijnen niet uit op ${viewport.name}: ${JSON.stringify(headerGeometry)}`);
-        assert(headerGeometry.innerWidth <= headerGeometry.header.width, `Header-inner overschrijdt buitenframe op ${viewport.name}`);
-        assert(/rgba\([^)]*,\s*0?\.8\)/.test(headerGeometry.background), `Header gebruikt niet exact 80% witte achtergrondalpha op ${viewport.name}: ${headerGeometry.background}`);
-        assert(headerGeometry.radius >= 12, `Headerradius is te klein op ${viewport.name}: ${headerGeometry.radius}`);
-        assert(headerGeometry.shadow !== "none", `Header mist schaduw op ${viewport.name}`);
-        assert(headerGeometry.position === "sticky", `Header is niet sticky op ${viewport.name}`);
-        assert(Math.abs(headerGeometry.top - (viewport.width <= 760 ? 10 : 12)) <= 1, `Header-top klopt niet op ${viewport.name}: ${headerGeometry.top}`);
-
-        if (viewport.width <= 760) {
-          const mobileComposition = await page.evaluate(() => {
-            const logo = document.querySelector(".site-header .brand-link");
-            const trigger = document.querySelector(".site-header .mobile-menu-trigger");
-            const desktopNav = document.querySelector(".site-header .desktop-nav");
-            const programGrid = document.querySelector(".ao-program-grid");
-            const cards = [...document.querySelectorAll(".ao-program")];
-            const promo = document.querySelector(".ao-program-photo");
-            const play = document.querySelector(".ao-community > figure > a");
-            return {
-              logoVisible: logo instanceof HTMLElement && logo.getBoundingClientRect().width > 0,
-              triggerVisible: trigger instanceof HTMLElement && trigger.getBoundingClientRect().width >= 44 && trigger.getBoundingClientRect().height >= 44,
-              desktopNavHidden: desktopNav instanceof HTMLElement && getComputedStyle(desktopNav).display === "none",
-              programGridHeight: programGrid instanceof HTMLElement ? programGrid.getBoundingClientRect().height : null,
-              tallestProgram: Math.max(0, ...cards.map((card) => card.getBoundingClientRect().height)),
-              promoHeight: promo instanceof HTMLElement ? promo.getBoundingClientRect().height : null,
-              playSize: play instanceof HTMLElement ? play.getBoundingClientRect().toJSON() : null,
-            };
-          });
-          assert(mobileComposition.logoVisible && mobileComposition.triggerVisible && mobileComposition.desktopNavHidden, `Mobiele headercompositie klopt niet: ${JSON.stringify(mobileComposition)}`);
-          assert(mobileComposition.tallestProgram < 320, `Mobiele programmakaarten rekken nog uit: ${mobileComposition.tallestProgram}px`);
-          assert(mobileComposition.programGridHeight < 320 && mobileComposition.promoHeight < 320, `Mobiele programmacarrousel houdt lege hoogte over: ${JSON.stringify(mobileComposition)}`);
-          assert(mobileComposition.playSize?.width >= 44 && mobileComposition.playSize?.height >= 44, `Community-CTA is niet zichtbaar of te klein: ${JSON.stringify(mobileComposition.playSize)}`);
-        }
-        await activateScrollReveals(page);
-        for (const [name, selectors] of regions) {
-          await screenshotVisibleState(page, selectors, path.join(ARTIFACTS_DIR, `${viewport.name}--home--region-${name}.png`));
-        }
-      }
-
-      await page.setViewportSize({ width: 430, height: 932 });
-      await goto(page, "/");
-      const menuTrigger = page.getByRole("button", { name: "Menu openen" });
-      await menuTrigger.click();
-      const menu = page.locator('[role="dialog"].mobile-menu');
-      await menu.waitFor({ state: "visible" });
-      for (const label of ["Sporten", "Begeleiding", "Abonnementen", "Rooster", "Over ons", "Kennisbank", "Contact"]) {
-        await menu.getByRole("link", { name: label, exact: true }).waitFor({ state: "visible" });
-      }
-      await menu.getByRole("link", { name: "Plan je gratis persoonlijke intake", exact: true }).waitFor({ state: "visible" });
-      await menu.getByRole("link", { name: "Inloggen", exact: true }).waitFor({ state: "visible" });
-      const clubInformation = menu.locator(".mobile-menu__intro");
-      const clubInformationText = (await clubInformation.innerText()).replace(/\s+/g, " ").trim();
-      assert(/^Clubinformatie (?:GEOPEND - VANDAAG TOT \d{2}:\d{2} UUR|GESLOTEN(?: - GEOPEND VANAF \d{2}:\d{2} UUR)?)$/i.test(clubInformationText), `Mobiele clubstatus is niet actueel geformuleerd: ${clubInformationText}`);
-      assert(!/Scheveningen|sinds 2008|bekijk alle tijden/i.test(clubInformationText), `Mobiele clubstatus bevat verwijderde informatie: ${clubInformationText}`);
-      assert(await clubInformation.locator("a, p").count() === 0, "Mobiele clubinformatie bevat nog de oude locatie- of openingstijdenregel");
-      const focusInside = await menu.evaluate((element) => element.contains(document.activeElement));
-      assert(focusInside, "Focus staat niet in het geopende mobiele menu");
-      const scrollLocked = await page.evaluate(() => document.body.hasAttribute("data-scroll-locked") || getComputedStyle(document.body).overflow === "hidden");
-      assert(scrollLocked, "Achtergrondscroll is niet vergrendeld bij het mobiele menu");
-      const menuLayerGeometry = await page.evaluate(() => {
-        const overlay = document.querySelector(".mobile-menu-overlay");
-        const dialog = document.querySelector('[role="dialog"].mobile-menu');
-        if (!(overlay instanceof HTMLElement) || !(dialog instanceof HTMLElement)) return null;
-        const overlayBounds = overlay.getBoundingClientRect();
-        const dialogBounds = dialog.getBoundingClientRect();
-        return {
-          viewport: { width: window.innerWidth, height: window.innerHeight },
-          overlay: { left: overlayBounds.left, top: overlayBounds.top, right: overlayBounds.right, bottom: overlayBounds.bottom },
-          dialog: { left: dialogBounds.left, top: dialogBounds.top, right: dialogBounds.right, bottom: dialogBounds.bottom },
-        };
-      });
-      assert(menuLayerGeometry, "Mobiele menu-overlay of dialoog ontbreekt");
-      assert(
-        menuLayerGeometry.overlay.left <= 1
-          && menuLayerGeometry.overlay.top <= 1
-          && menuLayerGeometry.overlay.right >= menuLayerGeometry.viewport.width - 1
-          && menuLayerGeometry.overlay.bottom >= menuLayerGeometry.viewport.height - 1,
-        `Mobiele menu-overlay bedekt niet de volledige viewport: ${JSON.stringify(menuLayerGeometry)}`,
-      );
-      assert(
-        menuLayerGeometry.dialog.left >= -1
-          && menuLayerGeometry.dialog.right <= menuLayerGeometry.viewport.width + 1
-          && menuLayerGeometry.dialog.bottom <= menuLayerGeometry.viewport.height + 1,
-        `Mobiele menudialoog valt buiten de viewport: ${JSON.stringify(menuLayerGeometry)}`,
-      );
-      await menu.screenshot({ path: path.join(ARTIFACTS_DIR, "phone-430--home--menu-open.png"), animations: "disabled" });
-      await page.keyboard.press("Escape");
-      await menu.waitFor({ state: "hidden" });
-      assert(await menuTrigger.evaluate((element) => element === document.activeElement), "Focus keerde na het mobiele menu niet terug naar de trigger");
-    });
-
-    await check("Publieke uitlijning, contrast en mobiele vergelijkbaarheid", async () => {
-      await resetPage();
-      currentActivity = "publieke detailaudit";
-      await page.setViewportSize({ width: 1440, height: 1000 });
-      await goto(page, "/");
-      await activateScrollReveals(page);
-      const desktopDetails = await page.evaluate(() => {
-        const rect = (selector) => {
-          const element = document.querySelector(selector);
-          if (!(element instanceof HTMLElement)) return null;
-          const bounds = element.getBoundingClientRect();
-          return { top: bounds.top, bottom: bounds.bottom, width: bounds.width, height: bounds.height };
-        };
-        const clubHead = document.querySelector(".ao-club-story__head");
-        const clubPrinciples = document.querySelector(".ao-club-story__principles");
-        const navLink = document.querySelector(".ao-header .desktop-nav a");
-        return {
-          wizardActions: rect(".visit-wizard--compact .visit-wizard__actions"),
-          wizardPreview: rect(".visit-wizard--compact .visit-wizard__preview"),
-          wizardQuestion: rect(".visit-wizard--compact .visit-wizard__question"),
-          wizardChoices: rect(".visit-wizard--compact .visit-wizard__choices"),
-          clubHeadHeight: clubHead instanceof HTMLElement ? clubHead.offsetHeight : null,
-          clubPrinciplesHeight: clubPrinciples instanceof HTMLElement ? clubPrinciples.offsetHeight : null,
-          navFontSize: navLink instanceof HTMLElement ? Number.parseFloat(getComputedStyle(navLink).fontSize) : null,
-        };
-      });
-      assert(desktopDetails.wizardActions && desktopDetails.wizardPreview && desktopDetails.wizardQuestion && desktopDetails.wizardChoices, `Wizardgeometrie ontbreekt: ${JSON.stringify(desktopDetails)}`);
-      assert(Math.abs(desktopDetails.wizardActions.bottom - desktopDetails.wizardPreview.bottom) <= 1, `Wizardacties en startplan eindigen niet gelijk: ${JSON.stringify(desktopDetails)}`);
-      assert(Math.abs(desktopDetails.wizardQuestion.top - desktopDetails.wizardChoices.top) <= 1, `Wizardkolommen beginnen niet gelijk: ${JSON.stringify(desktopDetails)}`);
-      assert(Math.abs(desktopDetails.clubHeadHeight - desktopDetails.clubPrinciplesHeight) <= 1, `Clubverhaal heeft ongelijke kolomhoogtes: ${JSON.stringify(desktopDetails)}`);
-      assert(desktopDetails.navFontSize >= 11, `Desktopmenu blijft te klein: ${desktopDetails.navFontSize}px`);
-
-      const productIntroDetails = await page.evaluate(() => {
-        const intro = document.querySelector(".home-products__intro");
-        const heading = intro?.querySelector("h2");
-        const copy = intro?.querySelector("p");
-        const comparison = document.querySelector(".home-products .membership-comparison");
-        if (!(intro instanceof HTMLElement) || !(heading instanceof HTMLElement) || !(copy instanceof HTMLElement) || !(comparison instanceof HTMLElement)) return null;
-        const introBounds = intro.getBoundingClientRect();
-        const headingBounds = heading.getBoundingClientRect();
-        const copyBounds = copy.getBoundingClientRect();
-        const comparisonBounds = comparison.getBoundingClientRect();
-        const overlapWidth = Math.min(headingBounds.right, copyBounds.right) - Math.max(headingBounds.left, copyBounds.left);
-        const overlapHeight = Math.min(headingBounds.bottom, copyBounds.bottom) - Math.max(headingBounds.top, copyBounds.top);
-        return {
-          height: introBounds.height,
-          width: introBounds.width,
-          maxHeight: Math.min(480, window.innerHeight * .5),
-          headingCopyOverlap: overlapWidth > 1 && overlapHeight > 1,
-          contentContained: [headingBounds, copyBounds].every((bounds) => bounds.left >= introBounds.left - 2 && bounds.right <= introBounds.right + 2),
-          gapToCards: comparisonBounds.top - introBounds.bottom,
-        };
-      });
-      assert(productIntroDetails, "Compacte productintro ontbreekt op de homepage");
-      assert(productIntroDetails.height <= productIntroDetails.maxHeight, `Productintro houdt nog te veel verticale ruimte over: ${JSON.stringify(productIntroDetails)}`);
-      assert(!productIntroDetails.headingCopyOverlap && productIntroDetails.contentContained, `Productintro overlapt of loopt buiten het eigen vlak: ${JSON.stringify(productIntroDetails)}`);
-      assert(productIntroDetails.gapToCards >= -2 && productIntroDetails.gapToCards <= 110, `Productintro en productkaarten staan onlogisch ver uit elkaar: ${JSON.stringify(productIntroDetails)}`);
-
-      for (const route of ["/", "/abonnementen"]) {
-        await goto(page, route);
-        await activateScrollReveals(page);
-        const productAlignment = await page.evaluate(() => {
-          const cards = [...document.querySelectorAll(".membership-comparison > article")];
-          const rowSelectors = ["header", "h3", ":scope > p", ":scope > ul", ":scope > small", ":scope > a"];
-          if (cards.length !== 4 || cards.some((card) => !(card instanceof HTMLElement))) return null;
-          const cardBounds = cards.map((card) => card.getBoundingClientRect());
-          const rowSpreads = Object.fromEntries(rowSelectors.map((selector) => {
-            const tops = cards.map((card) => card.querySelector(selector)?.getBoundingClientRect().top ?? Number.NaN);
-            return [selector, tops.every(Number.isFinite) ? Math.max(...tops) - Math.min(...tops) : null];
-          }));
-          return {
-            cardCount: cards.length,
-            singleRow: Math.max(...cardBounds.map((bounds) => bounds.top)) - Math.min(...cardBounds.map((bounds) => bounds.top)) <= 4,
-            heightSpread: Math.max(...cardBounds.map((bounds) => bounds.height)) - Math.min(...cardBounds.map((bounds) => bounds.height)),
-            rowSpreads,
-          };
-        });
-        assert(productAlignment?.cardCount === 4 && productAlignment.singleRow, `${route} zet de vier productkaarten niet op één desktoprij: ${JSON.stringify(productAlignment)}`);
-        assert(productAlignment.heightSpread <= 8, `${route} heeft ongelijke productkaarthoogtes: ${JSON.stringify(productAlignment)}`);
-        assert(Object.values(productAlignment.rowSpreads).every((spread) => typeof spread === "number" && spread <= 8), `${route} lijnt kop, omschrijving, kenmerken, toelichting en CTA niet per rij uit: ${JSON.stringify(productAlignment)}`);
-      }
-
-      await resetPage();
-      await page.setViewportSize({ width: 768, height: 1024 });
-      await goto(page, "/");
-      await activateScrollReveals(page);
-      const tabletClub = await page.evaluate(() => {
-        const head = document.querySelector(".ao-club-story__head");
-        const principles = document.querySelector(".ao-club-story__principles");
-        const cards = [...document.querySelectorAll(".ao-club-story__principle")];
-        if (!(head instanceof HTMLElement) || !(principles instanceof HTMLElement)) return null;
-        const headBounds = head.getBoundingClientRect();
-        const principleBounds = principles.getBoundingClientRect();
-        return {
-          stacked: principleBounds.top > headBounds.bottom,
-          cardWidths: cards.map((card) => card.getBoundingClientRect().width),
-        };
-      });
-      assert(tabletClub?.stacked, `Clubverhaal blijft op tablet in te smalle hoofdkolommen staan: ${JSON.stringify(tabletClub)}`);
-      assert(tabletClub.cardWidths.every((width) => width >= 220), `Clubprincipes zijn op tablet te smal: ${JSON.stringify(tabletClub.cardWidths)}`);
-
-      for (const [route, selector] of [["/kennisbank", ".knowledge-principle .display--light"], ["/sporten/krachttraining", ".program-photo .display--light"]]) {
-        await goto(page, route);
-        const titleColor = await page.locator(selector).evaluate((element) => getComputedStyle(element).color);
-        assert(titleColor === "rgb(255, 255, 255)", `${route} toont de lichte fotokop niet wit: ${titleColor}`);
-      }
-      await goto(page, "/");
-      const trustTitleColor = await page.locator(".trust-credential h2").evaluate((element) => getComputedStyle(element).color);
-      assert(trustTitleColor === "rgb(255, 255, 255)", `De trusttitel heeft onvoldoende contrast op marine: ${trustTitleColor}`);
-
-      await resetPage();
-      await page.setViewportSize({ width: 1440, height: 1000 });
-      await goto(page, "/");
-      await activateScrollReveals(page);
-      const compactOoievaarDetails = await page.evaluate(() => {
-        const callout = document.querySelector(".ooievaar-callout:not(.ooievaar-callout--detailed)");
-        if (!(callout instanceof HTMLElement)) return null;
-        const bounds = callout.getBoundingClientRect();
-        const content = [...callout.children].filter((child) => child instanceof HTMLElement).map((child) => child.getBoundingClientRect());
-        const overlaps = content.flatMap((first, firstIndex) => content.slice(firstIndex + 1).filter((second) => {
-          const overlapWidth = Math.min(first.right, second.right) - Math.max(first.left, second.left);
-          const overlapHeight = Math.min(first.bottom, second.bottom) - Math.max(first.top, second.top);
-          return overlapWidth > 2 && overlapHeight > 2;
-        }).map(() => firstIndex));
-        return {
-          width: bounds.width,
-          height: bounds.height,
-          maxHeight: Math.min(460, bounds.width * .4),
-          contentContained: content.every((childBounds) => childBounds.left >= bounds.left - 2 && childBounds.right <= bounds.right + 2),
-          overlapCount: overlaps.length,
-        };
-      });
-      assert(compactOoievaarDetails, "Compacte Ooievaarspas-callout ontbreekt op de homepage");
-      assert(compactOoievaarDetails.height <= compactOoievaarDetails.maxHeight, `Ooievaarspas-callout is nog te hoog: ${JSON.stringify(compactOoievaarDetails)}`);
-      assert(compactOoievaarDetails.contentContained && compactOoievaarDetails.overlapCount === 0, `Ooievaarspas-callout overlapt of loopt over: ${JSON.stringify(compactOoievaarDetails)}`);
-      const ooievaarLogo = await partnerImageState(page, "ooievaarspas\\.svg");
-      assert(ooievaarLogo.count >= 1 && ooievaarLogo.images.some((image) => image.visible && image.naturalWidth > 0 && image.naturalHeight > 0), `Officieel Ooievaarspasbeeld laadt niet zichtbaar: ${JSON.stringify(ooievaarLogo)}`);
-
-      await goto(page, "/topsport-en-ntc");
-      await activateScrollReveals(page);
-      const nocLogo = await partnerImageState(page, "noc-nsf-full-color\\.svg");
-      assert(nocLogo.count >= 1 && nocLogo.images.some((image) => image.visible && image.naturalWidth > 0 && image.naturalHeight > 0), `Officieel NOC*NSF-beeld laadt niet zichtbaar: ${JSON.stringify(nocLogo)}`);
-      const nocPublicCopy = (await page.locator(".trust-credential, .ntc-proof-status").allTextContents()).join(" ");
-      assert(!/geen certificeringsclaim|geen specifieke actuele erkenning|niet als certificeringsclaim gepresenteerd/i.test(nocPublicCopy), `Publieke NOC*NSF-presentatie bevat nog defensieve waarschuwingstekst: ${nocPublicCopy}`);
-
-      await goto(page, "/sporten/krachttraining");
-      await activateScrollReveals(page);
-      const xxlDetails = await page.evaluate(() => {
-        const card = document.querySelector(".affiliate-partner-card");
-        if (!(card instanceof HTMLElement)) return null;
-        const sponsoredLinks = [...card.querySelectorAll("a")].filter((link) => link.relList.contains("sponsored") || (() => {
-          try { return new URL(link.href).hostname.includes("xxlnutrition"); } catch { return false; }
-        })());
-        return { sponsoredLinkCount: sponsoredLinks.length, text: card.textContent?.trim() ?? "" };
-      });
-      assert(xxlDetails, "XXL-partnerkaart ontbreekt op de krachttrainingspagina");
-      const xxlImage = await partnerImageState(page, "xxl-product-range\\.avif");
-      assert(xxlImage.count >= 1 && xxlImage.images.some((image) => image.visible && image.naturalWidth > 0 && image.naturalHeight > 0), `XXL-productbeeld laadt niet zichtbaar: ${JSON.stringify(xxlImage)}`);
-      assert(xxlDetails.sponsoredLinkCount === 0, `XXL-kaart toont zonder geconfigureerde affiliate-URL toch een externe affiliate-CTA: ${JSON.stringify(xxlDetails)}`);
-      const programCtaWidth = await page.evaluate(() => {
-        const outer = document.querySelector(".program-cta");
-        const inner = outer?.querySelector(":scope > .free-intake-cta");
-        if (!(outer instanceof HTMLElement) || !(inner instanceof HTMLElement)) return null;
-        return { outer: outer.getBoundingClientRect().width, inner: inner.getBoundingClientRect().width };
-      });
-      assert(programCtaWidth && programCtaWidth.inner >= programCtaWidth.outer - 4, `De intake-CTA op de trainingspagina benut niet de volledige container: ${JSON.stringify(programCtaWidth)}`);
-
-      await goto(page, "/ooievaarspas");
-      await activateScrollReveals(page);
-      const faqAlignment = await page.evaluate(() => {
-        const section = document.querySelector(".faq-preview");
-        const intro = section?.querySelector(":scope > div:first-child");
-        const title = intro?.querySelector("h2");
-        const accordion = section?.querySelector(".faq-accordion");
-        if (!(section instanceof HTMLElement) || !(intro instanceof HTMLElement) || !(title instanceof HTMLElement) || !(accordion instanceof HTMLElement)) return null;
-        const introBounds = intro.getBoundingClientRect();
-        const titleBounds = title.getBoundingClientRect();
-        const accordionBounds = accordion.getBoundingClientRect();
-        const overlapWidth = Math.min(introBounds.right, accordionBounds.right) - Math.max(introBounds.left, accordionBounds.left);
-        const overlapHeight = Math.min(introBounds.bottom, accordionBounds.bottom) - Math.max(introBounds.top, accordionBounds.top);
-        return {
-          overlaps: overlapWidth > 2 && overlapHeight > 2,
-          titleContained: titleBounds.left >= introBounds.left - 2 && titleBounds.right <= introBounds.right + 2 && title.scrollWidth <= title.clientWidth + 2,
-          accordionContained: accordion.scrollWidth <= accordion.clientWidth + 2,
-        };
-      });
-      assert(faqAlignment, "Ooievaarspas-FAQ mist de verwachte intro- of accordionstructuur");
-      assert(!faqAlignment.overlaps && faqAlignment.titleContained && faqAlignment.accordionContained, `Ooievaarspas-FAQ overlapt of loopt buiten de kolom: ${JSON.stringify(faqAlignment)}`);
-
-      await resetPage();
-      await page.setViewportSize({ width: 430, height: 932 });
-      await goto(page, "/abonnementen");
-      const comparisonDetails = await page.evaluate(() => {
-        const comparison = document.querySelector(".membership-comparison");
-        const cards = [...document.querySelectorAll(".membership-comparison > article")];
-        const footerContact = document.querySelector(".c90-footer__contact a");
-        if (!(comparison instanceof HTMLElement) || !(footerContact instanceof HTMLElement) || cards.some((card) => !(card instanceof HTMLElement))) return null;
-        const comparisonRect = comparison.getBoundingClientRect();
-        const cardRects = cards.map((card) => card.getBoundingClientRect());
-        const actionHeights = cards.map((card) => card.querySelector("a")?.getBoundingClientRect().height ?? 0);
-        return {
-          cardCount: cards.length,
-          contained: comparison.scrollWidth <= comparison.clientWidth + 2 && cardRects.every((rect) => rect.left >= comparisonRect.left - 1 && rect.right <= comparisonRect.right + 1),
-          verticallyStacked: cardRects.every((rect, index) => index === 0 || rect.top >= cardRects[index - 1].bottom - 1),
-          minActionHeight: Math.min(...actionHeights),
-          footerContactHeight: footerContact.getBoundingClientRect().height,
-        };
-      });
-      assert(comparisonDetails?.cardCount === 4, `Mobiele productvergelijking toont niet alle vier mogelijkheden: ${JSON.stringify(comparisonDetails)}`);
-      assert(comparisonDetails.contained && comparisonDetails.verticallyStacked, `Mobiele productkaarten lopen uit of overlappen: ${JSON.stringify(comparisonDetails)}`);
-      assert(comparisonDetails.minActionHeight >= 44, `Mobiele productacties hebben een te klein raakvlak: ${JSON.stringify(comparisonDetails)}`);
-      assert(comparisonDetails.footerContactHeight >= 44, `Mobiele footerlink heeft een te klein raakvlak: ${JSON.stringify(comparisonDetails)}`);
-    });
-
-    // The public visual audit eagerly decodes several large responsive images.
-    // Start the interactive suite on a fresh renderer to avoid a Chromium
-    // target crash masking otherwise valid interaction results.
-    await resetPage();
-    await page.setViewportSize({ width: 1280, height: 900 });
-
-    await check("Ledenapp: alle vier app-tabs", async () => {
-      currentActivity = "ledenapp-tabs";
-      await goto(page, "/ledenapp");
-      const app = page.locator("#app-concept");
-      for (const [tab, heading] of [["Ledenpas", "Jouw ledenpas"], ["Training", "Deze week"], ["Club", "Uit de club"], ["Home", "Klaar om te trainen?"]]) {
-        await app.getByRole("tab", { name: tab, exact: true }).click();
-        await app.getByRole("heading", { name: heading, exact: true }).waitFor({ state: "visible" });
-      }
-    });
-
-    await check("Ledenpas: dialogfocus en sluitgedrag", async () => {
-      currentActivity = "ledenpas-dialog";
-      await goto(page, "/ledenportaal");
-      const trigger = page.getByRole("button", { name: "QR-code vergroten" });
-      await trigger.click();
-      const dialog = page.getByRole("dialog", { name: "Digitale ledenpas" });
-      await dialog.waitFor({ state: "visible" });
-      await textContains(dialog, "Toon deze QR-code bij binnenkomst", "Ledenpasinstructie");
-      await dialog.screenshot({ path: path.join(ARTIFACTS_DIR, "desktop--ledenpas--qr-dialog.png"), animations: "disabled" });
-      await page.keyboard.press("Escape");
-      await dialog.waitFor({ state: "hidden" });
-      assert(await trigger.evaluate((element) => element === document.activeElement), "Focus keerde na sluiten niet terug naar de ledenpasknop");
-    });
-
-    await check("Gratis-intakewizard: desktop, mobiel, productprefill en reset", async () => {
-      currentActivity = "gratis-intakewizard";
-      const intakeRoute = "/gratis-persoonlijke-intake?abonnement=weekly";
-      const expectedContactHref = "/contact?onderwerp=intake&abonnement=weekly&doel=sterker&moment=avond&begeleiding=startplan";
-      for (const viewport of [
-        { name: "desktop", width: 1280, height: 900 },
-        { name: "mobile", width: 390, height: 844 },
-      ]) {
-        await page.setViewportSize({ width: viewport.width, height: viewport.height });
-        await goto(page, intakeRoute);
-        await textContains(page.locator(".intake-page__selection"), "1× per week", "Gekozen product op intakepagina");
-        const wizard = page.locator(".visit-wizard");
-        assert(await wizard.getByRole("button", { name: /Volgende stap/i }).isDisabled(), "De lege gratis-intakewizard liet doorgaan toe");
-        for (const choice of ["Sterker worden", "In de avond", "Een persoonlijk startplan"]) {
-          await wizard.getByRole("radio", { name: new RegExp(choice, "i") }).click();
-          await wizard.screenshot({ path: path.join(ARTIFACTS_DIR, `${viewport.name}--gratis-intake--${choice.toLowerCase().replaceAll(" ", "-")}.png`), animations: "disabled" });
-          await wizard.getByRole("button", { name: /Volgende stap/i }).click();
-        }
-        await wizard.getByRole("heading", { name: "Sterk beginnen, slim opbouwen." }).waitFor({ state: "visible" });
-        const contactLink = wizard.getByRole("link", { name: "Vraag je gratis intake aan", exact: true });
-        const href = await contactLink.getAttribute("href");
-        assert(href === expectedContactHref, `Onjuiste intakeprefill: ${href}`);
-        await wizard.screenshot({ path: path.join(ARTIFACTS_DIR, `${viewport.name}--gratis-intake--resultaat.png`), animations: "disabled" });
-        await wizard.getByRole("button", { name: "Opnieuw", exact: true }).click();
-        await wizard.getByRole("heading", { name: "Waar wil je aan werken?" }).waitFor({ state: "visible" });
-        assert(await wizard.getByRole("button", { name: /Volgende stap/i }).isDisabled(), "Reset liet een verborgen wizardantwoord achter");
-      }
-      await page.setViewportSize({ width: 1280, height: 900 });
-      await goto(page, expectedContactHref);
-      await textContains(page.locator(".contact-prefill"), "Jouw keuze is alvast ingevuld.", "Contactprefill uit intakewizard");
-      for (const [label, expected] of [
-        ["Waar kunnen we mee helpen?", "Gratis persoonlijke intake"],
-        ["Product dat je wilt bespreken (optioneel)", "1× per week"],
-        ["Jouw doel", "Sterker worden"],
-        ["Voorkeursmoment", "Avond"],
-        ["Gewenste begeleiding", "Persoonlijk startplan"],
-      ]) {
-        const select = page.locator("label").filter({ hasText: label }).getByRole("combobox");
-        await textContains(select, expected, `Vooringevuld veld ${label}`);
-      }
-    });
-
-    await check("Trainingswizard → contactprefill → klantgerichte contactopties", async () => {
-      currentActivity = "trainingswizard en contact";
-      await goto(page, "/sporten");
-
-      await page.getByRole("radio", { name: /Sterker worden/i }).click();
-      await page.getByRole("button", { name: /Volgende stap/i }).click();
-      await page.getByRole("radio", { name: /Ik begin/i }).click();
-      await page.getByRole("button", { name: /Volgende stap/i }).click();
-      await page.getByRole("radio", { name: /Begeleide start/i }).click();
-      await page.getByRole("button", { name: /Volgende stap/i }).click();
-
-      await page.getByRole("heading", { name: "Kracht met een plan" }).waitFor({ state: "visible" });
-      await Promise.all([
-        page.waitForURL((url) => url.pathname === "/contact" && url.searchParams.get("onderwerp") === "intake" && url.searchParams.get("doel") === "sterker" && url.searchParams.get("begeleiding") === "start"),
-        page.locator(".route-result").getByRole("link", { name: "Vraag je gratis intake aan", exact: true }).click(),
-      ]);
-      await settle(page);
-
-      await textContains(page.locator(".contact-prefill"), "Jouw keuze is alvast ingevuld.", "Contactprefill");
-      await page.locator(".contact-form").screenshot({ path: path.join(ARTIFACTS_DIR, "desktop--contact--prefill.png"), animations: "disabled" });
-      const goalSelect = page.locator("label").filter({ hasText: "Jouw doel" }).getByRole("combobox");
-      const guidanceSelect = page.locator("label").filter({ hasText: "Gewenste begeleiding" }).getByRole("combobox");
-      const topicSelect = page.locator("label").filter({ hasText: "Waar kunnen we mee helpen?" }).getByRole("combobox");
-      await textContains(topicSelect, "Gratis persoonlijke intake", "Vooringevuld onderwerp");
-      await textContains(goalSelect, "Sterker worden", "Vooringevuld doel");
-      await textContains(guidanceSelect, "Begeleide start", "Vooringevulde begeleiding");
-
-      await page.getByLabel("Naam").fill("QA Bezoeker");
-      await page.getByLabel("E-mailadres").fill("qa@example.com");
-      await page.getByLabel("Bericht").fill("Geautomatiseerde browsercontrole van de contactmogelijkheden.");
-      await page.getByRole("button", { name: /Bekijk contactmogelijkheden/i }).click();
-      const confirmation = page.getByRole("status");
-      await textContains(confirmation, "Neem contact op met de club", "Contactbevestiging");
-      const contactLinks = await confirmation.locator('a[href^="tel:"], a[href^="mailto:"]').count();
-      assert(contactLinks === 2, "Contactbevestiging toont niet zowel telefoon als e-mail");
-      await screenshotVisibleState(page, [page.locator(".form-success"), confirmation], path.join(ARTIFACTS_DIR, "desktop--contact--mogelijkheden.png"));
-    });
-
-    await check("Publiek rooster: filters en weeknavigatie", async () => {
-      currentActivity = "publiek rooster";
-      await goto(page, "/rooster");
-
-      const technique = page.getByRole("button", { name: "Techniek", exact: true });
-      await technique.click();
-      assert((await technique.getAttribute("aria-pressed")) === "true", "Techniekfilter werd niet actief");
-      await page.getByRole("heading", { name: "Geen momenten binnen dit filter." }).waitFor({ state: "visible" });
-      await page.getByRole("button", { name: "Toon alles", exact: true }).click();
-      await page.getByText("Gratis persoonlijke intake", { exact: true }).first().waitFor({ state: "visible" });
-
-      await page.getByRole("button", { name: "Volgende week" }).click();
-      await page.getByRole("heading", { name: "Geen planning voor deze week." }).waitFor({ state: "visible" });
-      await page.getByRole("button", { name: "Terug naar deze week" }).click();
-      await textContains(page.getByRole("status"), "Deze week geselecteerd", "Weekstatus");
-    });
-
-    await check("Ledenportaal: navigatie, training, bericht en profiel", async () => {
-      currentActivity = "ledenportaal";
-      await goto(page, "/ledenportaal");
-      await page.evaluate(() => window.localStorage.removeItem("af-demo-profile-v1"));
-
-      await Promise.all([
-        page.waitForURL((url) => url.pathname === "/ledenportaal/training"),
-        page.getByRole("link", { name: "Training", exact: true }).first().click(),
-      ]);
-      await page.getByRole("button", { name: /Start training/i }).click();
-      await textContains(page.getByRole("status"), "Training actief", "Trainingstatus");
-      await page.getByRole("checkbox", { name: /Goblet squat afronden/i }).click();
-      await textContains(page.getByRole("status"), "1 van 5", "Oefeningsvoortgang");
-      await page.locator(".portal-content").screenshot({ path: path.join(ARTIFACTS_DIR, "desktop--portal--training-active.png"), animations: "disabled" });
-      await page.getByRole("button", { name: /Pauzeren/i }).click();
-
-      await Promise.all([
-        page.waitForURL((url) => url.pathname === "/ledenportaal/berichten"),
-        page.getByRole("link", { name: "Berichten", exact: true }).first().click(),
-      ]);
-      await page.getByRole("button", { name: /Praktische clubinformatie/i }).click();
-      await page.getByLabel("Jouw antwoord").fill("Dank, dit is een QA-reactie.");
-      await page.getByRole("button", { name: /Versturen/i }).click();
-      await textContains(page.getByRole("status"), "Je bericht is verzonden", "Berichtstatus");
-
-      await Promise.all([
-        page.waitForURL((url) => url.pathname === "/ledenportaal/profiel"),
-        page.getByRole("link", { name: "Profiel", exact: true }).first().click(),
-      ]);
-      await page.getByLabel("E-mailadres").fill("qa-profiel@example.com");
-      await page.getByRole("button", { name: /Wijzigingen opslaan/i }).click();
-      await textContains(page.getByRole("status"), "Je wijzigingen zijn opgeslagen", "Profielstatus");
-      const savedProfile = await page.evaluate(() => window.localStorage.getItem("af-demo-profile-v1"));
-      assert(savedProfile?.includes("qa-profiel@example.com"), "Het profiel is niet opgeslagen");
-    });
-
-    await check("Ledenportaal: reserveren, wachtlijst, annuleren en factuur", async () => {
-      currentActivity = "ledenplanning en factuur";
-      await goto(page, "/ledenportaal/rooster");
-
-      const firstVisit = page.locator(".member-schedule article").filter({ hasText: "Gratis persoonlijke intake" }).first();
-      await firstVisit.getByRole("button", { name: "Reserveer plek", exact: true }).click();
-      await textContains(page.getByRole("status"), "je plek is gereserveerd", "Reserveringsstatus");
-      await firstVisit.getByRole("button", { name: "Annuleren", exact: true }).click();
-      await textContains(page.getByRole("status"), "je reservering is geannuleerd", "Annuleringsstatus");
-
-      const fullTraining = page.locator(".member-schedule article").filter({ hasText: "Personal training" }).first();
-      await fullTraining.getByRole("button", { name: "Wachtlijst", exact: true }).click();
-      await textContains(page.getByRole("status"), "je staat op de wachtlijst", "Wachtlijststatus");
-
-      await goto(page, "/ledenportaal/facturen");
-      const downloadPromise = page.waitForEvent("download");
-      await page.getByRole("button", { name: /Download factuur/i }).first().click();
-      const download = await downloadPromise;
-      assert(download.suggestedFilename() === "af-2026-0084.txt", "Onverwachte factuurnaam: " + download.suggestedFilename());
-    });
-
-    await check("Backoffice-polish: acht schermen, states en responsieve details", async () => {
-      currentActivity = "backoffice polish";
-      await resetPage();
-
-      await page.setViewportSize({ width: 1440, height: 1000 });
-      for (const route of backofficeRoutes) {
-        await resetPage();
-        await page.setViewportSize({ width: 1440, height: 1000 });
-        await goto(page, route);
-        await checkOverflow(page, route, "backoffice-desktop");
-        const shared = await page.evaluate(() => {
-          const sidebar = document.querySelector(".admin-sidebar");
-          const brandCopy = document.querySelector(".admin-brand span");
-          const navLink = document.querySelector(".admin-sidebar nav a");
-          const heading = document.querySelector(".admin-heading, .schedule-heading");
-          const bodyText = document.querySelector(".admin-heading p, .schedule-heading p");
-          return {
-            sidebarWidth: sidebar instanceof HTMLElement ? sidebar.getBoundingClientRect().width : null,
-            brandFits: brandCopy instanceof HTMLElement ? brandCopy.scrollWidth <= brandCopy.clientWidth + 1 : null,
-            navFontSize: navLink instanceof HTMLElement ? Number.parseFloat(getComputedStyle(navLink).fontSize) : null,
-            headingWidth: heading instanceof HTMLElement ? heading.getBoundingClientRect().width : null,
-            bodyFontSize: bodyText instanceof HTMLElement ? Number.parseFloat(getComputedStyle(bodyText).fontSize) : null,
-          };
-        });
-        assert(shared.sidebarWidth >= 240 && shared.brandFits, `${route} heeft een geklemde desktoprail: ${JSON.stringify(shared)}`);
-        assert(shared.navFontSize >= 13 && shared.bodyFontSize >= 14, `${route} houdt te kleine kerntekst: ${JSON.stringify(shared)}`);
-        assert(shared.headingWidth > 700, `${route} gebruikt de desktopwerkruimte niet: ${JSON.stringify(shared)}`);
-      }
-
-      await resetPage();
-      await page.setViewportSize({ width: 1440, height: 1000 });
-      await goto(page, "/backoffice");
-      const dashboardAlignment = await page.evaluate(() => {
-        const today = document.querySelector(".admin-today");
-        const inbox = document.querySelector(".admin-inbox");
-        if (!(today instanceof HTMLElement) || !(inbox instanceof HTMLElement)) return null;
-        return { today: today.getBoundingClientRect().bottom, inbox: inbox.getBoundingClientRect().bottom };
-      });
-      assert(dashboardAlignment && Math.abs(dashboardAlignment.today - dashboardAlignment.inbox) <= 1, `Dashboardkaarten eindigen ongelijk: ${JSON.stringify(dashboardAlignment)}`);
-
-      await resetPage();
-      await page.setViewportSize({ width: 1440, height: 1000 });
-      await goto(page, "/backoffice/trainers");
-      assert(await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight + 4), "Korte backofficepagina heeft nog decoratieve lege scrollruimte");
-      await page.getByRole("button", { name: "Toon overige coaches", exact: true }).click();
-      const filteredTrainerWidths = await page.locator(".admin-trainer-grid > article").evaluateAll((cards) => cards.map((card) => card.getBoundingClientRect().width));
-      assert(filteredTrainerWidths.length === 2 && Math.abs(filteredTrainerWidths[0] - filteredTrainerWidths[1]) <= 1, `Gefilterde trainerkaarten verdelen de ruimte niet: ${JSON.stringify(filteredTrainerWidths)}`);
-
-      await resetPage();
-      await page.setViewportSize({ width: 1440, height: 1000 });
-      await goto(page, "/backoffice/communicatie");
-      const communicationGeometry = await page.evaluate(() => {
-        const input = document.querySelector(".admin-communication__composer input");
-        const button = document.querySelector(".admin-communication__composer button");
-        const composer = document.querySelector(".admin-communication__composer");
-        if (!(input instanceof HTMLElement) || !(button instanceof HTMLElement) || !(composer instanceof HTMLElement)) return null;
-        const inputRect = input.getBoundingClientRect();
-        const buttonRect = button.getBoundingClientRect();
-        const composerRect = composer.getBoundingClientRect();
-        return {
-          separated: inputRect.right + 8 <= buttonRect.left,
-          inside: inputRect.left >= composerRect.left && buttonRect.right <= composerRect.right,
-          inputHeight: inputRect.height,
-          buttonHeight: buttonRect.height,
-        };
-      });
-      assert(communicationGeometry?.separated && communicationGeometry.inside, `Communicatiecomposer overlapt of loopt uit: ${JSON.stringify(communicationGeometry)}`);
-      assert(communicationGeometry.inputHeight >= 44 && communicationGeometry.buttonHeight >= 44, `Communicatiecomposer heeft te kleine controls: ${JSON.stringify(communicationGeometry)}`);
-
-      await resetPage();
-      await page.setViewportSize({ width: 1440, height: 1000 });
-      await goto(page, "/backoffice/content");
-      const contentCards = await page.locator(".admin-content-grid article").evaluateAll((cards) => cards.map((card) => {
-        const status = card.querySelector("small");
-        const button = card.querySelector("button");
-        if (!(status instanceof HTMLElement) || !(button instanceof HTMLElement)) return null;
-        const a = status.getBoundingClientRect();
-        const b = button.getBoundingClientRect();
-        return { statusBottom: a.bottom, actionTop: b.top, actionHeight: b.height };
-      }));
-      assert(contentCards.every((card) => card && card.statusBottom <= card.actionTop + 1 && card.actionHeight >= 44), `Contentkaartstatus en actie overlappen: ${JSON.stringify(contentCards)}`);
-
-      await page.setViewportSize({ width: 390, height: 844 });
-      for (const route of backofficeRoutes) {
-        await resetPage();
-        await page.setViewportSize({ width: 390, height: 844 });
-        await goto(page, route);
-        await checkOverflow(page, route, "backoffice-phone");
-        const mobileShell = await page.evaluate(() => {
-          const sidebar = document.querySelector(".admin-sidebar");
-          const nav = document.querySelector(".admin-sidebar nav");
-          const active = nav?.querySelector("[aria-current='page']");
-          const content = document.querySelector(".admin-content");
-          const headingControls = [...document.querySelectorAll(".admin-heading :is(button,a)")]
-            .filter((element) => element instanceof HTMLElement && element.getBoundingClientRect().width > 0)
-            .map((element) => element.getBoundingClientRect().toJSON());
-          const undersized = [...document.querySelectorAll(
-            ".admin-heading :is(button,a), .admin-list-toolbar button, .admin-data-table article > button, .admin-trainer-grid footer :is(button,a), .admin-kanban article button, .admin-communication button, .admin-content-grid button, .admin-local-editor button, .schedule-toolbar button, .schedule-status button, .schedule-mobile-agenda__actions button",
-          )].filter((element) => {
-            const rect = element.getBoundingClientRect();
-            return rect.width > 0 && rect.height > 0 && (rect.width < 44 || rect.height < 44);
-          }).map((element) => ({ text: element.getAttribute("aria-label") || element.textContent?.trim(), rect: element.getBoundingClientRect().toJSON() }));
-          if (!(sidebar instanceof HTMLElement) || !(nav instanceof HTMLElement) || !(active instanceof HTMLElement) || !(content instanceof HTMLElement)) return null;
-          const navRect = nav.getBoundingClientRect();
-          const activeRect = active.getBoundingClientRect();
-          const contentRect = content.getBoundingClientRect();
-          return {
-            sidebarPosition: getComputedStyle(sidebar).position,
-            sidebarHeight: sidebar.getBoundingClientRect().height,
-            activeVisible: activeRect.left >= navRect.left + 4 && activeRect.right <= navRect.right - 4,
-            navNames: [...nav.querySelectorAll("a")].map((link) => link.getAttribute("aria-label")),
-            controlsInside: headingControls.every((rect) => rect.left >= contentRect.left - 1 && rect.right <= contentRect.right + 1),
-            undersized,
-          };
-        });
-        assert(mobileShell?.sidebarPosition === "relative" && mobileShell.sidebarHeight <= 140, `${route} houdt een te hoge of bedekkende mobiele shell: ${JSON.stringify(mobileShell)}`);
-        assert(mobileShell.activeVisible, `${route} toont de actieve mobiele bestemming niet: ${JSON.stringify(mobileShell)}`);
-        assert(mobileShell.navNames.every(Boolean), `${route} bevat naamloze compacte navigatielinks: ${JSON.stringify(mobileShell)}`);
-        assert(mobileShell.controlsInside, `${route} laat een headingactie buiten de content lopen: ${JSON.stringify(mobileShell)}`);
-        assert(!mobileShell.undersized.length, `${route} heeft raakvlakken kleiner dan 44px: ${JSON.stringify(mobileShell.undersized)}`);
-      }
-
-      await resetPage();
-      await page.setViewportSize({ width: 1440, height: 900 });
-      await goto(page, "/backoffice/instellingen");
-      await page.setViewportSize({ width: 390, height: 844 });
-      await page.waitForFunction(() => {
-        const nav = document.querySelector(".admin-sidebar nav");
-        const active = nav?.querySelector("[aria-current='page']");
-        if (!(nav instanceof HTMLElement) || !(active instanceof HTMLElement)) return false;
-        const navRect = nav.getBoundingClientRect();
-        const activeRect = active.getBoundingClientRect();
-        return activeRect.left >= navRect.left + 4 && activeRect.right <= navRect.right - 4;
-      });
-
-      await resetPage();
-      await page.setViewportSize({ width: 390, height: 844 });
-      await goto(page, "/backoffice/leden");
-      const memberControls = await page.locator(".admin-list-toolbar :is(input,button)").evaluateAll((controls) => controls.map((control) => control.getBoundingClientRect().height));
-      assert(memberControls.every((height) => height >= 44), `Ledenfilters hebben te kleine raakvlakken: ${JSON.stringify(memberControls)}`);
-      await page.getByLabel("Zoek leden").fill("bestaat niet");
-      await page.getByText("Geen leden gevonden", { exact: true }).waitFor({ state: "visible" });
-      await page.getByRole("button", { name: "Wis zoeken en filters", exact: true }).click();
-      await page.getByText("Sam de Vries", { exact: true }).waitFor({ state: "visible" });
-
-      await resetPage();
-      await page.setViewportSize({ width: 390, height: 844 });
-      await goto(page, "/backoffice/communicatie");
-      const mobileCommunication = await page.evaluate(() => {
-        const section = document.querySelector(".admin-communication > section");
-        const input = document.querySelector(".admin-communication__composer input");
-        const button = document.querySelector(".admin-communication__composer button");
-        if (!(section instanceof HTMLElement) || !(input instanceof HTMLElement) || !(button instanceof HTMLElement)) return null;
-        return {
-          contained: section.scrollWidth <= section.clientWidth,
-          inputHeight: input.getBoundingClientRect().height,
-          buttonHeight: button.getBoundingClientRect().height,
-          separated: input.getBoundingClientRect().bottom <= button.getBoundingClientRect().top,
-        };
-      });
-      assert(mobileCommunication?.contained && mobileCommunication.separated, `Mobiele communicatie is geclipt of overlapt: ${JSON.stringify(mobileCommunication)}`);
-      assert(mobileCommunication.inputHeight >= 44 && mobileCommunication.buttonHeight >= 44, `Mobiele communicatiecontrols zijn te klein: ${JSON.stringify(mobileCommunication)}`);
-
-      await resetPage();
-      await page.setViewportSize({ width: 390, height: 844 });
-      await goto(page, "/backoffice/content");
-      const mobileContentCards = await page.locator(".admin-content-grid article").evaluateAll((cards) => cards.map((card) => {
-        const status = card.querySelector("small");
-        const button = card.querySelector("button");
-        if (!(status instanceof HTMLElement) || !(button instanceof HTMLElement)) return false;
-        return status.getBoundingClientRect().bottom <= button.getBoundingClientRect().top + 1 && button.getBoundingClientRect().height >= 44;
-      }));
-      assert(mobileContentCards.every(Boolean), `Mobiele contentkaarten overlappen nog: ${JSON.stringify(mobileContentCards)}`);
-
-      await resetPage();
-      await page.setViewportSize({ width: 390, height: 844 });
-      await goto(page, "/backoffice/instellingen");
-      const settingsDetails = await page.evaluate(() => ({
-        inputHeights: [...document.querySelectorAll(".admin-settings input")].map((input) => input.getBoundingClientRect().height),
-        sectionTitles: [...document.querySelectorAll(".admin-settings h2")].map((heading) => heading.textContent?.trim()),
-        openingRows: document.querySelectorAll(".admin-settings > section:last-child article").length,
-      }));
-      assert(settingsDetails.inputHeights.length === 4 && settingsDetails.inputHeights.every((height) => height >= 48), "Mobiele instellingenvelden zijn te klein: " + JSON.stringify(settingsDetails));
-      assert(JSON.stringify(settingsDetails.sectionTitles) === JSON.stringify(["Clubgegevens", "Openingstijden"]), "Instellingensecties zijn onvolledig: " + JSON.stringify(settingsDetails.sectionTitles));
-      assert(settingsDetails.openingRows === 3, "Openingstijdenregister bevat niet alle drie daggroepen: " + settingsDetails.openingRows);
-      await page.getByRole("button", { name: "Wijzigingen opslaan", exact: true }).click();
-      const toast = page.locator(".admin-global-notice");
-      await toast.waitFor({ state: "visible" });
-      assert((await toast.evaluate((element) => getComputedStyle(element).position)) === "fixed", "Backofficestatus verschijnt niet als zichtbare toast");
-
-      await resetPage();
-      await page.setViewportSize({ width: 390, height: 844 });
-      await goto(page, "/backoffice/rooster");
-      const livePosition = await page.locator(".schedule-live").evaluate((element) => getComputedStyle(element).position);
-      assert(livePosition === "relative", `Roosterstatus blijft over het werkvlak zweven: ${livePosition}`);
-      await page.locator(".schedule-mobile-days button").last().click();
-      await page.getByText("Nog niets ingepland", { exact: true }).waitFor({ state: "visible" });
-
-      await page.setViewportSize({ width: 1280, height: 900 });
-    });
-
-    await check("Backoffice-rooster: template bewerken en publiceren", async () => {
-      await resetPage();
-      currentActivity = "backoffice rooster";
-      await goto(page, "/backoffice/rooster");
-      await page.evaluate(() => {
-        window.localStorage.removeItem("af-schedule-draft-v2");
-        window.localStorage.removeItem("af-schedule-published-v2");
-      });
-      await page.reload({ waitUntil: "domcontentloaded" });
-      await settle(page);
-      await page.waitForFunction(() => window.localStorage.getItem("af-schedule-draft-v2") !== null);
-
-      const unchangedButton = page.getByRole("button", { name: "Geen wijzigingen", exact: true });
-      assert(await unchangedButton.isDisabled(), "Publiceren hoort zonder wijzigingen uitgeschakeld te zijn");
-
-      const existingEvent = page.getByRole("button", { name: /Strength & Conditioning, 18:30, Rik Priester/i });
-      await existingEvent.focus();
-      await page.keyboard.press("ArrowDown");
-      await textContains(page.getByRole("status"), "verplaatst naar Maandag 19:00", "Keyboardverplaatsing");
-      await page.getByRole("button", { name: "Ongedaan", exact: true }).click();
-      assert(await page.getByRole("button", { name: "Geen wijzigingen", exact: true }).isDisabled(), "Ongedaan herstelde de schone roosterstatus niet");
-
-      const template = page.getByRole("button", { name: /Strength & Conditioning.*60 min.*03/i });
-      const dropSlot = page.getByRole("button", { name: "Plaats geselecteerde regel op Maandag om 10:00", exact: true });
-      await template.dragTo(dropSlot);
-      const editor = page.getByRole("dialog", { name: "Roosterregel bewerken" });
-      await editor.waitFor({ state: "visible" });
-
-      await editor.getByRole("button", { name: "Verwijderen", exact: true }).click();
-      const deleteDialog = page.getByRole("dialog", { name: "Roosterregel verwijderen?" });
-      await deleteDialog.getByRole("button", { name: "Verwijderen", exact: true }).click();
-      await textContains(page.getByRole("status"), "verwijderd", "Verwijderstatus");
-      await page.getByRole("button", { name: "Ongedaan", exact: true }).click();
-      await textContains(page.getByRole("status"), "ongedaan gemaakt", "Undo-status");
-
-      await page.getByRole("button", { name: /Strength & Conditioning, 10:00, Nog toe te wijzen/i }).click();
-      await editor.getByRole("button", { name: "Dupliceren", exact: true }).click();
-      await textContains(page.getByRole("status"), "gedupliceerd", "Dupliceerstatus");
-      await editor.getByRole("button", { name: "Verwijderen", exact: true }).click();
-      await deleteDialog.getByRole("button", { name: "Verwijderen", exact: true }).click();
-
-      await page.getByRole("button", { name: /Strength & Conditioning, 10:00, Nog toe te wijzen/i }).click();
-      await editor.getByLabel("Trainer").selectOption({ label: "Rik Priester" });
-      await editor.getByLabel("Starttijd").selectOption("8");
-      await textContains(editor.getByRole("alert"), "heeft op dit moment al een afspraak", "Conflictvalidatie");
-      await editor.getByLabel("Trainer").selectOption({ label: "Nog toe te wijzen" });
-      await editor.getByLabel("Titel").fill("QA openbare krachttraining");
-      await editor.getByLabel("Zichtbaarheid").selectOption("public");
-      await editor.screenshot({ path: path.join(ARTIFACTS_DIR, "desktop--backoffice-rooster--edit-dialog.png"), animations: "disabled" });
-      await editor.getByRole("button", { name: "Concept sluiten", exact: true }).click();
-
-      await page.getByRole("button", { name: /1 wijziging publiceren/i }).click();
-      const publishDialog = page.getByRole("dialog", { name: "Wijzigingen publiceren?" });
-      await publishDialog.waitFor({ state: "visible" });
-      await publishDialog.screenshot({ path: path.join(ARTIFACTS_DIR, "desktop--backoffice-rooster--publish-dialog.png"), animations: "disabled" });
-      await publishDialog.getByRole("button", { name: /1 wijziging publiceren/i }).click();
-      await textContains(page.getByRole("status"), "1 wijziging gepubliceerd", "Publicatiestatus");
-
-      await goto(page, "/rooster");
-      await page.getByText("QA openbare krachttraining", { exact: true }).waitFor({ state: "visible" });
-    });
-
-    await check("200%-reflowequivalent en lage viewport", async () => {
-      await resetPage();
-      currentActivity = "200 procent reflow en lage viewport";
-      for (const viewport of [
-        { name: "zoom-200-equivalent", width: 640, height: 450 },
-        { name: "phone-small", width: 320, height: 740 },
-        { name: "phone-low-height", width: 390, height: 650 },
-        { name: "phone-landscape", width: 844, height: 390 },
-      ]) {
-        for (const route of ["/", "/abonnementen", "/ooievaarspas", "/sporten/krachttraining", "/topsport-en-ntc", "/gratis-persoonlijke-intake", "/ledenportaal", "/backoffice/rooster"]) {
-          // Resize and image decoding across these long pages can accumulate in
-          // Chromium's renderer. A fresh page keeps the reflow assertion itself
-          // deterministic instead of depending on renderer memory history.
-          await resetPage();
-          await page.setViewportSize({ width: viewport.width, height: viewport.height });
-          await goto(page, route);
-          await checkOverflow(page, route, viewport.name);
-          await checkFocusedPublicOverflow(page, route, viewport.name);
-        }
-      }
-    });
-
-    await check("Pointer-coarse en reduced-motion", async () => {
-      currentActivity = "pointer coarse en reduced motion";
-      const touchContext = await browser.newContext({
-        baseURL: BASE_URL,
-        viewport: { width: 390, height: 844 },
-        screen: { width: 390, height: 844 },
-        isMobile: true,
-        hasTouch: true,
-        reducedMotion: "reduce",
-      });
-      touchContext.setDefaultTimeout(NAVIGATION_TIMEOUT);
-      const touchPage = await touchContext.newPage();
-      const touchIssues = [];
-      touchPage.on("console", (message) => { if (message.type() === "error") touchIssues.push(`console: ${message.text()}`); });
-      touchPage.on("pageerror", (error) => touchIssues.push(`pageerror: ${error.message}`));
-      try {
-        for (const route of ["/", "/rooster", "/ledenportaal", "/backoffice/rooster"]) {
-          await goto(touchPage, route);
-          await checkOverflow(touchPage, route, "pointer-coarse");
-        }
-        await touchPage.getByRole("button", { name: /Personal training dertig minuten later/i }).click();
-        await textContains(touchPage.getByRole("status"), "verplaatst naar Maandag 08:30", "Mobiele roosteractie");
-        const undersizedTargets = await touchPage.evaluate(() => [...document.querySelectorAll(
-          ".schedule-mobile-agenda__actions button, .portal-mobile-nav a, .public-schedule__panel > header button",
-        )].filter((element) => {
-          const rect = element.getBoundingClientRect();
-          return rect.width > 0 && rect.height > 0 && (rect.width < 44 || rect.height < 44);
-        }).map((element) => ({ text: element.getAttribute("aria-label") || element.textContent?.trim(), rect: element.getBoundingClientRect().toJSON() })));
-        assert(!undersizedTargets.length, `Touchdoelen kleiner dan 44px: ${JSON.stringify(undersizedTargets)}`);
-        const media = await touchPage.evaluate(() => ({
-          coarse: window.matchMedia("(pointer: coarse)").matches,
-          reduced: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-        }));
-        assert(media.coarse, "De touchcontext activeerde pointer: coarse niet");
-        assert(media.reduced, "De touchcontext activeerde reduced motion niet");
-        await goto(touchPage, "/");
-        const reducedStyles = await touchPage.evaluate(() => {
-          const marquee = document.querySelector(".ao-marquee__track");
-          const ribbon = document.querySelector(".ao-hero__ribbon");
-          const reveal = document.querySelector(".reveal");
-          const programCard = document.querySelector(".ao-program-grid > .ao-program");
-          return {
-            marqueeAnimation: marquee ? getComputedStyle(marquee).animationName : null,
-            ribbonAnimation: ribbon ? getComputedStyle(ribbon).animationName : null,
-            revealOpacity: reveal ? getComputedStyle(reveal).opacity : null,
-            revealTransform: reveal ? getComputedStyle(reveal).transform : null,
-            programCardOpacity: programCard ? getComputedStyle(programCard).opacity : null,
-            programCardTransform: programCard ? getComputedStyle(programCard).transform : null,
-          };
-        });
-        assert(reducedStyles.marqueeAnimation === "none", `Marquee beweegt met reduced motion: ${JSON.stringify(reducedStyles)}`);
-        assert(reducedStyles.ribbonAnimation === "none", `Ribbon beweegt met reduced motion: ${JSON.stringify(reducedStyles)}`);
-        assert(reducedStyles.revealOpacity === "1" && reducedStyles.revealTransform === "none", `Reveal blijft verborgen of verschoven met reduced motion: ${JSON.stringify(reducedStyles)}`);
-        assert(reducedStyles.programCardOpacity === "1" && reducedStyles.programCardTransform === "none", `Programmacard blijft verborgen of verschoven met reduced motion: ${JSON.stringify(reducedStyles)}`);
-        assert(!touchIssues.length, touchIssues.join("; "));
-      } finally {
-        await touchContext.close();
-      }
-    });
-
-    await page.setViewportSize({ width: 1280, height: 900 });
-
-    await check("Geen console-, pagina- of netwerkfouten", async () => {
-      const uniqueIssues = [...new Map(browserIssues.map((issue) => [JSON.stringify(issue), issue])).values()];
-      assert(
-        !uniqueIssues.length,
-        uniqueIssues.slice(0, 20).map((issue) => `${issue.type} (${issue.activity}): ${issue.message}${issue.source ? ` [${issue.source}]` : ""}`).join("; "),
-      );
-    });
-
-    await context.close();
-
-    console.log(`\nBrowser-QA: ${completed.length} controles geslaagd, ${failures.length} mislukt.`);
-    console.log(`Screenshots: ${ARTIFACTS_DIR}`);
-    if (failures.length) {
-      console.error("\nMislukte controles:");
-      for (const failure of failures) console.error(`- ${failure.name}: ${failure.message}`);
-      process.exitCode = 1;
-    }
-  } finally {
-    await browser?.close();
+    report.viewports.push(row);
+    console.log(`Browser viewport ${width}: ${row.routes} routes, no overflow, fonts/images loaded, ${row.pixelComparisons} exact screenshots.`);
   }
-}
+  await page.bringToFront();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await ready(page, base + "/");
+  await page.locator("#menu-trigger").focus();
+  await page.keyboard.press("Enter");
+  assert.equal(await page.locator("#site-menu").evaluate((dialog) => dialog.open), true);
+  assert.equal(await page.locator("#menu-trigger").getAttribute("aria-expanded"), "true");
+  assert.equal(await page.evaluate(() => document.querySelector("#site-menu").contains(document.activeElement)), true);
+  for (let i = 0; i < 50; i++) {
+    await page.keyboard.press("Tab");
+    assert.equal(await page.evaluate(() => document.querySelector("#site-menu").contains(document.activeElement) || document.activeElement === document.body), true, "Menu keeps the underlying page inert; native dialogs may focus browser chrome");
+  }
+  assert.equal(await page.locator(".header-intake").evaluate((link) => { link.focus(); return document.activeElement === link; }), false, "Underlying page cannot receive focus");
+  await page.keyboard.press("Escape");
+  await page.waitForFunction(() => !document.querySelector("#site-menu").open && document.querySelector("#menu-trigger").getAttribute("aria-expanded") === "false");
+  assert.equal(await page.locator("#menu-trigger").getAttribute("aria-expanded"), "false");
+  assert.equal(await page.locator("#menu-trigger").evaluate((trigger) => document.activeElement === trigger), true);
+  assert.equal(await page.locator("#menu-trigger i").count(), 3);
+  await page.evaluate(() => scrollTo(0, 800));
+  await page.waitForFunction(() => document.querySelector(".site-header").classList.contains("is-scrolled"));
+  report.interactions.menu = "keyboard opening, 50 focus cycles, Escape, aria-expanded, focus restoration, three lines and scrolled header";
 
-main().catch((error) => {
-  console.error(error instanceof Error ? error.stack : error);
-  process.exitCode = 1;
-});
+  await page.locator("[data-photo]").first().click();
+  for (let i = 1; i <= 10; i++) {
+    assert.match(await page.locator("#photo-counter").textContent(), new RegExp(`^${String(i).padStart(2, "0")} / 10`));
+    assert.equal(await page.locator(".lightbox-photo").evaluate((figure) => figure.classList.contains("phone")), i >= 9);
+    assert.ok((await page.locator("#photo-large").getAttribute("alt")).length > 15);
+    if (i >= 9) {
+      await page.locator("#photo-large").evaluate((img) => img.decode());
+      await page.screenshot({ path: path.join(output, `gallery-${i}-390.png`), animations: "disabled" });
+    }
+    await page.keyboard.press("ArrowRight");
+  }
+  await page.keyboard.press("ArrowLeft");
+  assert.match(await page.locator("#photo-counter").textContent(), /^10 \/ 10/);
+  await page.keyboard.press("Escape");
+  await page.waitForFunction(() => !document.querySelector("#photo-viewer").open && document.activeElement === document.querySelector("[data-photo]"));
+  assert.equal(await page.locator("[data-photo]").first().evaluate((button) => document.activeElement === button), true);
+  report.interactions.gallery = "all ten images, wrap/arrow navigation, accurate captions/alt, 09/10 crop, Escape and focus restoration";
+
+  await ready(page, base + "/sporten/");
+  const training = await page.evaluate(() => {
+    const widget = document.querySelector("[data-training-route]");
+    const form = widget.querySelector("form");
+    const next = widget.querySelector("[data-route-next]");
+    const expect = (condition, message) => { if (!condition) throw new Error(message); };
+    expect(next.disabled, "Training initially disabled");
+    let count = 0;
+    for (const doel of ["sterker", "fitter", "afvallen", "spiermassa", "prestatie"]) for (const ervaring of ["start", "regelmatig", "ervaren"]) for (const begeleiding of ["zelf", "start", "intensief"]) {
+      for (const [name, value] of Object.entries({ doel, ervaring, begeleiding })) {
+        form.querySelector(`input[name="${name}"][value="${value}"]`).click();
+        expect(!next.disabled, "Training answer enables next"); next.click();
+      }
+      const result = widget.querySelector("[data-route-result]");
+      expect(!result.hidden, "Training result visible");
+      const link = new URL(result.querySelector("a").href);
+      for (const [name, value] of Object.entries({ doel, ervaring, begeleiding })) expect(link.searchParams.get(name) === value, `Training query ${name}`);
+      expect(document.activeElement === result.querySelector("h3"), "Training result focus");
+      result.querySelector("[data-route-reset]").click();
+      expect(next.disabled, "Training reset"); count++;
+    }
+    form.querySelector('input[name="doel"][value="sterker"]').click(); next.click(); widget.querySelector("[data-route-prev]").click();
+    expect(form.querySelector('input[name="doel"][value="sterker"]').checked, "Training back preserves selection");
+    return count;
+  });
+  assert.equal(training, 45); report.interactions.trainingCombinations = training;
+
+  await ready(page, base + "/gratis-persoonlijke-intake/?abonnement=unlimited");
+  const intake = await page.evaluate(() => {
+    const widget = document.querySelector("[data-intake-wizard]");
+    const next = widget.querySelector("[data-wizard-next]");
+    const expect = (condition, message) => { if (!condition) throw new Error(message); };
+    expect(next.disabled, "Intake initially disabled");
+    let count = 0;
+    for (const doel of ["sterker", "fitter", "afvallen", "spiermassa", "prestatie"]) for (const moment of ["ochtend", "middag", "avond", "wisselend"]) for (const begeleiding of ["wegwijs", "startplan", "coaching", "weet-nog-niet"]) {
+      for (const value of [doel, moment, begeleiding]) { widget.querySelector(`[data-wizard-choices] input[value="${value}"]`).click(); expect(!next.disabled, "Intake answer enables next"); next.click(); }
+      expect(!widget.querySelector("[data-wizard-result]").hidden, "Intake result visible");
+      const link = new URL(widget.querySelector("[data-result-contact]").href);
+      for (const [key, value] of Object.entries({ doel, moment, begeleiding, abonnement: "unlimited", onderwerp: "intake" })) expect(link.searchParams.get(key) === value, `Intake query ${key}`);
+      expect(widget.querySelector("[data-progress]").value === 3, "Intake progress");
+      widget.querySelector("[data-wizard-reset]").click(); expect(next.disabled, "Intake reset");
+      expect(widget.querySelector("[data-membership-name]").textContent === "Onbeperkt trainen", "Product preserved"); count++;
+    }
+    widget.querySelector('[data-wizard-choices] input[value="sterker"]').click(); next.click(); widget.querySelector("[data-wizard-prev]").click();
+    expect(widget.querySelector('[data-wizard-choices] input[value="sterker"]').checked, "Intake back preserves selection");
+    return count;
+  });
+  assert.equal(intake, 80); report.interactions.intakeCombinations = intake;
+
+  await ready(page, base + "/contact/?onderwerp=intake&abonnement=youth&doel=fitter&moment=avond&ervaring=ervaren&begeleiding=intensief");
+  assert.equal(await page.locator('[name="experience"]').inputValue(), "ervaren");
+  assert.equal(await page.locator('[name="membership"]').inputValue(), "youth");
+  await page.locator("[data-prepare-message]").click();
+  assert.equal(await page.locator("[data-message-ready]").isVisible(), false);
+  await page.locator('[name="name"]').fill("Test Gebruiker");
+  await page.locator('[name="email"]').fill("test@example.nl");
+  await page.locator('[name="message"]').fill("Graag een afspraak & informatie: é, ? +.");
+  await page.locator("[data-prepare-message]").click();
+  assert.equal(await page.locator("[data-message-ready]").isVisible(), true);
+  const mail = new URL(await page.locator("[data-open-email]").getAttribute("href"));
+  assert.equal(mail.protocol, "mailto:"); assert.equal(mail.pathname, "info@absolutely-fit.nl");
+  assert.ok(mail.searchParams.get("body").includes("Graag een afspraak & informatie: é, ? +."));
+  assert.ok(mail.searchParams.get("body").includes("Ervaring:"));
+  await page.locator("[data-copy-message]").click();
+  await page.waitForFunction(() => document.querySelector("[data-copy-status]").textContent.includes("gekopieerd"));
+  assert.equal(await page.evaluate(() => navigator.clipboard.readText()), await page.locator("[data-prepared-message]").inputValue());
+  await page.locator('[name="message"]').fill("Aangepast bericht");
+  assert.equal(await page.locator("[data-message-ready]").isVisible(), false);
+  await ready(page, base + "/contact/?onderwerp=evil&abonnement=evil&doel=evil&moment=evil&ervaring=evil&begeleiding=evil");
+  for (const name of ["topic", "membership", "goal", "moment", "experience", "guidance"]) assert.equal(await page.locator(`[name="${name}"]`).inputValue(), "");
+  report.interactions.contact = "context allowlist, required validation, encoded mailto, clipboard and stale message invalidation";
+
+  await ready(page, base + "/rooster/");
+  assert.equal(await page.locator(".pr-day").count(), 7);
+  assert.match(await page.locator("[data-week-range]").textContent(), /12 oktober.*18 oktober 2026/);
+  const initial = await page.locator("[data-week-range]").textContent();
+  await page.locator("[data-week-next]").click(); assert.notEqual(await page.locator("[data-week-range]").textContent(), initial);
+  await page.locator("[data-week-prev]").click(); assert.equal(await page.locator("[data-week-range]").textContent(), initial);
+  await page.locator("[data-week-prev]").click(); await page.locator("[data-week-current]").click();
+  assert.equal(await page.locator("[data-week-range]").textContent(), initial);
+  assert.equal(await page.locator(".pr-day.is-today").count(), 1);
+  for (const button of await page.locator("[data-training-filter]").all()) { await button.click(); assert.equal(await button.getAttribute("aria-pressed"), "true"); }
+  report.interactions.schedule = "Amsterdam week, today, seven regular days, previous/next/reset and all training filters";
+
+  await ready(page, base + "/kennisbank/");
+  assert.equal(await page.locator("[data-knowledge-card]").count(), 9);
+  await page.locator("[data-knowledge-search]").fill("onvindbarezoekterm");
+  assert.equal(await page.locator("[data-knowledge-empty]").isVisible(), true);
+  await page.locator("[data-knowledge-reset]").click();
+  assert.equal(await page.locator("[data-knowledge-card]:visible").count(), 9);
+  for (const button of await page.locator("[data-category-filter]").all()) { await button.click(); assert.equal(await button.getAttribute("aria-pressed"), "true"); assert.ok(await page.locator("[data-knowledge-card]:visible").count() > 0); }
+  await ready(page, base + "/veelgestelde-vragen/");
+  assert.equal(await page.locator("[data-faq-item]").count(), 10);
+  await page.locator("[data-faq-search]").fill("onvindbarezoekterm");
+  assert.equal(await page.locator("[data-faq-empty]").isVisible(), true);
+  await page.locator("[data-faq-reset]").click();
+  const summary = page.locator("[data-faq-item] summary").first(); await summary.focus(); await page.keyboard.press("Enter");
+  assert.equal(await page.locator("[data-faq-item]").first().evaluate((item) => item.open), true);
+  for (const link of await page.locator(".afk-faq-nav a").all()) { const target = await link.getAttribute("href"); await link.click(); assert.equal(await page.locator(target).count(), 1); }
+  for (const article of pages.filter((entry) => entry.article)) {
+    await ready(page, routeURL(base, article.path));
+    for (const link of await page.locator("[data-article-anchor]").all()) { const target = await link.getAttribute("href"); assert.equal(await page.locator(target).count(), 1); }
+  }
+  report.interactions.knowledge = "nine articles, search/empty/reset, all categories, ten FAQ accordions, category navigation and all article anchors";
+
+  // Motion uses a live animation clock; the parity clock is fixed only for
+  // identical dates/opening labels in the reduced-motion screenshots above.
+  const motionContext = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: "nl-NL", timezoneId: "Europe/Amsterdam", reducedMotion: "no-preference" });
+  const motionPage = await motionContext.newPage();
+  motionPage.on("pageerror", (error) => errors.push(error.message));
+  await ready(motionPage, base + "/");
+  await motionPage.waitForFunction(() => Number(getComputedStyle(document.querySelector(".p-hero-copy")).opacity) > 0.99 && Number(getComputedStyle(document.querySelector(".p-hero-stage")).opacity) > 0.99);
+  await motionPage.screenshot({ path: path.join(output, "home-390-normal-motion.png"), fullPage: false, animations: "disabled" });
+  await motionContext.close();
+  report.interactions.motion = "all parity checks with reduced motion; normal Motion hero completes and content is visible";
+  assert.deepEqual(errors, [], "No browser JavaScript errors");
+  report.status = "passed";
+  await writeFile(path.join(output, "browser-results.json"), JSON.stringify(report, null, 2) + "\n");
+  console.log(`Browser passed: ${report.viewports.reduce((sum, row) => sum + row.routes, 0)} route/viewport checks, ${report.screenshots.length} screenshots, 45 training + 80 intake combinations and menu/gallery/contact/schedule/search/FAQ/motion.`);
+} catch (error) {
+  report.status = "failed"; report.failure = error.message;
+  await page.screenshot({ path: path.join(output, "failure.png"), fullPage: true }).catch(() => {});
+  await writeFile(path.join(output, "browser-results.json"), JSON.stringify(report, null, 2) + "\n");
+  throw error;
+} finally { await browser.close(); }

@@ -1,9 +1,12 @@
 # dependencies
-/node_modules/
+node_modules/
 
 # Next.js output
 /.next/
 /out/
+/site/dist/**/*.html
+/site/dist/robots.txt
+/site/dist/sitemap.xml
 
 # local tooling and reports
 /artifacts/

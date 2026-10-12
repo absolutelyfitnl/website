@@ -1,0 +1,615 @@
+{
+  "commit": "cd1f4e7f78b0e1f3ceea3d9d3d12ab9cf2456ed8",
+  "files": [
+    {
+      "path": ".gitignore",
+      "bytes": 45,
+      "sha256": "d18c5c5194b30a7a054a6ee0b774310e7935399c0d7247b4ded375b3d25995f2"
+    },
+    {
+      "path": ".openai/hosting.json",
+      "bytes": 106,
+      "sha256": "49a2fe3915dd939f396308edf5371c6cc613e737a2a0b6f3f3e3b312354f4d82"
+    },
+    {
+      "path": "BUILD-CONTRACT.md",
+      "bytes": 4979,
+      "sha256": "06d765be5776e06b2decdfe7c034da42f5b76fa91106e2b39cfe2c3bd0029774"
+    },
+    {
+      "path": "CONTENT-MIGRATION.md",
+      "bytes": 21789,
+      "sha256": "8ec742e69af675151eacdee65dad4de50cb845cd788b8132a9476fe1b8d13005"
+    },
+    {
+      "path": "DESIGN-BRIEF-02.md",
+      "bytes": 6356,
+      "sha256": "ff6af76e6af21b0d316330a92aa39cebe92be173b696e33e1d8b2f17e99e5a67"
+    },
+    {
+      "path": "DESIGN-BRIEF.md",
+      "bytes": 5042,
+      "sha256": "2510bffe30b824fd36aa18352bdd2bd7c1abbb6bcc69d460edd1d6b2427a2c9f"
+    },
+    {
+      "path": "README.md",
+      "bytes": 5141,
+      "sha256": "2253d0b57f2011614cbb8706753ef1f7b8e6812daf0f5063022298a13db59478"
+    },
+    {
+      "path": "dist/404.html",
+      "bytes": 853,
+      "sha256": "ae0f86d81261751b07ce2d90b29440e2ba3e969742e47a3d40a03eece3ac49ac"
+    },
+    {
+      "path": "dist/abonnementen/index.html",
+      "bytes": 19532,
+      "sha256": "2fd615fc23ba3935d3dcd6b8a387aadbb9aea373c9aae2d68cad3dd64f070239"
+    },
+    {
+      "path": "dist/assets/font-1.woff2",
+      "bytes": 80968,
+      "sha256": "c82d65280835cb3cd1b499863cf68cae8c6193c45ffae9495d28d01f749a9ae2"
+    },
+    {
+      "path": "dist/assets/font-10.woff2",
+      "bytes": 48200,
+      "sha256": "2a8e7f713ee79fbccdef3cef5c787aff47580299f7da60144961e7db2ec08211"
+    },
+    {
+      "path": "dist/assets/font-11.woff2",
+      "bytes": 48272,
+      "sha256": "b00c1f73ddaa9d435c49b0777223823e5f4fcf6a06350d532df3d7730375dd9e"
+    },
+    {
+      "path": "dist/assets/font-12.woff2",
+      "bytes": 68312,
+      "sha256": "0ab2fcacedaafc0a7536453d4a763f131ba83a636706d3ec2d685cf04478a920"
+    },
+    {
+      "path": "dist/assets/font-13.woff2",
+      "bytes": 70348,
+      "sha256": "c03775f8cc3db88cfea259b231abe13f94e6a3d3cb01c09477a2e42a1f5919e1"
+    },
+    {
+      "path": "dist/assets/font-14.woff2",
+      "bytes": 324820,
+      "sha256": "1b08e7fc267a5c7e1d614100f604b83e7e8a0be241f0f288faa2b3ac93a683ba"
+    },
+    {
+      "path": "dist/assets/font-15.woff2",
+      "bytes": 325304,
+      "sha256": "8c883f63b2c4157d997319f2c8bc6995ed4357ef371940d31ca159004a4aae63"
+    },
+    {
+      "path": "dist/assets/font-16.woff2",
+      "bytes": 326048,
+      "sha256": "e7a1aaf7eda9f2fad4131725fa556265ec75ca7b2d756260173a040363e8d4f7"
+    },
+    {
+      "path": "dist/assets/font-17.woff2",
+      "bytes": 326468,
+      "sha256": "b37284b5701b6b168dfc770aa1a4ac492106422fd3ba76bc7641e37434e8019c"
+    },
+    {
+      "path": "dist/assets/font-18.woff2",
+      "bytes": 327324,
+      "sha256": "eec66af7f2337bd34fe6e801cf92ededcb57a20c0d7bc40a61d4eefcbe3dd40c"
+    },
+    {
+      "path": "dist/assets/font-19.woff2",
+      "bytes": 327260,
+      "sha256": "5b717029a2c4cfca2167e97be1157edb24151591e5ec96eb484745c392817a7a"
+    },
+    {
+      "path": "dist/assets/font-2.woff2",
+      "bytes": 81448,
+      "sha256": "cc9fb2539cf27df48255982e896d28f544483537cdb41f9fabd741af8992d719"
+    },
+    {
+      "path": "dist/assets/font-20.woff2",
+      "bytes": 94972,
+      "sha256": "a13d9b41b0a471ce58f0e46d377fa3cc76615e4632c3b15eb397caadf7a13f0a"
+    },
+    {
+      "path": "dist/assets/font-21.woff2",
+      "bytes": 95060,
+      "sha256": "f433e5d333be1128d8ec8a28b8aadd0314d10e14e4105406076666bc830fc15d"
+    },
+    {
+      "path": "dist/assets/font-22.woff2",
+      "bytes": 95096,
+      "sha256": "6bad1a774228464cc88b8b0271555b266f7a3c64a7bedf15e165fdab4f6ac0ce"
+    },
+    {
+      "path": "dist/assets/font-23.woff2",
+      "bytes": 94928,
+      "sha256": "b9584e099e0e7f1e1e914c3037aabb9010c50346a3ce8df5eeeeecc0563044d8"
+    },
+    {
+      "path": "dist/assets/font-24.woff2",
+      "bytes": 95688,
+      "sha256": "b8f802f05b322a7345805f5b89f8bb976604cc719a91530918d5ce3c47160950"
+    },
+    {
+      "path": "dist/assets/font-25.woff2",
+      "bytes": 69360,
+      "sha256": "ec926d5065eaca49a48f96e312bbae0bbc5733c24215cf5dfabbdccee926fef7"
+    },
+    {
+      "path": "dist/assets/font-26.woff2",
+      "bytes": 69416,
+      "sha256": "3e699ead1876244fa392243054ddefe7cf631b488438828a8a100731a22ab995"
+    },
+    {
+      "path": "dist/assets/font-27.woff2",
+      "bytes": 69356,
+      "sha256": "6c0346b8d297ebdc225832833e03e884a26ad99d265ecd3924d46e1ba285ea87"
+    },
+    {
+      "path": "dist/assets/font-28.woff2",
+      "bytes": 69308,
+      "sha256": "3e756954468ff1cb302dae0414262e72f76a67d87bef3fa1f3226cd0fb9b2d85"
+    },
+    {
+      "path": "dist/assets/font-3.woff2",
+      "bytes": 86636,
+      "sha256": "0d85af813fc3ed87db0c6265515689b2eef5cbaf7aab17922528dfc95a2cd73f"
+    },
+    {
+      "path": "dist/assets/font-4.woff2",
+      "bytes": 87120,
+      "sha256": "7dde307fa887fc65ff5830cfada77a7decc5dae8d3c816c9d39ba3f1af1c4ed7"
+    },
+    {
+      "path": "dist/assets/font-5.woff2",
+      "bytes": 87556,
+      "sha256": "73bc9e17231e9073780d3c81574c7253cecd5645c93544df1a935054b39a364f"
+    },
+    {
+      "path": "dist/assets/font-6.woff2",
+      "bytes": 88228,
+      "sha256": "0ec6b3cca2df54f108f8dc239597e0eab386343a230afad8a0f445c7d21c3e77"
+    },
+    {
+      "path": "dist/assets/font-7.woff2",
+      "bytes": 48280,
+      "sha256": "b0ae3e89a7d3ef2b1838bb4b1ceb0b17cc3435af061eee809d76aa623ff116e9"
+    },
+    {
+      "path": "dist/assets/font-8.woff2",
+      "bytes": 48308,
+      "sha256": "376427b5322148d8de1e03f263bcca4935a2d60ba71d9f94f4947ab664c711ae"
+    },
+    {
+      "path": "dist/assets/font-9.woff2",
+      "bytes": 48280,
+      "sha256": "b79a2ea7a38f33fd96a282fadb9ce97626bb0724a44d21075859f0e50239993a"
+    },
+    {
+      "path": "dist/assets/fonts.css",
+      "bytes": 4302,
+      "sha256": "e44e2eaf847bbd1adda1147ca72fa1a7ff921f84982c2fef6eb5d6e5abf944fc"
+    },
+    {
+      "path": "dist/assets/home.css",
+      "bytes": 19825,
+      "sha256": "6a196f9541d8c3c12db1d472a660431f656669496a2b8885233accfb2056db0f"
+    },
+    {
+      "path": "dist/assets/knowledge.js",
+      "bytes": 3632,
+      "sha256": "af64c7fd56e6db8ec01877ca61e483eb66a91e6c1749c7084f985b7721ca397e"
+    },
+    {
+      "path": "dist/assets/logo-horizontal.svg",
+      "bytes": 36348,
+      "sha256": "21af57928b7d66673d0fae89d7ae0a365e8f202c7f2feda3137320658ece9ce9"
+    },
+    {
+      "path": "dist/assets/logo-tight.svg",
+      "bytes": 36004,
+      "sha256": "338c1d3c5723a51e60f3268578f04cb74e4eb18c58473b7999836ba977cd45b5"
+    },
+    {
+      "path": "dist/assets/logo.svg",
+      "bytes": 36004,
+      "sha256": "105bae03a45b649075ff57d1f33100bd70e49e6e5e284f32c404cc97e5f5e707"
+    },
+    {
+      "path": "dist/assets/lotus.svg",
+      "bytes": 18326,
+      "sha256": "c18ed65fc35c036baca2f62a57478b001ed4d356c9b1f6946f5107b6c94d49cd"
+    },
+    {
+      "path": "dist/assets/motion.js",
+      "bytes": 139606,
+      "sha256": "d8b344a48578cb8616dad0110658017a1434cdb99873adc96d0efe64abc07e8c"
+    },
+    {
+      "path": "dist/assets/noc-nsf.svg",
+      "bytes": 33349,
+      "sha256": "2e30b2ec125c15c13c12c510279d7f234f82fc46e0ef627cf3dc416ddfa6397b"
+    },
+    {
+      "path": "dist/assets/ooievaarspas.svg",
+      "bytes": 10643,
+      "sha256": "601c0fbcffea25a9bee9016741a297bde537ffee9f7125ec4e3e7314913e9fd2"
+    },
+    {
+      "path": "dist/assets/photos/club-01.webp",
+      "bytes": 375889,
+      "sha256": "ec9772107f369de75fb46207ce6f2533641e00df4244e597099a689a9ebe972f"
+    },
+    {
+      "path": "dist/assets/photos/club-02.jpg",
+      "bytes": 131762,
+      "sha256": "e84749e52bcdc228b596864c2d3a6fc907072f0ffaedbd9aacd4bc92e2d56bf1"
+    },
+    {
+      "path": "dist/assets/photos/club-03.jpg",
+      "bytes": 195660,
+      "sha256": "d46550c7ae1cd2f180383daa347e9bc908ed22962229056c68cc86a70d515a5e"
+    },
+    {
+      "path": "dist/assets/photos/club-04.jpg",
+      "bytes": 352883,
+      "sha256": "5d0633797c452428937691e05dae03b1600363b3144b527b8d3e395db92870fb"
+    },
+    {
+      "path": "dist/assets/photos/club-05.jpg",
+      "bytes": 388653,
+      "sha256": "602d963050e3622319eb25614831d12a5075d8b967739bf9508db0d7f8a81a89"
+    },
+    {
+      "path": "dist/assets/photos/club-06.jpg",
+      "bytes": 362968,
+      "sha256": "1285d38c8a4e8bd1fc59cfe0879a57c3452017e6b750a16385aa206dc6fdb2db"
+    },
+    {
+      "path": "dist/assets/photos/club-07.jpg",
+      "bytes": 460850,
+      "sha256": "adf5f85392184623614377f2b0d1b7d9498fe3e65985e2350370debd3c88c49d"
+    },
+    {
+      "path": "dist/assets/photos/club-08.jpg",
+      "bytes": 444997,
+      "sha256": "b9c06af81dde643e8718f11e9522c06c3d37399f4e2955b08dcfa3114feb9f62"
+    },
+    {
+      "path": "dist/assets/photos/club-09.jpg",
+      "bytes": 203231,
+      "sha256": "a0eda062f540a353faff9133816665344b2cec45af2e020e2ac0301989e78750"
+    },
+    {
+      "path": "dist/assets/photos/club-10.jpg",
+      "bytes": 196950,
+      "sha256": "a27ed36cf7cc3b11a19540f51b80f0bedd3f15f6acac1de6edf677730e1175a3"
+    },
+    {
+      "path": "dist/assets/practical.js",
+      "bytes": 14763,
+      "sha256": "2271e7ac7ef5c4357234863a460080ef0458cafb0c22336982f7802cd345806f"
+    },
+    {
+      "path": "dist/assets/ribbon-wide.svg",
+      "bytes": 1660,
+      "sha256": "78ddcb2be2141218d7cbca3085940a3006f2b4617784961e52a622ebb27b603c"
+    },
+    {
+      "path": "dist/assets/ribbon.svg",
+      "bytes": 1591,
+      "sha256": "8a7b0e0f530b985547e9ae2656ec63dda4a6fd609ba62c5f1dd3e8e3298de479"
+    },
+    {
+      "path": "dist/assets/site.css",
+      "bytes": 30333,
+      "sha256": "aae1e39e5cc077b8ea0473fa6175633aa2f46907938ad3ec395a2c0c288c1b31"
+    },
+    {
+      "path": "dist/assets/site.js",
+      "bytes": 4324,
+      "sha256": "661632acc447e92f21b5a5fd21cc2b7554e1cdcde8ae8370e206273c9356131c"
+    },
+    {
+      "path": "dist/assets/tailwind.css",
+      "bytes": 9575,
+      "sha256": "270314bbec2c20b5343746781de5eab5e733ae70d10038c9100130fbfe1f90bc"
+    },
+    {
+      "path": "dist/assets/training.js",
+      "bytes": 4980,
+      "sha256": "3ad08eb6e6b8a2bf4856f0e22c1c3c15735d2cacbfe34558098497b7a0c90c15"
+    },
+    {
+      "path": "dist/assets/wordmark.svg",
+      "bytes": 31924,
+      "sha256": "c673c658302d3f40c7b903ffe5f52709e0bf75011ef3c193fac193fb7376421c"
+    },
+    {
+      "path": "dist/begeleiding/index.html",
+      "bytes": 25279,
+      "sha256": "1ac3fb0e684504053d3915e83e9679999c3a482c583dcca72d7f964a5d612210"
+    },
+    {
+      "path": "dist/blog/beginnen-met-krachttraining-scheveningen/index.html",
+      "bytes": 752,
+      "sha256": "391eade6e2e7fde0e8e8d304b1090e36172d7cdee3d2994badd44300d77b6e76"
+    },
+    {
+      "path": "dist/blog/index.html",
+      "bytes": 562,
+      "sha256": "b82205be48628f133660fb120d31f540376f4a7d7dda905fb936252fb01b11c1"
+    },
+    {
+      "path": "dist/blog/kleine-stappen-duurzaam-sterker/index.html",
+      "bytes": 715,
+      "sha256": "2034bba3f30e27777b7957a676c3bef494419d45622941c93672566a5f3855e6"
+    },
+    {
+      "path": "dist/blog/sporten-met-de-ooievaarspas-bij-absolutely-fit/index.html",
+      "bytes": 755,
+      "sha256": "78ef5e4a46b627546350a15414042911ddc7248dc582debdbcc43f4122361b13"
+    },
+    {
+      "path": "dist/blog/sportschool-als-ontmoetingsplek-havenkwartier/index.html",
+      "bytes": 761,
+      "sha256": "9e931897731c470ba797746648c5b38d9e9d672f022d6a25170140bd519c5bb6"
+    },
+    {
+      "path": "dist/blog/sterker-worden-begint-met-techniek/index.html",
+      "bytes": 695,
+      "sha256": "20c0a833f9fde19eda20d85ac419544b0b9e097105465a5322908d30c7352977"
+    },
+    {
+      "path": "dist/blog/topsportkennis-voor-ieder-niveau/index.html",
+      "bytes": 719,
+      "sha256": "9d8c83e97887eac97c2dd06829b6368e56b37dd69c358a88484757af3efe3ed7"
+    },
+    {
+      "path": "dist/blog/waarom-herstel-bij-training-hoort/index.html",
+      "bytes": 690,
+      "sha256": "1925cdfe1a231898503fc8c55197880d32f5deb5bd9a6ffcfdfc36aafb453806"
+    },
+    {
+      "path": "dist/blog/wat-gebeurt-er-tijdens-een-gratis-persoonlijke-intake/index.html",
+      "bytes": 791,
+      "sha256": "aa0445ec49af127b353c3962021d30994d3d505a3ca185d3894d595ce17f1b70"
+    },
+    {
+      "path": "dist/blog/zo-bouw-je-een-trainingsschema-op/index.html",
+      "bytes": 690,
+      "sha256": "59225906780ca1e9d06c8b8c6cb33021c4478836d515f05beef1d3e7eb134bb2"
+    },
+    {
+      "path": "dist/contact/index.html",
+      "bytes": 30297,
+      "sha256": "b0867146d4d81f6566497be3d8622ef71076e73764255ef8d4bc5218d06830e3"
+    },
+    {
+      "path": "dist/gratis-persoonlijke-intake/index.html",
+      "bytes": 29950,
+      "sha256": "f95758bea833f2200cb8d72aaed1f76f918081f85ec6ac030f5537db0844c99d"
+    },
+    {
+      "path": "dist/in-de-media/rond-de-haven-2026/index.html",
+      "bytes": 12034,
+      "sha256": "2651aeeff5832eb8cf0aa6212ef011ed6d390fe23728b8aa8281c46a166903cc"
+    },
+    {
+      "path": "dist/index.html",
+      "bytes": 27840,
+      "sha256": "9b6f1599a9531857eb8ad947b32059ce3761f9ca046678e1e202fbb7cd2e7bee"
+    },
+    {
+      "path": "dist/inloggen/index.html",
+      "bytes": 562,
+      "sha256": "78ae62ef22c0b497fa230238d5eea44548fab62f1a5a6822a2e27dec1fa94ea7"
+    },
+    {
+      "path": "dist/kennisbank/beginnen-met-krachttraining-scheveningen/index.html",
+      "bytes": 27513,
+      "sha256": "1fc2a7bcc35bfb0a3b53d225d597908c48006a6ced2bfd75cd4d47f48451933c"
+    },
+    {
+      "path": "dist/kennisbank/index.html",
+      "bytes": 33760,
+      "sha256": "3629ccb321108033187c1ffa0e8b4b4fe609e47bf6f68dd3a8b371079df4832e"
+    },
+    {
+      "path": "dist/kennisbank/kleine-stappen-duurzaam-sterker/index.html",
+      "bytes": 27166,
+      "sha256": "e92a60c018758c28be744a4f4f274a50a0671985512d7a68b44a33f33326496d"
+    },
+    {
+      "path": "dist/kennisbank/sporten-met-de-ooievaarspas-bij-absolutely-fit/index.html",
+      "bytes": 27293,
+      "sha256": "d851a1745868505754e4ccf4512f471ddd0de43f3362b26899ce8345a3629c76"
+    },
+    {
+      "path": "dist/kennisbank/sportschool-als-ontmoetingsplek-havenkwartier/index.html",
+      "bytes": 27111,
+      "sha256": "39b7d479e74e0506b9cc8a22a01f6f7a90696ba3061316f62147a8e6af0d4356"
+    },
+    {
+      "path": "dist/kennisbank/sterker-worden-begint-met-techniek/index.html",
+      "bytes": 26904,
+      "sha256": "b4afdc1087f41f7378a90667118208c85b4023250521e59946e8c14c59273830"
+    },
+    {
+      "path": "dist/kennisbank/topsportkennis-voor-ieder-niveau/index.html",
+      "bytes": 27723,
+      "sha256": "fae7931339016570768f23a10c2d4a0620f7c16ca9b0ad1bc602eab64573c492"
+    },
+    {
+      "path": "dist/kennisbank/waarom-herstel-bij-training-hoort/index.html",
+      "bytes": 26637,
+      "sha256": "964d333af1d4166f5c3484212f95d001563fff6040f6bc458d23a7edf8003539"
+    },
+    {
+      "path": "dist/kennisbank/wat-gebeurt-er-tijdens-een-gratis-persoonlijke-intake/index.html",
+      "bytes": 27160,
+      "sha256": "0a5cfd3b2c97a046be751bc5048b6c849fa38966dccecc0c9b7fa29ae4c4e855"
+    },
+    {
+      "path": "dist/kennisbank/zo-bouw-je-een-trainingsschema-op/index.html",
+      "bytes": 26364,
+      "sha256": "217dc95ff7e31d7008360172131509751737b80c34513c78dfcb3a644a4761f8"
+    },
+    {
+      "path": "dist/ledenapp/index.html",
+      "bytes": 10598,
+      "sha256": "8eb949aaf36dc077702291087a2458d032c2fed3200e686a6afa97ff3c0f8ab8"
+    },
+    {
+      "path": "dist/ledenportaal/index.html",
+      "bytes": 562,
+      "sha256": "78ae62ef22c0b497fa230238d5eea44548fab62f1a5a6822a2e27dec1fa94ea7"
+    },
+    {
+      "path": "dist/mijn-eerste-bezoek/index.html",
+      "bytes": 634,
+      "sha256": "95ab6a7e0e4b7329d8521e6593fc75ea13d95b9949f4a3ad5bb1752934bf058b"
+    },
+    {
+      "path": "dist/ooievaarspas/index.html",
+      "bytes": 16695,
+      "sha256": "69669d4b3cce2d8116546daf656ffb867a48ec4d52b37910767a347ccbf36c0a"
+    },
+    {
+      "path": "dist/openingstijden/index.html",
+      "bytes": 26688,
+      "sha256": "0d886f1cc7f1f26f3932f40037ffb72ee0349937a25d362c99b49d27f8d2d8b3"
+    },
+    {
+      "path": "dist/over-ons/index.html",
+      "bytes": 14670,
+      "sha256": "1b695de5f036ead55c0dd9c2e0d5ce6ee0bf940f56acd8631814f6d89df85f97"
+    },
+    {
+      "path": "dist/personal-training/index.html",
+      "bytes": 20850,
+      "sha256": "43ae0a83f921c03afdcb3651e2ee812d3f5822e3105166a903fc61025b871a80"
+    },
+    {
+      "path": "dist/robots.txt",
+      "bytes": 26,
+      "sha256": "331ea9090db0c9f6f597bd9840fd5b171830f6e0b3ba1cb24dfa91f0c95aedc1"
+    },
+    {
+      "path": "dist/rooster/index.html",
+      "bytes": 28190,
+      "sha256": "593b9e74de2383b261bc6769b7cf05602d80c024d39fb65b2dde04293493ee0c"
+    },
+    {
+      "path": "dist/sitemap.xml",
+      "bytes": 3585,
+      "sha256": "80704d48ec092a7c52b37cf95af843703d1adac84eeeb709dd5d5f9b0ba531f7"
+    },
+    {
+      "path": "dist/sporten/cardio-conditie/index.html",
+      "bytes": 19929,
+      "sha256": "abc9b7cc3b74414ee4e50e72b1de66f1a42cb41b8eb1f9057e8d1f97f45f3d4d"
+    },
+    {
+      "path": "dist/sporten/index.html",
+      "bytes": 25109,
+      "sha256": "099daab22e1715535f09b128b51ce963324316c6af97546d468c60b10b013902"
+    },
+    {
+      "path": "dist/sporten/krachttraining/index.html",
+      "bytes": 20315,
+      "sha256": "2af0bd4460ed620b4e8d2604d1733eed294fd8386b02e93b793cd67e7b3485c3"
+    },
+    {
+      "path": "dist/sporten/personal-training/index.html",
+      "bytes": 594,
+      "sha256": "1583f1ff732429dd6332f2e0a726ee25a42cfecbd4d7b698cf52970855d518d8"
+    },
+    {
+      "path": "dist/sporten/powerlifting-gewichtheffen/index.html",
+      "bytes": 20290,
+      "sha256": "e0751bcdffd9fa7149dad4ef2ac465d30af352fab387841191670ecf9df67fc2"
+    },
+    {
+      "path": "dist/sporten/strength-conditioning/index.html",
+      "bytes": 19890,
+      "sha256": "67b16b046934dbe826efaa943541d0bcc038fcb359d80e8c26e9c3056a8f2a64"
+    },
+    {
+      "path": "dist/team/index.html",
+      "bytes": 11941,
+      "sha256": "ea568cec77fd73777188a47171f77a1267a7b8f8bbda5539d0229a012ed9a507"
+    },
+    {
+      "path": "dist/topsport-en-ntc/index.html",
+      "bytes": 13170,
+      "sha256": "53e5e5a25d67deebdeeb49a88405e21f8b59d2f483b8409d10bb5da33597b8d1"
+    },
+    {
+      "path": "dist/veelgestelde-vragen/index.html",
+      "bytes": 33456,
+      "sha256": "d497c18784f548cceef1936820de16946e0b84264e20ec0f36d550eb09ba0e80"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 39422,
+      "sha256": "7da8e9ae3b78e5ef0b0c11787bc28254094667fc9238e7c8e1d58e8390bd117a"
+    },
+    {
+      "path": "package.json",
+      "bytes": 377,
+      "sha256": "430c4e8ed586dd9cd2b99bc6abb6947e6d8a4fd9b90cf563dde376bdef4e85ab"
+    },
+    {
+      "path": "src/build.mjs",
+      "bytes": 16402,
+      "sha256": "9d6a45933c7608e52f2e332f520228003a8ce43138c6e75ba76a87312ce671ff"
+    },
+    {
+      "path": "src/content/articles.json",
+      "bytes": 18287,
+      "sha256": "ffbf2dd7fbe69152db9214678e86c3ebfe590d2da510b1df48763195ba64b254"
+    },
+    {
+      "path": "src/content/page-manifest.json",
+      "bytes": 9018,
+      "sha256": "56627e760bf0ecb9f5bb215b80c009c1011bd81dcc9ac8e859cd8b68c50f351c"
+    },
+    {
+      "path": "src/pages/club.mjs",
+      "bytes": 30363,
+      "sha256": "e08bcd8a13522e1e293eb9cfa492160102fe0b81e2b4c132b6e09ec8795be4dd"
+    },
+    {
+      "path": "src/pages/home-base.html",
+      "bytes": 7595,
+      "sha256": "fd701a58ea42470045b43701c1d11900398d995b24b7dd48033094f939921afd"
+    },
+    {
+      "path": "src/pages/home.mjs",
+      "bytes": 8949,
+      "sha256": "40d16b0805228c9f910790f8fe53f3198f3b30eb9155e08fd795ba1783375d88"
+    },
+    {
+      "path": "src/pages/knowledge.mjs",
+      "bytes": 26482,
+      "sha256": "f196dd41f737a11d1db1964267d3b6a81767608f48c897c96fe97b2451de666d"
+    },
+    {
+      "path": "src/pages/practical.mjs",
+      "bytes": 34351,
+      "sha256": "4eea9decfdf37610e7ad139c735103414db157332d97576c725bd22985984b4a"
+    },
+    {
+      "path": "src/pages/training.mjs",
+      "bytes": 28301,
+      "sha256": "8399a092b4eba6956e9f8b245d1375e975b91b830b7cacaaf14aa576bdca33a2"
+    },
+    {
+      "path": "src/tailwind.css",
+      "bytes": 97,
+      "sha256": "3382e6025d1e0f36372c00c2a5c3290c280550d536195aae72cdcedc33976d35"
+    }
+  ]
+}

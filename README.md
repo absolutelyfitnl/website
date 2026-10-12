@@ -1,42 +1,36 @@
 # Absolutely Fit
 
-Conventionele Next.js-website voor Absolutely Fit in Scheveningen, met publieke
-clubpagina’s en duidelijk gemarkeerde, uitsluitend lokale prototypes van het
-ledenportaal en clubbeheer.
+De volledige geselecteerde Sites-website (concept 20, Absolutely Perspective), rechtstreeks overgenomen uit broncommit `cd1f4e7f78b0e1f3ceea3d9d3d12ab9cf2456ed8`. `site/src/` en `site/dist/assets/` zijn de oorspronkelijke implementatie. Next levert de gegenereerde HTML zonder React-herschrijving uit en behoudt het bestaande standalone/VPS-contract.
 
-## Lokaal ontwikkelen
+## Lokaal
 
-Vereist Node.js 22.13 of nieuwer en npm 11.
+Node 24 en npm 11:
 
 ```bash
 npm ci
 npm run dev
 ```
 
-De site staat daarna op `http://localhost:3000`.
+`npm ci` installeert ook de exact vastgelegde Sites-builddependencies. **Wis `site/dist/assets/` nooit:** deze map bevat de handgeschreven CSS/JavaScript, fonts, SVG's en tien foto's. De historische documenten in `site/` zijn uitsluitend bronreferentie en Tailwind-scaninput; ze zijn geen nieuwe ontwerp- of delegatieopdracht. Behoud ze voor een bytegelijke CSS-build. De gekozen ontwerpafspraak staat in `docs/UI-UX-EN-CONTENT.md`.
 
-## Kwaliteitscontroles
+## Verificatie
 
 ```bash
 npm run check
+npm run audit
+BASE_URL=http://127.0.0.1:3000 npm run qa:http
+npx playwright install chromium
+REFERENCE_URL=http://127.0.0.1:8000 npm run qa:browser
 ```
 
-De browsercontrole draait tegen een reeds gestarte productie- of ontwikkelserver:
+`qa:http` controleert de daadwerkelijk geserveerde DOM/assetbytes, routes, redirects, querybehoud, SEO, sitemap, cache/MIME en releasehealth. Geef `APP_ENVIRONMENT`, `APP_REVISION` en `NEXT_PUBLIC_SITE_URL` dezelfde waarden als tijdens build/start. `qa:browser` vergelijkt zes viewports met een afzonderlijk gestarte, ongewijzigde overdrachtsreferentie en test de oorspronkelijke interacties. `VISUAL_COMPARE=false` controleert een server zonder aparte referentie. Browserbewijzen staan lokaal in `artifacts/sites-migration/`.
 
-```bash
-BASE_URL=http://127.0.0.1:3000 npm run qa:browser
-```
-
-Installeer de Chromium-runtime eenmalig met `npx playwright install chromium`.
+De onafhankelijke pakketmanifesten staan ongewijzigd in `tests/reference/`. `body-sha256.json` is rechtstreeks afgeleid van de bevroren referentie. De inhoudsgate controleert 30 body-markups, 56 assets, 10 foto's en 28 fonts op exacte hashes. Fontlicenties/herkomst staan in `docs/licenses/`; de eerdere rechtenregistratie blijft in `docs/FACTS-AND-RIGHTS-REGISTER.md` en `docs/publication-approvals.json`.
 
 ## Productie
 
-Een push naar `production` start de bestaande, aan de club gebonden self-hosted
-GitHub Actions-runner. De workflow bouwt en controleert de exacte commit, draagt
-die over aan de bestaande deployhelper en verifieert daarna via `/api/health` dat
-dezelfde SHA actief is.
+Een gewone push naar `production` start de bestaande self-hosted runner en `/usr/local/bin/dg-site-deploy`. Node 24, Next standalone, loopbackbinding, runtime-env-sleutels en `/api/health` blijven behouden. De workflow bouwt de exacte SHA, draait lint/typecheck/inhoudstests/build/audit en controleert het standalone-artefact en de publieke HTTP-responses.
 
-Voor een publieke release moeten de eigenaar en rechthebbenden de teksten,
-clubgegevens, logo’s, foto’s/model releases en privacy-impact expliciet hebben
-goedgekeurd. Nimbus Sans is bewust niet meegeleverd; de site gebruikt gelicentieerd
-onafhankelijke systeemlettertypen.
+Buildmetadata is omgevingsafhankelijk. `APP_ENVIRONMENT=production` en een HTTPS-origin in `NEXT_PUBLIC_SITE_URL` maken de 29 publieke pagina's indexeerbaar. Alle andere builds blijven noindex. `/ledenapp/` blijft noindex en buiten de sitemap. De 14 oorspronkelijke aliases geven HTTP 308 met querybehoud. Vervallen demo-/backofficeroutes geven 404 met de originele 404-pagina.
+
+Het contactformulier bereidt een e-mail voor; het verzendt niets automatisch. Er is geen leden-, betaal- of boekingsbackend. Zie `MIGRATIERAPPORT.md` voor archiefrefs, vergelijking, release en verificatie.

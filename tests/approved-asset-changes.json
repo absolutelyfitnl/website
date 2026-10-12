@@ -6,5 +6,13 @@
     "sha256": "0f316eff5cdf84a6df43455840dfeac6e755a2d84c63c720f7a25549d3627b43",
     "approvedOn": "2026-10-12",
     "reason": "Gebruiker vraagt de header even breed te maken als de overige containers, inclusief push en productiedeployment. Alleen gedeelde containerbreedtes op desktop, tablet en mobiel gewijzigd."
+  },
+  {
+    "path": "dist/assets/home.css",
+    "originalSha256": "6a196f9541d8c3c12db1d472a660431f656669496a2b8885233accfb2056db0f",
+    "bytes": 19836,
+    "sha256": "130e450a1e28db6b5f79ced81fa05bde2497de93645b2e59cfd728ad9286b395",
+    "approvedOn": "2026-10-12",
+    "reason": "Gebruiker vraagt een lichte kleur voor de titel Sterker begint bij de basis op de krachttraining-fotokaart op de homepage. Alleen de tekstkleur van deze titel is wit gemaakt."
   }
 ]

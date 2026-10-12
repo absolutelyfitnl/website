@@ -1,5 +1,7 @@
 # Migratierapport — Absolutely Fit
 
+**Status: productie gedeployd op [abso.dgwebservices.nl](https://abso.dgwebservices.nl). Actieve release-SHA: `eb9199c5839ddaa273953267aeee0e4d6f351178`; de bestaande VPS-run is geslaagd en de publieke HTTP-/healthcontrole bevestigt deze exacte SHA.**
+
 Uitvoering: 12 oktober 2026. De gebruiker heeft de exacte overname, push en onmiddellijke productierelease opgedragen. Bron: Sites-commit `cd1f4e7f78b0e1f3ceea3d9d3d12ab9cf2456ed8`, uit het ontvangen bevroren overdrachtspakket. Alle 151 pakketbestanden, 122 bronbestanden en tien foto’s zijn vooraf en na implementatie gecontroleerd met het oorspronkelijke pakketcontrolescript. De externe referentie is ongewijzigd gebleven.
 
 ## Veilig archief
@@ -46,12 +48,24 @@ Contact bereidt uitsluitend een mailto-bericht en kopieerbare tekst voor. Er is 
 
 ## Integratie en productierelease
 
-Migratiebranch: `codex/sites-v20-exact-migration`. De concrete migratiecommit, PR, productie-SHA en deploymentresultaten worden na verificatie vastgelegd in dit rapport.
+Migratiebranch: `codex/sites-v20-exact-migration`. Migratiecommit: `d429e78560d7a5117bc89c41fe59070756e17c24` via [PR #1](https://github.com/absolutelyfitnl/website/pull/1). De productie-installatiecorrectie is commit `1918c85ac71a73fbe2e3bb3bc11c7dba48bfde1f` via [PR #2](https://github.com/absolutelyfitnl/website/pull/2). Beide PR’s zijn met normale merges geïntegreerd; er is geen geschiedenis herschreven.
 
-Status bij deze migratiecommit: alle lokale kwaliteits-, browser- en productiebouwcontroles zijn geslaagd. De gewone PR-integratie en productierelease volgen direct; de uiteindelijke release-SHA en publieke eindcontrole worden na deployment toegevoegd. Productie is bij het schrijven van deze commit nog niet overgezet.
+De productierelease is een normale fast-forward push van de geïntegreerde code naar `production`. De definitieve release-SHA is `eb9199c5839ddaa273953267aeee0e4d6f351178`. [Deployrun 38277435078](https://github.com/absolutelyfitnl/website/actions/runs/38277435078) is geslaagd, inclusief de extra productie-installatie/herbouwgate, standalone-smoke, bestaande deployhelper en publieke eindcontrole. De echte VPS-release is `eb9199c5839d-38277435078-1` in de bestaande releasemap. `/api/health` geeft status `ok`, service `absolutely-fit`, omgeving `production`, deze exacte SHA en `cache-control: no-store`.
 
 ## Aanpassing aan de werkelijke VPS-herbouw
 
 De eerste releasepoging (`38276636252`) slaagde voor de volledige runner-kwaliteitsgate en standalone HTTP-smoke, maar de deployhelper bouwde vervolgens opnieuw met uitsluitend productie-dependencies. Daardoor ontbrak de oorspronkelijke Tailwind CLI in de nested Sites-installatie en brak de helper af vóór publicatie. De publieke health bleef aantoonbaar op de oude SHA `3107027ec2f7a82f908cddd621d53b1563e9bf26`.
 
 De hostingcorrectie behoudt de oorspronkelijke Sites-package/lockfile: de nested installatie krijgt expliciet `--include=dev`, zodat de exact vastgelegde buildtooling ook in de helper beschikbaar is. TypeScript en de Next-typedeclaraties staan, net als bij de oorspronkelijke VPS-app, in de root productie-dependencies omdat de helper daaruit herbouwt. De UI/UX/content/assets en het bestaande VPS-script blijven ongewijzigd. Deze installatiemodus wordt lokaal gereproduceerd vóór de volgende gewone releasepush.
+
+## Bewijs op het echte productiedomein
+
+De publieke HTTP-controle slaagt opnieuw vanuit deze sessie: 30 originele bodyhashes, 56 assethashes/MIME-types, alle 14 HTTP-redirects inclusief querybehoud, het oorspronkelijke 404-document voor vervallen/onbekende routes, publieke SEO voor 29 pagina’s, leden-noindex, robots/sitemap, ETag/HEAD en exacte health-SHA. De productie-header zet geen algemene noindex op de publieke website.
+
+De volledige browsercontrole is ook op `https://abso.dgwebservices.nl` uitgevoerd en geslaagd: alle 180 route/viewportcontroles, twintig referentie-/productiescreenshotparen, alle 45 trainings- en 80 intakecombinaties en menu/galerij/contact/rooster/kennisbank/FAQ/animaties. Er zijn geen JavaScript-fouten of horizontale overflow. De productiescreenshotvergelijking telt nul verschillen groter dan één RGB-niveau; 10 pixels hebben uitsluitend een afrondingsverschil van één niveau. Deze rendererafronding is apart gelogd; bronbytes, DOM en browserafmetingen zijn identiek.
+
+Het onafhankelijke live browserbewijs staat in `docs/migration-evidence/production-browser-results.json`; de gekozen live screenshots hebben de prefix `production-`. De volledige overige productiescreenshotparen staan lokaal in `artifacts/sites-production/`.
+
+Drie afzonderlijke homepage-GET-metingen vanaf de uitvoerhost staan in `docs/migration-evidence/production-performance.json`: TTFB 117–170 ms en volledige HTML-response 151–203 ms; alle drie HTTP 200. Dit zijn netwerkmetingen van deze host, geen Lighthouse-, echte-apparaat- of Core Web Vitals-score.
+
+Er zijn geen blokkerende launchpunten voor deze UI/UX-migratie. Een echt leden-, betaal-, boekings- of mailbackendsysteem blijft buiten deze opdracht. Preview/staging blijft niet-indexeerbaar; de publieke productie-indexering is gecontroleerd. De definitieve rapport-/bewijsupdate staat op `main`; de gedeployde `production`-SHA hierboven behoudt exact dezelfde applicatiecode en assets.

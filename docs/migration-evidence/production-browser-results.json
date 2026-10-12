@@ -1,0 +1,210 @@
+{
+  "base": "https://abso.dgwebservices.nl",
+  "reference": "http://127.0.0.1:8000",
+  "viewports": [
+    {
+      "width": 1440,
+      "routes": 30,
+      "pixelComparisons": 8
+    },
+    {
+      "width": 1024,
+      "routes": 30,
+      "pixelComparisons": 1
+    },
+    {
+      "width": 768,
+      "routes": 30,
+      "pixelComparisons": 1
+    },
+    {
+      "width": 390,
+      "routes": 30,
+      "pixelComparisons": 8
+    },
+    {
+      "width": 375,
+      "routes": 30,
+      "pixelComparisons": 1
+    },
+    {
+      "width": 320,
+      "routes": 30,
+      "pixelComparisons": 1
+    }
+  ],
+  "screenshots": [
+    {
+      "route": "/",
+      "width": 1440,
+      "referenceFile": "home-1440-reference.png",
+      "actualFile": "home-1440-migration.png",
+      "differentPixels": 0,
+      "rasterRoundingPixels": 10
+    },
+    {
+      "route": "/sporten",
+      "width": 1440,
+      "referenceFile": "sporten-1440-reference.png",
+      "actualFile": "sporten-1440-migration.png",
+      "differentPixels": 0,
+      "rasterRoundingPixels": 0
+    },
+    {
+      "route": "/ooievaarspas",
+      "width": 1440,
+      "referenceFile": "ooievaarspas-1440-reference.png",
+      "actualFile": "ooievaarspas-1440-migration.png",
+      "differentPixels": 0,
+      "rasterRoundingPixels": 0
+    },
+    {
+      "route": "/kennisbank",
+      "width": 1440,
+      "referenceFile": "kennisbank-1440-reference.png",
+      "actualFile": "kennisbank-1440-migration.png",
+      "differentPixels": 0,
+      "rasterRoundingPixels": 0
+    },
+    {
+      "route": "/veelgestelde-vragen",
+      "width": 1440,
+      "referenceFile": "veelgestelde-vragen-1440-reference.png",
+      "actualFile": "veelgestelde-vragen-1440-migration.png",
+      "differentPixels": 0,
+      "rasterRoundingPixels": 0
+    },
+    {
+      "route": "/rooster",
+      "width": 1440,
+      "referenceFile": "rooster-1440-reference.png",
+      "actualFile": "rooster-1440-migration.png",
+      "differentPixels": 0,
+      "rasterRoundingPixels": 0
+    },
+    {
+      "route": "/gratis-persoonlijke-intake",
+      "width": 1440,
+      "referenceFile": "gratis-persoonlijke-intake-1440-reference.png",
+      "actualFile": "gratis-persoonlijke-intake-1440-migration.png",
+      "differentPixels": 0,
+      "rasterRoundingPixels": 0
+    },
+    {
+      "route": "/contact",
+      "width": 1440,
+      "referenceFile": "contact-1440-reference.png",
+      "actualFile": "contact-1440-migration.png",
+      "differentPixels": 0,
+      "rasterRoundingPixels": 0
+    },
+    {
+      "route": "/",
+      "width": 1024,
+      "referenceFile": "home-1024-reference.png",
+      "actualFile": "home-1024-migration.png",
+      "differentPixels": 0,
+      "rasterRoundingPixels": 0
+    },
+    {
+      "route": "/",
+      "width": 768,
+      "referenceFile": "home-768-reference.png",
+      "actualFile": "home-768-migration.png",
+      "differentPixels": 0,
+      "rasterRoundingPixels": 0
+    },
+    {
+      "route": "/",
+      "width": 390,
+      "referenceFile": "home-390-reference.png",
+      "actualFile": "home-390-migration.png",
+      "differentPixels": 0,
+      "rasterRoundingPixels": 0
+    },
+    {
+      "route": "/sporten",
+      "width": 390,
+      "referenceFile": "sporten-390-reference.png",
+      "actualFile": "sporten-390-migration.png",
+      "differentPixels": 0,
+      "rasterRoundingPixels": 0
+    },
+    {
+      "route": "/ooievaarspas",
+      "width": 390,
+      "referenceFile": "ooievaarspas-390-reference.png",
+      "actualFile": "ooievaarspas-390-migration.png",
+      "differentPixels": 0,
+      "rasterRoundingPixels": 0
+    },
+    {
+      "route": "/kennisbank",
+      "width": 390,
+      "referenceFile": "kennisbank-390-reference.png",
+      "actualFile": "kennisbank-390-migration.png",
+      "differentPixels": 0,
+      "rasterRoundingPixels": 0
+    },
+    {
+      "route": "/veelgestelde-vragen",
+      "width": 390,
+      "referenceFile": "veelgestelde-vragen-390-reference.png",
+      "actualFile": "veelgestelde-vragen-390-migration.png",
+      "differentPixels": 0,
+      "rasterRoundingPixels": 0
+    },
+    {
+      "route": "/rooster",
+      "width": 390,
+      "referenceFile": "rooster-390-reference.png",
+      "actualFile": "rooster-390-migration.png",
+      "differentPixels": 0,
+      "rasterRoundingPixels": 0
+    },
+    {
+      "route": "/gratis-persoonlijke-intake",
+      "width": 390,
+      "referenceFile": "gratis-persoonlijke-intake-390-reference.png",
+      "actualFile": "gratis-persoonlijke-intake-390-migration.png",
+      "differentPixels": 0,
+      "rasterRoundingPixels": 0
+    },
+    {
+      "route": "/contact",
+      "width": 390,
+      "referenceFile": "contact-390-reference.png",
+      "actualFile": "contact-390-migration.png",
+      "differentPixels": 0,
+      "rasterRoundingPixels": 0
+    },
+    {
+      "route": "/",
+      "width": 375,
+      "referenceFile": "home-375-reference.png",
+      "actualFile": "home-375-migration.png",
+      "differentPixels": 0,
+      "rasterRoundingPixels": 0
+    },
+    {
+      "route": "/",
+      "width": 320,
+      "referenceFile": "home-320-reference.png",
+      "actualFile": "home-320-migration.png",
+      "differentPixels": 0,
+      "rasterRoundingPixels": 0
+    }
+  ],
+  "interactions": {
+    "menu": "keyboard opening, 50 focus cycles, Escape, aria-expanded, focus restoration, three lines and scrolled header",
+    "gallery": "all ten images, wrap/arrow navigation, accurate captions/alt, 09/10 crop, Escape and focus restoration",
+    "trainingCombinations": 45,
+    "intakeCombinations": 80,
+    "contact": "context allowlist, required validation, encoded mailto, clipboard and stale message invalidation",
+    "schedule": "Amsterdam week, today, seven regular days, previous/next/reset and all training filters",
+    "knowledge": "nine articles, search/empty/reset, all categories, ten FAQ accordions, category navigation and all article anchors",
+    "motion": "all parity checks with reduced motion; normal Motion hero completes and content is visible"
+  },
+  "errors": [],
+  "status": "passed"
+}

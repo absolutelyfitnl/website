@@ -1,0 +1,22 @@
+{
+  "conclusion": "success",
+  "headSha": "eb9199c5839ddaa273953267aeee0e4d6f351178",
+  "status": "completed",
+  "url": "https://github.com/absolutelyfitnl/website/actions/runs/38277435078",
+  "revision": "eb9199c5839ddaa273953267aeee0e4d6f351178",
+  "migration": "d429e78560d7a5117bc89c41fe59070756e17c24",
+  "pr": "https://github.com/absolutelyfitnl/website/pull/1",
+  "firstAttemptRevision": "8c9d8cfad5fb460c9bda72a30750611302e5f2e4",
+  "firstAttemptRun": 38276636252,
+  "buildFix": "1918c85ac71a73fbe2e3bb3bc11c7dba48bfde1f",
+  "buildFixPr": "https://github.com/absolutelyfitnl/website/pull/2",
+  "health": {
+    "status": "ok",
+    "service": "absolutely-fit",
+    "revision": "eb9199c5839ddaa273953267aeee0e4d6f351178",
+    "environment": "production"
+  },
+  "healthCacheControl": "no-store",
+  "verifiedAtUTC": "2026-10-12T16:34:46.020124+00:00",
+  "vpsRelease": "eb9199c5839d-38277435078-1"
+}

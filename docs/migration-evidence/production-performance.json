@@ -1,0 +1,25 @@
+{
+  "url": "https://abso.dgwebservices.nl/",
+  "observedAtUTC": "2026-10-12T16:28:59.948695+00:00",
+  "scope": "Three HTTP GET samples from the execution host, not Lighthouse or real-device Core Web Vitals",
+  "samples": [
+    {
+      "httpStatus": 200,
+      "ttfbSeconds": 0.117167,
+      "totalSeconds": 0.150511,
+      "htmlBytes": 27454
+    },
+    {
+      "httpStatus": 200,
+      "ttfbSeconds": 0.169801,
+      "totalSeconds": 0.203387,
+      "htmlBytes": 27454
+    },
+    {
+      "httpStatus": 200,
+      "ttfbSeconds": 0.12896,
+      "totalSeconds": 0.163714,
+      "htmlBytes": 27454
+    }
+  ]
+}

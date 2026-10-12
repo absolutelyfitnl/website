@@ -3,12 +3,13 @@ import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { protectedCredentialClaimPatterns } from "./content-safety-rules.mjs";
+import { getSiteAssetContract } from "./site-asset-contract.mjs";
 
 const dist = path.resolve(process.argv[2] || "site/dist");
 const reference = JSON.parse(readFileSync("tests/reference/broncode-sha256.json", "utf8"));
 const bodies = JSON.parse(readFileSync("tests/reference/body-sha256.json", "utf8"));
 const digest = (bytes) => createHash("sha256").update(bytes).digest("hex");
-const assets = reference.files.filter((file) => file.path.startsWith("dist/assets/"));
+const { assets, approvedChanges } = getSiteAssetContract(reference);
 for (const asset of assets) {
   const bytes = readFileSync(path.join(dist, asset.path.slice(5)));
   assert.equal(bytes.length, asset.bytes, `Asset size changed: ${asset.path}`);
@@ -41,4 +42,4 @@ for (const [route, hash] of Object.entries(bodies.pages)) {
 }
 for (const retired of ["components", "lib/demo-data.ts", "app/backoffice", "app/ledenportaal", ".openai/hosting.json"]) assert.equal(existsSync(retired), false, `Retired implementation present: ${retired}`);
 assert.equal(Object.keys(bodies.pages).length, 30);
-console.log(`Sites contract passed: 30 identical bodies, ${assets.length} identical assets, 10 photos, 28 fonts and unchanged generator/modules/dependency lock.`);
+console.log(`Sites contract passed: 30 identical bodies, ${assets.length - approvedChanges.length} original assets, ${approvedChanges.length} approved assets with exact hashes, 10 photos, 28 fonts and unchanged generator/modules/dependency lock.`);

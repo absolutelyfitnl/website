@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
+import { getSiteAssetContract } from "./site-asset-contract.mjs";
 
 const base = process.env.BASE_URL || "http://127.0.0.1:3000";
 const origin = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
@@ -29,7 +30,7 @@ for (const [route, expected] of Object.entries(bodies.pages)) {
   }
 }
 const mime = { ".css": "text/css", ".js": "text/javascript", ".woff2": "font/woff2", ".svg": "image/svg+xml", ".jpg": "image/jpeg", ".webp": "image/webp" };
-const assets = reference.files.filter((file) => file.path.startsWith("dist/assets/"));
+const { assets } = getSiteAssetContract(reference);
 for (const file of assets) {
   const route = "/" + file.path.slice(5);
   const response = await get(route);

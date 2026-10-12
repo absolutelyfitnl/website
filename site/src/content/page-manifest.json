@@ -1,0 +1,182 @@
+[
+  {
+    "path": "/",
+    "title": "Absolutely Fit — persoonlijke fitness in Scheveningen",
+    "description": "Jouw familieclub in het Scheveningse Havenkwartier sinds 2008. Kracht, cardio, personal training en Ooievaarspas. Begin met een gratis persoonlijke intake.",
+    "article": false
+  },
+  {
+    "path": "/sporten",
+    "title": "Sporten in Scheveningen — ons trainingsaanbod",
+    "description": "Ontdek fitness, krachttraining, powerlifting, personal training en Strength & Conditioning bij Absolutely Fit in Scheveningen.",
+    "article": false
+  },
+  {
+    "path": "/sporten/krachttraining",
+    "title": "Krachttraining in Scheveningen",
+    "description": "Bouw kracht, spiermassa en belastbaarheid op met vrije gewichten, machines en een doordachte trainingsopbouw. Ontdek deze trainingsvorm bij Absolutely Fit in Scheveningen.",
+    "article": false
+  },
+  {
+    "path": "/sporten/cardio-conditie",
+    "title": "Cardio & conditie in Scheveningen",
+    "description": "Werk aan je uithoudingsvermogen, dagelijkse energie en algemene fitheid op een tempo dat bij jou past. Ontdek deze trainingsvorm bij Absolutely Fit in Scheveningen.",
+    "article": false
+  },
+  {
+    "path": "/sporten/powerlifting-gewichtheffen",
+    "title": "Powerlifting & gewichtheffen in Scheveningen",
+    "description": "Ontwikkel techniek, kracht en vertrouwen in de belangrijkste lifts met begeleiding uit de krachtsportpraktijk. Ontdek deze trainingsvorm bij Absolutely Fit in Scheveningen.",
+    "article": false
+  },
+  {
+    "path": "/sporten/strength-conditioning",
+    "title": "Strength & Conditioning in Scheveningen",
+    "description": "Verbind kracht, conditie, snelheid en belastbaarheid aan de eisen van jouw sport. Ontdek deze trainingsvorm bij Absolutely Fit in Scheveningen.",
+    "article": false
+  },
+  {
+    "path": "/personal-training",
+    "title": "Personal training en coaching in Scheveningen",
+    "description": "Uitgebreide atletenvoorbereiding, coaching en persoonlijke één-op-één begeleiding bij Absolutely Fit in Scheveningen.",
+    "article": false
+  },
+  {
+    "path": "/begeleiding",
+    "title": "Persoonlijke fitnessbegeleiding in Scheveningen",
+    "description": "Persoonlijke begeleiding, trainingsschema’s en Strength & Conditioning voor ieder niveau bij Absolutely Fit in Scheveningen.",
+    "article": false
+  },
+  {
+    "path": "/over-ons",
+    "title": "Over Absolutely Fit — familieclub sinds 2008",
+    "description": "Ontdek het verhaal van Absolutely Fit: een familieclub sinds 2008 in het Scheveningse Havenkwartier, met persoonlijke aandacht en nuchtere trainingskennis.",
+    "article": false
+  },
+  {
+    "path": "/team",
+    "title": "Het team van Absolutely Fit",
+    "description": "Maak kennis met Rik Priester en het clubteam van Absolutely Fit: persoonlijke begeleiding, krachttraining en een gastvrije clubvloer in Scheveningen.",
+    "article": false
+  },
+  {
+    "path": "/topsport-en-ntc",
+    "title": "Topsportervaring en krachtsportgeschiedenis",
+    "description": "Lees hoe Absolutely Fit eigen krachtsportprestaties en ervaring tot olympisch niveau vertaalt naar begrijpelijke trainingsprincipes voor iedere sporter.",
+    "article": false
+  },
+  {
+    "path": "/ooievaarspas",
+    "title": "Sportschool met Ooievaarspas in Den Haag",
+    "description": "Sport bij Absolutely Fit met 50% Ooievaarspaskorting op een daarvoor in aanmerking komend abonnement. Voor jeugd onder 18 geldt 100% vergoeding als dit de eerste sport is.",
+    "article": false
+  },
+  {
+    "path": "/in-de-media/rond-de-haven-2026",
+    "title": "Absolutely Fit in Rond de Haven 2026",
+    "description": "Lees onze samenvatting van het verhaal over Absolutely Fit in Rond de Haven, zomer 2026: een familieclub en vaste trainingsplek in het Havenkwartier sinds 2008.",
+    "article": false
+  },
+  {
+    "path": "/abonnementen",
+    "title": "Abonnementen en 10-rittenkaart — vanaf € 24,50 per maand",
+    "description": "Vergelijk 1× per week, onbeperkt trainen, de 10-rittenkaart en jeugd bij Absolutely Fit. Sporten vanaf € 24,50 per maand. Bespreek actuele voorwaarden tijdens de gratis intake.",
+    "article": false
+  },
+  {
+    "path": "/kennisbank",
+    "title": "Kennisbank over fitness en krachttraining",
+    "description": "Praktische artikelen over beginnen met krachttraining, trainingsritme, begeleiding, Ooievaarspas en de club in Scheveningen.",
+    "article": false
+  },
+  {
+    "path": "/kennisbank/kleine-stappen-duurzaam-sterker",
+    "title": "Kleine stappen, duurzaam sterker: zo bouw je een trainingsritme op",
+    "description": "Een trainingsritme hoeft niet groot te beginnen. Met een haalbare week, duidelijke keuzes en ruimte om bij te sturen bouw je aan vooruitgang die in je dagelijks leven past.",
+    "article": true
+  },
+  {
+    "path": "/kennisbank/beginnen-met-krachttraining-scheveningen",
+    "title": "Beginnen met krachttraining in Scheveningen: wat kun je verwachten?",
+    "description": "Je hoeft geen ervaring te hebben om met krachttraining te beginnen. Een rustige kennismaking met de ruimte, bewegingen en belasting geeft een duidelijk startpunt.",
+    "article": true
+  },
+  {
+    "path": "/kennisbank/topsportkennis-voor-ieder-niveau",
+    "title": "Topsportkennis voor ieder niveau: wat betekent dat in de praktijk?",
+    "description": "Principes uit de prestatiesport worden pas waardevol wanneer ze begrijpelijk en passend worden gemaakt voor de persoon die voor je staat.",
+    "article": true
+  },
+  {
+    "path": "/kennisbank/wat-gebeurt-er-tijdens-een-gratis-persoonlijke-intake",
+    "title": "Wat gebeurt er tijdens een gratis persoonlijke intake?",
+    "description": "De gratis persoonlijke intake is een gesprek over je doel, ervaring en planning. Je hoeft nog niets gekozen te hebben en het is geen proeftraining.",
+    "article": true
+  },
+  {
+    "path": "/kennisbank/sporten-met-de-ooievaarspas-bij-absolutely-fit",
+    "title": "Sporten met de Ooievaarspas bij Absolutely Fit",
+    "description": "Met een geldige Ooievaarspas ontvang je 50% korting op een daarvoor in aanmerking komend abonnement. Voor jeugd onder de 18 jaar geldt een vergoeding van 100 procent wanneer dit de eerste sport is.",
+    "article": true
+  },
+  {
+    "path": "/kennisbank/sportschool-als-ontmoetingsplek-havenkwartier",
+    "title": "Een sportschool als ontmoetingsplek in het Havenkwartier",
+    "description": "Sinds 2008 is Absolutely Fit een vaste plek in het Scheveningse Havenkwartier, waar verschillende achtergronden en trainingsniveaus elkaar op de clubvloer ontmoeten.",
+    "article": true
+  },
+  {
+    "path": "/kennisbank/sterker-worden-begint-met-techniek",
+    "title": "Sterker worden begint met techniek",
+    "description": "Een goede uitvoering helpt je kracht doelgericht op te bouwen en te begrijpen wat een oefening van je vraagt.",
+    "article": true
+  },
+  {
+    "path": "/kennisbank/waarom-herstel-bij-training-hoort",
+    "title": "Waarom herstel bij training hoort",
+    "description": "Training geeft een prikkel; tijdens herstel krijgt je lichaam ruimte om die belasting te verwerken. Beide horen bij een haalbaar plan.",
+    "article": true
+  },
+  {
+    "path": "/kennisbank/zo-bouw-je-een-trainingsschema-op",
+    "title": "Zo bouw je een trainingsschema op",
+    "description": "Een bruikbaar schema begint bij een helder doel, een realistische week en een opbouw die je kunt blijven uitvoeren.",
+    "article": true
+  },
+  {
+    "path": "/veelgestelde-vragen",
+    "title": "Veelgestelde vragen over Absolutely Fit",
+    "description": "Actuele antwoorden over de gratis intake, abonnementen, personal training, openingstijden en Ooievaarspas bij Absolutely Fit.",
+    "article": false
+  },
+  {
+    "path": "/openingstijden",
+    "title": "Openingstijden sportschool Absolutely Fit",
+    "description": "Bekijk de reguliere openingstijden, locatie en contactgegevens van Absolutely Fit in het Scheveningse Havenkwartier.",
+    "article": false
+  },
+  {
+    "path": "/rooster",
+    "title": "Rooster en clubtijden",
+    "description": "Plan je bezoek aan Absolutely Fit met de reguliere clubtijden. Bespreek de actuele begeleide trainingsmomenten persoonlijk met de club.",
+    "article": false
+  },
+  {
+    "path": "/gratis-persoonlijke-intake",
+    "title": "Gratis persoonlijke fitnessintake in Scheveningen",
+    "description": "Bereid je gratis persoonlijke intake bij Absolutely Fit voor en bespreek je doel, trainingsmoment en gewenste begeleiding.",
+    "article": false
+  },
+  {
+    "path": "/contact",
+    "title": "Contact met Absolutely Fit",
+    "description": "Neem contact op met Absolutely Fit in Scheveningen voor een gratis persoonlijke intake, abonnement, Ooievaarspas of begeleiding.",
+    "article": false
+  },
+  {
+    "path": "/ledenapp",
+    "title": "Mijn Absolutely Fit — toekomstige ledenomgeving",
+    "description": "Een vooruitblik op de toekomstige ledenomgeving van Absolutely Fit voor training, planning en clubinformatie.",
+    "article": false
+  }
+]

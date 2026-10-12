@@ -1,0 +1,51 @@
+# Migratierapport — Absolutely Fit
+
+Uitvoering: 12 oktober 2026. De gebruiker heeft de exacte overname, push en onmiddellijke productierelease opgedragen. Bron: Sites-commit `cd1f4e7f78b0e1f3ceea3d9d3d12ab9cf2456ed8`, uit het ontvangen bevroren overdrachtspakket. Alle 151 pakketbestanden, 122 bronbestanden en tien foto’s zijn vooraf en na implementatie gecontroleerd met het oorspronkelijke pakketcontrolescript. De externe referentie is ongewijzigd gebleven.
+
+## Veilig archief
+
+De werkboom was schoon. Actuele remote heads zijn vóór vervanging opgehaald en opnieuw vergeleken. De vier unieke archiefrefs zijn atomisch aangemaakt en elk op exact de oorspronkelijke SHA teruggelezen. Geen force push, history rewrite of verwijdering van bestaande branches. Er waren geen open PR’s, branchbeveiliging of repositoryregels die deze integratie blokkeren.
+
+| Oorspronkelijke branch | Gecontroleerde SHA | GitHub-archiefbranch |
+| --- | --- | --- |
+| `codex/absolutely-fit-club-house` | `e4d5140913541406481bd86969b35666ee5cda10` | `archive/pre-sites-v20-20261012T154344Z-445852db/codex/absolutely-fit-club-house` |
+| `codex/content-seo-expansion-2026-09` | `1e41aa90df728b6b73d796b7f0b08a2d496a9dc0` | `archive/pre-sites-v20-20261012T154344Z-445852db/codex/content-seo-expansion-2026-09` |
+| `main` | `3107027ec2f7a82f908cddd621d53b1563e9bf26` | `archive/pre-sites-v20-20261012T154344Z-445852db/main` |
+| `production` | `3107027ec2f7a82f908cddd621d53b1563e9bf26` | `archive/pre-sites-v20-20261012T154344Z-445852db/production` |
+
+Het machineleesbare archiefmanifest staat in `docs/archive-manifest.json`. De originele remote heads worden opnieuw gecontroleerd vóór integratie en release. De oude ontwikkelbranches blijven bestaan; hun snapshots zijn veiliggesteld.
+
+## Implementatie en infrastructuur
+
+- De oorspronkelijke generator, paginamodules, homepage, artikelen, contentmanifest, buildlockfile en alle assets staan in `site/`. Zij zijn niet herschreven. De historische bron-Markdownbestanden blijven uitsluitend voor herkomst en oorspronkelijke Tailwind-scaninput: weglaten daarvan verandert vijf gegenereerde utilityregels. Zij zijn geen actieve conceptselectie of nieuwe werkopdracht.
+- De oude publieke Next-schermen, componentlibrary, vormgevingslagen, fotografie, demoleden, facturen, portalen en backoffice zijn uit de actieve boom verwijderd. De enige publieke website is de gekozen Sites-uitvoer.
+- Next blijft uitsluitend een serveradapter (`app/[[...path]]/route.ts`). Die levert de oorspronkelijke HTML/assetbytes, HTTP 308 voor de 14 aliases, trailing slash-normalisatie met querybehoud, juiste MIME/ETag/cacheheaders en de oorspronkelijke 404-pagina. Vervallen demo-subroutes geven 404.
+- Node 24, Next standalone, de bestaande runnerlabels/grenscontrole, `/usr/local/bin/dg-site-deploy`, loopbackbinding en de drie runtime-env-sleutels blijven behouden. Er is geen overstap naar een andere VPS-runtime of wijziging van Caddy/systemd/serverdata/secrets. Er was geen directe SSH-ingang in deze sessie; de bestaande runtime wordt via het bestaande deploymentcontract gebruikt en gecontroleerd.
+- Next is bijgewerkt van 16.3.4 naar 16.3.8; transitive hostingdependencies naar auditveilige versies (`sharp` 0.35.5, `source-map-js` 1.2.2). De documentatie van de werkelijk geïnstalleerde Next-versie is vóór de adapterwijziging gelezen. De oorspronkelijke Sites-builddependencies blijven exact vastgelegd.
+- `prepare-site.mjs` past uitsluitend headmetadata/origin/robots/sitemap aan na de originele build en verwijdert alias-HTML uit het releaseartefact. Preview blijft noindex; productie heeft 29 indexeerbare publieke pagina’s. `/ledenapp/` blijft noindex en buiten de sitemap. De bevestigde bestaande productie-origin is `https://abso.dgwebservices.nl`. Er zijn geen Sites-canonicals in de aangepaste uitvoer.
+- Standalone tracing omvat `site/dist/**/*`; `prepare-standalone.mjs` kopieert deze map expliciet, naast het bestaande `public`/`.next/static`-contract. De artifactgate controleert de daadwerkelijk gekopieerde bytes. `/api/health` blijft dynamisch met no-store, service `absolutely-fit`, omgeving en echte runtime-SHA.
+- De kwaliteitsgate blijft lint, typecheck, inhouds-/interactietests, build, productie-dependencyaudit en standalone smoke. De HTTP-smoke is uitgebreid naar alle routes, alle assets en verwijderde demo-routes, zowel vóór als na deployment.
+
+## Inhoud, assets en browserbewijs
+
+De onafhankelijke bron-/fotomanifesten en het oorspronkelijke praktische testscript zijn ongewijzigd bewaard in `tests/reference/`. De extra bodyhashes zijn rechtstreeks uit de bevroren referentie afgeleid. De oorspronkelijke vergelijker bewijst 30 identieke body-markups, negen volledige artikelen, 56 byte-identieke assets, precies tien foto’s, lokale links/ankers en basismetadata. De negen artikelen bevatten 28 secties. De 28 fontbestanden zijn intact; de zes bijbehorende SIL OFL-licenties en herkomst staan in `docs/licenses/`. De eigenaars-/rechtenregistratie is behouden.
+
+Contact bereidt uitsluitend een mailto-bericht en kopieerbare tekst voor. Er is geen automatische verzending of claim van aflevering. Rooster toont reguliere Amsterdamse clubtijden; er zijn geen live boekbare plaatsen of fictieve ledengegevens. De toekomstige ledenpagina is de oorspronkelijke informatiepagina. NOC*NSF-context, Rik Priester, Ooievaarspasvoorwaarden en neutrale XXL-tekst blijven letterlijk behouden; geen certificerings- of prijsclaim is toegevoegd.
+
+## Uitgevoerde controles
+
+- Schone `npm ci`, lint, Next-route-typegeneratie/TypeScript, inhoudstests, oorspronkelijke 80-combinatie-/contact-/roostertest en standalone build.
+- `npm run audit`: geen kwetsbaarheden in beide productie-dependencyinventarissen (`--omit=dev`), overeenkomstig de bestaande gate. De bevroren buildtooling en ESLint hebben wel gemelde development-only advisories; deze zijn niet door een wijziging aan de exacte bronlockfile verborgen of verwijderd.
+- Oorspronkelijke `controleer-pakket.py` en `vergelijk-website.py` tegen `site/dist`.
+- Preview HTTP: alle 30 bodyhashes, 56 assets/hash/MIME, 14 HTTP-redirects in beide slashvormen inclusief querybehoud, 20 vervallen/onbekende routes met 404, robots/sitemap/canonical/indexering, HEAD/ETag en exacte no-store-health.
+- Echte Chromium-vergelijking tegen de ongewijzigde overdrachtsreferentie: alle 30 routes op 1440, 1024, 768, 390, 375 en 320 px; alle 180 controles slagen zonder horizontale overflow. Fonts, geladen beelden, object-fit/positie en afmetingen komen overeen. Twintig screenshotparen van homepage en kernpagina’s slagen; in de definitieve meting zijn ook de apart geregistreerde één-RGB-afrondingsverschillen nul.
+- Native dialogmenu: openen met Enter, Tab-navigatie, afschermen van de onderliggende pagina, Escape, aria-expanded, focusherstel en scrollheader. Native browserchrome mag focus ontvangen; de onderliggende pagina blijft inert. Galerij: alle tien beelden, teller/caption/alt, pijltjestoetsen, omloop, sluiten/focusherstel en de 09/10-telefooncrops.
+- Alle 45 trainingscombinaties en alle 80 intakecombinaties draaien in de echte browser tegen de oorspronkelijke scripts; resultaat, focus, terug/reset en context-/productquery zijn gecontroleerd. Contact: queryallowlist, vereiste velden, speciale tekens in mailto, echte clipboardactie en intrekken van een verouderd bericht. Rooster: Amsterdam-week, zeven dagen, vandaagmarkering, navigatie/reset en alle filters. Kennisbank/FAQ: zoeken, filters, lege toestand/reset, tien native accordions en alle inhoudslinks van negen complete artikelen.
+- Reduced motion is gebruikt voor de gelijkwaardige screenshots; normale Motion-animaties zijn daarnaast met een lopende browserklok getest. Chromium native keuzelijsten zijn in verse tabs na fontladen vergeleken om oude fallback-glyphs uit een eerdere navigatie te vermijden. Er zijn geen JavaScript-fouten.
+- Het JSON-bewijs staat in `docs/migration-evidence/browser-results.json`. Relevante referentie-/migratiescreenshots en beide gecontroleerde galerijcrops zijn meegecommit. De overige screenshotparen blijven lokaal in `artifacts/sites-migration/`. Er wordt geen eerdere Sites-browsercontrole of Lighthouse/Core Web Vitals-score geclaimd.
+
+## Integratie en productierelease
+
+Migratiebranch: `codex/sites-v20-exact-migration`. De concrete migratiecommit, PR, productie-SHA en deploymentresultaten worden na verificatie vastgelegd in dit rapport.
+
+Status bij deze migratiecommit: alle lokale kwaliteits-, browser- en productiebouwcontroles zijn geslaagd. De gewone PR-integratie en productierelease volgen direct; de uiteindelijke release-SHA en publieke eindcontrole worden na deployment toegevoegd. Productie is bij het schrijven van deze commit nog niet overgezet.

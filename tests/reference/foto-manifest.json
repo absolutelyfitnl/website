@@ -1,0 +1,92 @@
+[
+  {
+    "nummer": "01",
+    "origineel": "fotos-origineel/01-1000311614.webp",
+    "website": "broncode-exact/dist/assets/photos/club-01.webp",
+    "breedte": 1536,
+    "hoogte": 1153,
+    "bytes": 375889,
+    "sha256": "ec9772107f369de75fb46207ce6f2533641e00df4244e597099a689a9ebe972f"
+  },
+  {
+    "nummer": "02",
+    "origineel": "fotos-origineel/02-1000311616.jpg",
+    "website": "broncode-exact/dist/assets/photos/club-02.jpg",
+    "breedte": 1536,
+    "hoogte": 1024,
+    "bytes": 131762,
+    "sha256": "e84749e52bcdc228b596864c2d3a6fc907072f0ffaedbd9aacd4bc92e2d56bf1"
+  },
+  {
+    "nummer": "03",
+    "origineel": "fotos-origineel/03-1000311617.jpg",
+    "website": "broncode-exact/dist/assets/photos/club-03.jpg",
+    "breedte": 1536,
+    "hoogte": 1024,
+    "bytes": 195660,
+    "sha256": "d46550c7ae1cd2f180383daa347e9bc908ed22962229056c68cc86a70d515a5e"
+  },
+  {
+    "nummer": "04",
+    "origineel": "fotos-origineel/04-1000311618.jpg",
+    "website": "broncode-exact/dist/assets/photos/club-04.jpg",
+    "breedte": 1152,
+    "hoogte": 1536,
+    "bytes": 352883,
+    "sha256": "5d0633797c452428937691e05dae03b1600363b3144b527b8d3e395db92870fb"
+  },
+  {
+    "nummer": "05",
+    "origineel": "fotos-origineel/05-1000311619.jpg",
+    "website": "broncode-exact/dist/assets/photos/club-05.jpg",
+    "breedte": 1536,
+    "hoogte": 1152,
+    "bytes": 388653,
+    "sha256": "602d963050e3622319eb25614831d12a5075d8b967739bf9508db0d7f8a81a89"
+  },
+  {
+    "nummer": "06",
+    "origineel": "fotos-origineel/06-1000311623.jpg",
+    "website": "broncode-exact/dist/assets/photos/club-06.jpg",
+    "breedte": 1536,
+    "hoogte": 1152,
+    "bytes": 362968,
+    "sha256": "1285d38c8a4e8bd1fc59cfe0879a57c3452017e6b750a16385aa206dc6fdb2db"
+  },
+  {
+    "nummer": "07",
+    "origineel": "fotos-origineel/07-1000311622.jpg",
+    "website": "broncode-exact/dist/assets/photos/club-07.jpg",
+    "breedte": 1536,
+    "hoogte": 1152,
+    "bytes": 460850,
+    "sha256": "adf5f85392184623614377f2b0d1b7d9498fe3e65985e2350370debd3c88c49d"
+  },
+  {
+    "nummer": "08",
+    "origineel": "fotos-origineel/08-1000311625.jpg",
+    "website": "broncode-exact/dist/assets/photos/club-08.jpg",
+    "breedte": 1536,
+    "hoogte": 1152,
+    "bytes": 444997,
+    "sha256": "b9c06af81dde643e8718f11e9522c06c3d37399f4e2955b08dcfa3114feb9f62"
+  },
+  {
+    "nummer": "09",
+    "origineel": "fotos-origineel/09-1000311626.jpg",
+    "website": "broncode-exact/dist/assets/photos/club-09.jpg",
+    "breedte": 894,
+    "hoogte": 1536,
+    "bytes": 203231,
+    "sha256": "a0eda062f540a353faff9133816665344b2cec45af2e020e2ac0301989e78750"
+  },
+  {
+    "nummer": "10",
+    "origineel": "fotos-origineel/10-1000311627.jpg",
+    "website": "broncode-exact/dist/assets/photos/club-10.jpg",
+    "breedte": 875,
+    "hoogte": 1536,
+    "bytes": 196950,
+    "sha256": "a27ed36cf7cc3b11a19540f51b80f0bedd3f15f6acac1de6edf677730e1175a3"
+  }
+]

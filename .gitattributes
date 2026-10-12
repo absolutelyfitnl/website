@@ -1,0 +1,3 @@
+# Preserve the imported Sites source and independent reference files byte for byte.
+site/** -text -whitespace
+tests/reference/** -text

@@ -1,0 +1,22 @@
+[
+  {
+    "sha": "e4d5140913541406481bd86969b35666ee5cda10",
+    "original": "refs/heads/codex/absolutely-fit-club-house",
+    "archive": "refs/heads/archive/pre-sites-v20-20261012T154344Z-445852db/codex/absolutely-fit-club-house"
+  },
+  {
+    "sha": "1e41aa90df728b6b73d796b7f0b08a2d496a9dc0",
+    "original": "refs/heads/codex/content-seo-expansion-2026-09",
+    "archive": "refs/heads/archive/pre-sites-v20-20261012T154344Z-445852db/codex/content-seo-expansion-2026-09"
+  },
+  {
+    "sha": "3107027ec2f7a82f908cddd621d53b1563e9bf26",
+    "original": "refs/heads/main",
+    "archive": "refs/heads/archive/pre-sites-v20-20261012T154344Z-445852db/main"
+  },
+  {
+    "sha": "3107027ec2f7a82f908cddd621d53b1563e9bf26",
+    "original": "refs/heads/production",
+    "archive": "refs/heads/archive/pre-sites-v20-20261012T154344Z-445852db/production"
+  }
+]

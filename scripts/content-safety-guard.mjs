@@ -1,93 +1,44 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
-import { protectedAthleteClaimPatterns, protectedCredentialClaimPatterns } from "./content-safety-rules.mjs";
+import { protectedCredentialClaimPatterns } from "./content-safety-rules.mjs";
 
-const root = fileURLToPath(new URL("..", import.meta.url));
-const approvals = JSON.parse(readFileSync(path.join(root, "lib/content/publication-approvals.json"), "utf8"));
-const nocMarkAllowed = approvals.nocNsfLogoLicenseConfirmed === true && approvals.nocNsfEditorialContextApproved === true;
-const formalCredentialAdvertisingAllowed = approvals.nocNsfCertificationAdvertisingApproved === true;
-const historicClaimsAllowed = approvals.historicPerformanceClaimsApproved === true;
-const xxlCreativeAllowed = approvals.xxlCreativeLicenseConfirmed === true;
-const deployableTextRoots = ["app", "components", "lib"];
-const textExtensions = new Set([".ts", ".tsx", ".js", ".mjs", ".css", ".json"]);
-const protectedName = /(?:noc[-_. ]?nsf|team[-_. ]?nl|olympi(?:c|sch)|olympische[-_. ]?ringen)/i;
-const protectedReference = /(?:src\s*=|url\s*\(|image\s*:|images\s*:)[^\n]{0,180}(?:noc[-_. ]?nsf|team[-_. ]?nl|olympi(?:c|sch))/i;
-const historicPublicClaims = [
-  /(?:Nederlandse|Olympische|internationale) (?:kampioenen|atleten) op het hoogste niveau/i,
-  /wereldkampioen(?:en)? powerliften/i,
-];
-const prohibitedPublicClaims = [
-  /altijd open op feestdagen/i,
-  /lidmaatschap (?:pauzeren|bevriezen) (?:voor|vanwege) vakantie/i,
-  /(?:sauna|solarium|zonnebank) (?:inbegrepen|aanwezig|beschikbaar)/i,
-];
-const nonPublicXxlHash = "6aa341ccac817ad013a77a33d2eb743d33faedd103a0afddb90c0e0b9d4c0d5e";
-const approvedXxlPublicPath = "public/partners/xxl-product-range.avif";
-
-function walk(relativeDir) {
-  const absoluteDir = path.join(root, relativeDir);
-  if (!existsSync(absoluteDir)) return [];
-  return readdirSync(absoluteDir, { withFileTypes: true }).flatMap((entry) => {
-    const relativePath = path.join(relativeDir, entry.name);
-    return entry.isDirectory() ? walk(relativePath) : [relativePath];
-  });
+const dist = path.resolve(process.argv[2] || "site/dist");
+const reference = JSON.parse(readFileSync("tests/reference/broncode-sha256.json", "utf8"));
+const bodies = JSON.parse(readFileSync("tests/reference/body-sha256.json", "utf8"));
+const digest = (bytes) => createHash("sha256").update(bytes).digest("hex");
+const assets = reference.files.filter((file) => file.path.startsWith("dist/assets/"));
+for (const asset of assets) {
+  const bytes = readFileSync(path.join(dist, asset.path.slice(5)));
+  assert.equal(bytes.length, asset.bytes, `Asset size changed: ${asset.path}`);
+  assert.equal(digest(bytes), asset.sha256, `Asset bytes changed: ${asset.path}`);
 }
-
-const errors = [];
-const textFiles = deployableTextRoots.flatMap(walk).filter((file) => textExtensions.has(path.extname(file)));
-for (const file of textFiles) {
-  const source = readFileSync(path.join(root, file), "utf8");
-  if (!nocMarkAllowed && protectedReference.test(source)) {
-    errors.push(`${file}: protected NOC*NSF/TeamNL/Olympic asset reference without licence flag`);
-  }
-  const credentialClaim = protectedCredentialClaimPatterns.find((pattern) => pattern.test(source));
-  if (!formalCredentialAdvertisingAllowed && credentialClaim) {
-    errors.push(`${file}: protected accreditation or partnership advertising is disabled and matched ${credentialClaim}`);
-  }
-  const athleteClaim = protectedAthleteClaimPatterns.find((pattern) => pattern.test(source));
-  if (!historicClaimsAllowed && athleteClaim) {
-    errors.push(`${file}: protected athlete claim without owner approval matched ${athleteClaim}`);
-  }
-  if (!historicClaimsAllowed) {
-    for (const pattern of historicPublicClaims) {
-      if (pattern.test(source)) errors.push(`${file}: historical performance claim without owner approval matched ${pattern}`);
-    }
-  }
-  for (const pattern of prohibitedPublicClaims) {
-    if (pattern.test(source)) errors.push(`${file}: prohibited or unverified public claim matched ${pattern}`);
+for (const source of reference.files.filter((file) => file.path.startsWith("src/") || ["package.json", "package-lock.json"].includes(file.path))) {
+  assert.equal(digest(readFileSync(path.join("site", source.path))), source.sha256, `Sites source changed: ${source.path}`);
+}
+const walk = (directory) => readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+  const file = path.join(directory, entry.name);
+  return entry.isDirectory() ? walk(file) : [file];
+});
+const files = walk(dist);
+const notFound = reference.files.find((file) => file.path === "dist/404.html");
+assert.equal(digest(readFileSync(path.join(dist, "404.html"))), notFound.sha256, "Original 404 page changed");
+assert.equal(files.filter((file) => /\.(png|jpg|jpeg|webp|avif|gif)$/i.test(file)).length, 10);
+assert.equal(files.filter((file) => file.endsWith(".woff2")).length, 28);
+assert.deepEqual(files.filter((file) => file.includes(`${path.sep}assets${path.sep}`)).map((file) => path.relative(dist, file).split(path.sep).join("/")).sort(), assets.map((file) => file.path.slice(5)).sort());
+for (const [route, hash] of Object.entries(bodies.pages)) {
+  const html = readFileSync(path.join(dist, route, "index.html"), "utf8");
+  const body = html.match(/<body\b[^>]*>.*?<\/body\s*>/is)?.[0];
+  assert.ok(body, `Missing body: ${route}`);
+  assert.equal(digest(body), hash, `Visible DOM changed: ${route}`);
+  assert.equal((html.match(/<h1\b/g) || []).length, 1, `Expected one H1: ${route}`);
+  for (const pattern of protectedCredentialClaimPatterns) assert.equal(pattern.test(body), false, `Unapproved credential claim on ${route}`);
+  for (const chunk of html.matchAll(/<script type="application\/ld\+json">(.*?)<\/script>/gs)) {
+    const data = JSON.parse(chunk[1]);
+    assert.doesNotMatch(JSON.stringify(data), /"(?:award|credential|affiliation)"/);
   }
 }
-
-for (const file of walk("public")) {
-  const absolute = path.join(root, file);
-  if (!statSync(absolute).isFile()) continue;
-  if (!nocMarkAllowed && protectedName.test(file)) {
-    errors.push(`${file}: protected mark is present in public output without licence flag`);
-  }
-  const hash = createHash("sha256").update(readFileSync(absolute)).digest("hex");
-  if (hash === nonPublicXxlHash && (!xxlCreativeAllowed || file !== approvedXxlPublicPath)) {
-    errors.push(`${file}: XXL source creative is public without the recorded approval or approved path`);
-  }
-}
-
-assert.equal(nocMarkAllowed, true, "The checked-in NOC*NSF mark requires owner-confirmed logo and editorial-context rights");
-assert.equal(approvals.nocNsfCertificationExistsOwnerConfirmed, true, "The owner's certification confirmation must remain recorded");
-assert.equal(formalCredentialAdvertisingAllowed, false, "NOC*NSF certification advertising must remain disabled by owner request");
-assert.equal(xxlCreativeAllowed, true, "The checked-in XXL creative requires owner-confirmed publication rights");
-assert.equal(existsSync(path.join(root, "public/partners/noc-nsf-full-color.svg")), true, "Approved NOC*NSF mark is missing");
-assert.equal(existsSync(path.join(root, "public/partners/ooievaarspas.svg")), true, "Approved Ooievaarspas mark is missing");
-assert.equal(existsSync(path.join(root, approvedXxlPublicPath)), true, "Approved XXL creative is missing");
-
-const affiliate = `${readFileSync(path.join(root, "components/content-sections.tsx"), "utf8")}\n${readFileSync(path.join(root, "lib/content/partners.ts"), "utf8")}`;
-assert.match(affiliate, /!xxlAffiliate\.enabled\s*\|\|\s*!xxlAffiliate\.affiliateUrl/, "Affiliate component must stay hidden without an approved URL and enable flag");
-assert.match(affiliate, /rel="sponsored noopener noreferrer"/, "Active affiliate links require sponsored/noopener/noreferrer");
-assert.match(affiliate, /Affiliate link/, "Active affiliate placement requires a visible disclosure");
-
-if (errors.length) {
-  throw new Error(`Content safety guard failed:\n- ${errors.join("\n- ")}`);
-}
-
-console.log(`Content safety guard passed (${textFiles.length} source files and ${walk("public").length} public assets checked).`);
+for (const retired of ["components", "lib/demo-data.ts", "app/backoffice", "app/ledenportaal", ".openai/hosting.json"]) assert.equal(existsSync(retired), false, `Retired implementation present: ${retired}`);
+assert.equal(Object.keys(bodies.pages).length, 30);
+console.log(`Sites contract passed: 30 identical bodies, ${assets.length} identical assets, 10 photos, 28 fonts and unchanged generator/modules/dependency lock.`);

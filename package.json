@@ -17,7 +17,7 @@
     "content:guard": "node scripts/content-safety-guard.mjs",
     "qa:browser": "node scripts/qa-browser.mjs",
     "check": "npm run lint && npm run typecheck && npm test && npm run build",
-    "postinstall": "npm ci --prefix site",
+    "postinstall": "npm ci --prefix site --include=dev",
     "audit": "npm audit --omit=dev --audit-level=high && npm audit --prefix site --omit=dev --audit-level=high",
     "qa:http": "node scripts/qa-http.mjs",
     "pretest": "npm --prefix site run build"
@@ -25,13 +25,13 @@
   "dependencies": {
     "next": "16.3.8",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
-  },
-  "devDependencies": {
+    "react-dom": "19.2.8",
     "@types/node": "22.19.19",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.5",
-    "typescript": "5.9.3",
+    "typescript": "5.9.3"
+  },
+  "devDependencies": {
     "eslint": "9.39.4",
     "eslint-config-next": "16.3.8",
     "playwright": "1.62.1",
